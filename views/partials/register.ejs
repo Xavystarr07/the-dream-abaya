@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="<%= theme %>">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <meta name="description" content="Join The Dream Abaya — Create your account"/>
+  <title><%= title %></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Cinzel:wght@400;500&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.4/gsap.min.js"></script>
+  <style>
+    /* OTP input row */
+    .otp-row {
+      display: flex; gap: 10px; justify-content: center; margin: 18px 0 8px;
+    }
+    .otp-digit {
+      width: 48px; height: 56px; text-align: center; font-size: 1.5rem;
+      font-family: 'Cinzel', serif; letter-spacing: 0;
+      border: 1.5px solid rgba(197,160,89,.35); border-radius: 10px;
+      background: rgba(255,255,255,.04); color: var(--text-primary, #F0EDE8);
+      caret-color: #C5A059; outline: none; transition: border-color .2s, box-shadow .2s;
+    }
+    .otp-digit:focus {
+      border-color: #C5A059;
+      box-shadow: 0 0 0 3px rgba(197,160,89,.18);
+    }
+    .otp-digit.otp-filled { border-color: rgba(197,160,89,.7); }
+    .otp-resend-row {
+      display: flex; align-items: center; justify-content: center;
+      gap: 8px; margin-top: 14px; font-size: .82rem;
+      color: rgba(240,237,232,.5);
+    }
+    .otp-resend-btn {
+      background: none; border: none; cursor: pointer; padding: 0;
+      color: #C5A059; font-size: .82rem; text-decoration: underline;
+      font-family: inherit;
+    }
+    .otp-resend-btn:disabled { color: rgba(197,160,89,.4); cursor: not-allowed; text-decoration: none; }
+    .otp-countdown { color: rgba(240,237,232,.45); font-size: .8rem; }
+    .name-row { display: flex; gap: 12px; }
+    .name-row .auth-field { flex: 1; }
+    .phone-prefix {
+      position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+      color: rgba(240,237,232,.5); font-size: .9rem; pointer-events: none;
+      font-family: 'Jost', sans-serif;
+    }
+    .auth-input.has-prefix { padding-left: 48px; }
+    .auth-field { position: relative; }
+    .field-hint {
+      font-size: .72rem; margin-top: 5px; min-height: 16px;
+      transition: color .2s;
+    }
+    .field-hint.good { color: #4CAF50; }
+    .field-hint.bad  { color: #e74c3c; }
+    .field-hint.info { color: rgba(197,160,89,.7); }
+    .pw-rules { margin-top: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; }
+    .pw-rule { font-size: .72rem; display: flex; align-items: center; gap: 5px;
+      color: rgba(240,237,232,.4); transition: color .25s; }
+    .pw-rule.met { color: #4CAF50; }
+    .pw-rule::before { content: '○'; font-size: .65rem; }
+    .pw-rule.met::before { content: '✓'; }
+  </style>
+</head>
+<body class="auth-body">
+<%- include('nav') %>
+
+<main class="auth-main">
+  <div class="auth-split">
+
+    <!-- Brand Panel -->
+    <div class="auth-brand-panel">
+      <div class="auth-brand-content">
+        <div class="auth-brand-ornament">✦ ✦ ✦</div>
+        <h2 class="auth-brand-title">Join The Palace</h2>
+        <p class="auth-brand-desc">Become royalty. Get early access to new drops, exclusive discounts, and your personal wishlist.</p>
+        <div class="auth-perks">
+          <div class="auth-perk"><span>✦</span> Early access to new arrivals</div>
+          <div class="auth-perk"><span>✦</span> Save pieces to your wishlist</div>
+          <div class="auth-perk"><span>✦</span> Order tracking in one place</div>
+          <div class="auth-perk"><span>✦</span> Exclusive member discounts</div>
+        </div>
+        <div class="auth-brand-particles" id="particles"></div>
+      </div>
+    </div>
+
+    <!-- Form Panel -->
+    <div class="auth-form-panel">
+      <div class="auth-form-wrap" id="authFormWrap">
+
+        <!-- Step indicators: 1=Name, 2=Contact, 3=OTP, 4=Password -->
+        <div class="auth-step-indicator" role="progressbar" aria-valuenow="1" aria-valuemin="1" aria-valuemax="4" id="stepIndicator">
+          <div class="auth-step active" id="step-dot-1">1</div>
+          <div class="auth-step-line"></div>
+          <div class="auth-step" id="step-dot-2">2</div>
+          <div class="auth-step-line"></div>
+          <div class="auth-step" id="step-dot-3">3</div>
+          <div class="auth-step-line"></div>
+          <div class="auth-step" id="step-dot-4">✦</div>
+        </div>
+
+        <!-- ── STEP 1: Name ── -->
+        <div class="auth-step-content active" id="step1">
+          <div class="auth-step-emoji">👋</div>
+          <h3 class="auth-form-title">First, your name</h3>
+          <p class="auth-form-sub">What shall we call you, princess?</p>
+
+          <div class="name-row">
+            <div class="auth-field">
+              <label for="reg-firstname">First Name</label>
+              <input type="text" id="reg-firstname" class="auth-input"
+                placeholder="Fatima"
+                autocomplete="given-name" maxlength="50"
+                oninput="autoCapName(this)"
+              />
+              <div class="field-hint" id="hint-firstname"></div>
+            </div>
+            <div class="auth-field">
+              <label for="reg-lastname">Last Name</label>
+              <input type="text" id="reg-lastname" class="auth-input"
+                placeholder="Al-Rashid"
+                autocomplete="family-name" maxlength="50"
+                oninput="autoCapName(this)"
+              />
+              <div class="field-hint" id="hint-lastname"></div>
+            </div>
+          </div>
+          <button class="btn-royal full-width" onclick="goStep(2)" style="margin-top:18px">Continue →</button>
+        </div>
+
+        <!-- ── STEP 2: Contact ── -->
+        <div class="auth-step-content" id="step2">
+          <div class="auth-step-emoji">📧</div>
+          <h3 class="auth-form-title">Your email & number</h3>
+          <p class="auth-form-sub">We'll send a verification code to your email.</p>
+
+          <div class="auth-field">
+            <label for="reg-email">Email Address</label>
+            <input type="email" id="reg-email" class="auth-input"
+              placeholder="your@email.com"
+              autocomplete="email" inputmode="email" maxlength="254"
+              oninput="liveEmailHint(this)"
+            />
+            <div class="field-hint" id="hint-email"></div>
+          </div>
+
+          <div class="auth-field" style="margin-top:14px">
+            <label for="reg-phone">Phone Number</label>
+            <span class="phone-prefix">+27</span>
+            <input type="tel" id="reg-phone" class="auth-input has-prefix"
+              placeholder="81 234 5678"
+              autocomplete="tel" inputmode="tel" maxlength="12"
+              oninput="formatSAPhone(this)"
+            />
+            <div class="field-hint" id="hint-phone"></div>
+          </div>
+
+          <div class="auth-step-btns" style="margin-top:18px">
+            <button class="btn-ghost" onclick="goStep(1)">← Back</button>
+            <button class="btn-royal" id="sendOtpBtn" onclick="sendOtp()">Verify →</button>
+          </div>
+        </div>
+
+        <!-- ── STEP 3: OTP ── -->
+        <div class="auth-step-content" id="step3">
+          <div class="auth-step-emoji">📩</div>
+          <h3 class="auth-form-title">Check your inbox</h3>
+          <p class="auth-form-sub" id="otpSubText">We sent a 6-digit code to your email.</p>
+
+          <div class="otp-row" id="otpRow">
+            <input class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="one-time-code"/>
+            <input class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]"/>
+            <input class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]"/>
+            <input class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]"/>
+            <input class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]"/>
+            <input class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]"/>
+          </div>
+
+          <div id="otpError" class="auth-error" style="display:none; margin-top:10px"></div>
+
+          <div class="otp-resend-row">
+            <span>Didn't receive it?</span>
+            <button class="otp-resend-btn" id="resendBtn" onclick="resendOtp()" disabled>Resend code</button>
+            <span class="otp-countdown" id="otpCountdown"></span>
+          </div>
+
+          <div class="auth-step-btns" style="margin-top:18px">
+            <button class="btn-ghost" onclick="goStep(2)">← Back</button>
+            <button class="btn-royal" id="verifyOtpBtn" onclick="verifyOtp()">✦ Verify</button>
+          </div>
+        </div>
+
+        <!-- ── STEP 4: Password ── -->
+        <div class="auth-step-content" id="step4">
+          <div class="auth-step-emoji">🔐</div>
+          <h3 class="auth-form-title">Create your password</h3>
+          <p class="auth-form-sub">Make it strong. Like your character.</p>
+
+          <div class="auth-field">
+            <label for="reg-password">Password</label>
+            <div class="auth-input-wrap">
+              <input type="password" id="reg-password" class="auth-input"
+                placeholder="Min. 8 characters"
+                autocomplete="off" maxlength="128"
+                oninput="checkPwStrength(this.value)"
+                list="pw-suggestions"
+              />
+              <datalist id="pw-suggestions"></datalist>
+              <button type="button" class="auth-eye" onclick="togglePw('reg-password', this)" aria-label="Show password">👁</button>
+            </div>
+            <div class="password-strength" style="margin-top:8px">
+              <div class="pw-bar" id="pwBar" style="width:0"></div>
+              <span class="pw-label" id="pwLabel"></span>
+            </div>
+            <div class="pw-rules">
+              <div class="pw-rule" id="rule-len">At least 8 characters</div>
+              <div class="pw-rule" id="rule-upper">Uppercase letter</div>
+              <div class="pw-rule" id="rule-num">Number</div>
+              <div class="pw-rule" id="rule-sym">Special character</div>
+            </div>
+          </div>
+
+          <% if (error) { %>
+            <div class="auth-error" role="alert" style="margin-top:12px"><%= error %></div>
+          <% } %>
+
+          <!-- Hidden form submitted at end -->
+          <form id="registerForm" action="/register" method="POST" novalidate>
+            <input type="hidden" name="name"     id="hiddenName"/>
+            <input type="hidden" name="email"    id="hiddenEmail"/>
+            <input type="hidden" name="phone"    id="hiddenPhone"/>
+            <input type="hidden" name="password" id="hiddenPassword"/>
+          </form>
+
+          <div class="auth-step-btns" style="margin-top:20px">
+            <button class="btn-ghost" onclick="goStep(3)">← Back</button>
+            <button class="btn-royal" id="submitBtn" onclick="submitRegister()">✦ Enter The Palace</button>
+          </div>
+        </div>
+
+      </div>
+      <p class="auth-switch">Already a member? <a href="/login">Sign in →</a></p>
+    </div>
+  </div>
+</main>
+
+<%- include('toast') %>
+<script src="/js/main.js"></script>
+<script>
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+let currentStep = 1;
+let otpCooldown = null;
+let pwScore = 0;
+
+// ─────────────────────────────────────────────
+// NAME VALIDATION — letters, hyphens, apostrophes, spaces only
+// ─────────────────────────────────────────────
+function autoCapName(inp) {
+  // Strip disallowed chars: keep letters, spaces, hyphens, apostrophes
+  let v = inp.value.replace(/[^a-zA-Z\s\-']/g, '');
+  // Auto-capitalise each word
+  v = v.replace(/(^|\s|-)([a-z])/g, (m, p1, p2) => p1 + p2.toUpperCase());
+  if (inp.value !== v) inp.value = v;
+}
+
+function validateName(val, hintId) {
+  const hint = document.getElementById(hintId);
+  val = val.trim();
+  if (!val) { hint.textContent = ''; return false; }
+  if (val.length < 2) {
+    hint.className = 'field-hint bad';
+    hint.textContent = 'Must be at least 2 characters';
+    return false;
+  }
+  if (!/^[a-zA-Z\s\-']+$/.test(val)) {
+    hint.className = 'field-hint bad';
+    hint.textContent = 'Only letters, hyphens and apostrophes allowed';
+    return false;
+  }
+  hint.className = 'field-hint good';
+  hint.textContent = '✓ Looks good';
+  return true;
+}
+
+// ─────────────────────────────────────────────
+// EMAIL — live domain hint
+// ─────────────────────────────────────────────
+const KNOWN_DOMAINS = ['gmail.com','yahoo.com','hotmail.com','outlook.com','icloud.com',
+  'live.com','me.com','proton.me','protonmail.com','ymail.com','mail.com'];
+
+function liveEmailHint(inp) {
+  const hint = document.getElementById('hint-email');
+  const val = inp.value.trim();
+  if (!val || !val.includes('@')) { hint.textContent = ''; hint.className = 'field-hint'; return; }
+  const parts = val.split('@');
+  const domain = parts[parts.length - 1].toLowerCase();
+  if (!domain || !domain.includes('.')) {
+    hint.className = 'field-hint info';
+    hint.textContent = '⚠ Enter a complete email address';
+    return;
+  }
+  const base = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(val);
+  if (!base) {
+    hint.className = 'field-hint bad';
+    hint.textContent = '✗ Invalid email format';
+    return;
+  }
+  // Suggest close domain matches
+  const close = KNOWN_DOMAINS.find(d => d !== domain && levenshtein(domain, d) <= 2);
+  if (close) {
+    hint.className = 'field-hint info';
+    hint.textContent = `Did you mean @${close}?`;
+    return;
+  }
+  hint.className = 'field-hint good';
+  hint.textContent = '✓ Email looks valid';
+}
+
+function levenshtein(a, b) {
+  const m = a.length, n = b.length;
+  const dp = Array.from({length: m+1}, (_, i) => Array.from({length: n+1}, (_, j) => i || j));
+  for (let i = 1; i <= m; i++)
+    for (let j = 1; j <= n; j++)
+      dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1] : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+  return dp[m][n];
+}
+
+// ─────────────────────────────────────────────
+// PHONE — SA format live formatter
+// ─────────────────────────────────────────────
+function formatSAPhone(inp) {
+  // Remove everything except digits
+  let digits = inp.value.replace(/\D/g, '');
+  // Strip leading 27 or 0
+  if (digits.startsWith('27')) digits = digits.slice(2);
+  if (digits.startsWith('0'))  digits = digits.slice(1);
+  // SA mobile: 8 or 9 digits after country code, starting with 6,7,8
+  let formatted = digits.slice(0, 9);
+  // Format: XX XXX XXXX
+  if (formatted.length > 2) formatted = formatted.slice(0,2) + ' ' + formatted.slice(2);
+  if (formatted.replace(/\s/g,'').length > 5) {
+    const raw = formatted.replace(/\s/g,'');
+    formatted = raw.slice(0,2) + ' ' + raw.slice(2,5) + ' ' + raw.slice(5);
+  }
+  inp.value = formatted;
+
+  const hint = document.getElementById('hint-phone');
+  const rawLen = digits.length;
+  if (!rawLen) { hint.textContent = ''; return; }
+  if (rawLen < 9) {
+    hint.className = 'field-hint info';
+    hint.textContent = 'SA number: e.g. 81 234 5678 (9 digits)';
+  } else if (rawLen === 9 && /^[678]/.test(digits)) {
+    hint.className = 'field-hint good';
+    hint.textContent = '✓ Valid SA number';
+  } else {
+    hint.className = 'field-hint bad';
+    hint.textContent = 'Must start with 6, 7 or 8 — 9 digits total';
+  }
+}
+
+function getSAPhoneDigits() {
+  const raw = document.getElementById('reg-phone').value.replace(/\D/g,'');
+  return raw.startsWith('27') ? raw : '27' + raw;
+}
+
+function isValidSAPhone() {
+  const digits = document.getElementById('reg-phone').value.replace(/\D/g,'');
+  return digits.length === 9 && /^[678]/.test(digits);
+}
+
+// ─────────────────────────────────────────────
+// STEP NAVIGATION
+// ─────────────────────────────────────────────
+function goStep(step) {
+  // Validate current step before advancing
+  if (step > currentStep) {
+    if (currentStep === 1) {
+      const fn = document.getElementById('reg-firstname').value.trim();
+      const ln = document.getElementById('reg-lastname').value.trim();
+      if (!validateName(fn, 'hint-firstname') | !validateName(ln, 'hint-lastname')) {
+        showToast('Please enter your full name 👑', 'error'); return;
+      }
+    }
+    if (currentStep === 2) {
+      // handled by sendOtp()
+      return;
+    }
+    if (currentStep === 3) {
+      // handled by verifyOtp()
+      return;
+    }
+  }
+
+  switchStep(step);
+}
+
+function switchStep(step) {
+  document.getElementById(`step${currentStep}`).classList.remove('active');
+  document.getElementById(`step-dot-${currentStep}`)?.classList.remove('active');
+  currentStep = step;
+  document.getElementById(`step${currentStep}`).classList.add('active');
+  document.getElementById(`step-dot-${currentStep}`)?.classList.add('active');
+  gsap.fromTo(`#step${currentStep}`, {opacity:0, x:28}, {opacity:1, x:0, duration:.36, ease:'power3.out'});
+  setTimeout(() => {
+    const first = document.querySelector(`#step${currentStep} input:not([type=hidden])`);
+    first?.focus();
+  }, 120);
+}
+
+// ─────────────────────────────────────────────
+// SEND OTP
+// ─────────────────────────────────────────────
+async function sendOtp() {
+  const email = document.getElementById('reg-email').value.trim();
+  const hint  = document.getElementById('hint-email');
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+    hint.className = 'field-hint bad';
+    hint.textContent = '✗ Enter a valid email address';
+    showToast('Please enter a valid email 📧', 'error'); return;
+  }
+  if (!isValidSAPhone()) {
+    document.getElementById('hint-phone').className = 'field-hint bad';
+    document.getElementById('hint-phone').textContent = 'Valid SA phone required (e.g. 81 234 5678)';
+    showToast('Please enter a valid SA phone number 📱', 'error'); return;
+  }
+
+  const btn = document.getElementById('sendOtpBtn');
+  btn.disabled = true; btn.textContent = 'Sending…';
+
+  try {
+    const res = await fetch('/auth/send-otp', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+
+    if (data.ok || data.success) {
+      document.getElementById('otpSubText').textContent = `Code sent to ${email}`;
+      switchStep(3);
+      startOtpCooldown(60);
+    } else {
+      showToast(data.message || 'Could not send code. Try again.', 'error');
+      btn.disabled = false; btn.textContent = 'Verify →';
+    }
+  } catch(e) {
+    showToast('Network error — please try again', 'error');
+    btn.disabled = false; btn.textContent = 'Verify →';
+  }
+}
+
+async function resendOtp() {
+  const email = document.getElementById('reg-email').value.trim();
+  document.getElementById('resendBtn').disabled = true;
+  document.getElementById('otpError').style.display = 'none';
+  // Clear digits
+  document.querySelectorAll('.otp-digit').forEach(d => { d.value=''; d.classList.remove('otp-filled'); });
+
+  try {
+    const res = await fetch('/auth/send-otp', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      showToast('New code sent! Check your inbox 📩', 'success');
+      startOtpCooldown(60);
+      document.querySelector('.otp-digit')?.focus();
+    } else {
+      showToast(data.message || 'Could not resend. Try again.', 'error');
+      document.getElementById('resendBtn').disabled = false;
+    }
+  } catch(e) {
+    showToast('Network error', 'error');
+    document.getElementById('resendBtn').disabled = false;
+  }
+}
+
+function startOtpCooldown(secs) {
+  clearInterval(otpCooldown);
+  const btn = document.getElementById('resendBtn');
+  const cd  = document.getElementById('otpCountdown');
+  btn.disabled = true;
+  let rem = secs;
+  cd.textContent = `(${rem}s)`;
+  otpCooldown = setInterval(() => {
+    rem--;
+    if (rem <= 0) {
+      clearInterval(otpCooldown);
+      btn.disabled = false;
+      cd.textContent = '';
+    } else {
+      cd.textContent = `(${rem}s)`;
+    }
+  }, 1000);
+}
+
+// ─────────────────────────────────────────────
+// OTP — verify
+// ─────────────────────────────────────────────
+async function verifyOtp() {
+  const digits = [...document.querySelectorAll('.otp-digit')].map(d => d.value).join('');
+  const errEl  = document.getElementById('otpError');
+  if (digits.length < 6) {
+    errEl.textContent = 'Please enter the full 6-digit code';
+    errEl.style.display = 'block'; return;
+  }
+  errEl.style.display = 'none';
+
+  const email = document.getElementById('reg-email').value.trim();
+  const btn   = document.getElementById('verifyOtpBtn');
+  btn.disabled = true; btn.textContent = 'Verifying…';
+
+  try {
+    const res = await fetch('/auth/verify-otp', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ email, otp: digits })
+    });
+    const data = await res.json();
+    if (data.ok || data.success) {
+      clearInterval(otpCooldown);
+      showToast('Email verified! ✦', 'success');
+      switchStep(4);
+    } else {
+      errEl.textContent = data.message || 'Incorrect code. Please try again.';
+      errEl.style.display = 'block';
+      // Shake the boxes
+      gsap.fromTo('#otpRow', {x:-8},{x:0, duration:.4, ease:'elastic.out(1,.4)'});
+      document.querySelector('.otp-digit')?.select();
+    }
+  } catch(e) {
+    errEl.textContent = 'Network error — please try again';
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = '✦ Verify';
+  }
+}
+
+// ─────────────────────────────────────────────
+// PASSWORD STRENGTH
+// ─────────────────────────────────────────────
+function checkPwStrength(v) {
+  const rules = {
+    'rule-len':   v.length >= 8,
+    'rule-upper': /[A-Z]/.test(v),
+    'rule-num':   /[0-9]/.test(v),
+    'rule-sym':   /[^A-Za-z0-9]/.test(v)
+  };
+  pwScore = Object.values(rules).filter(Boolean).length;
+  Object.entries(rules).forEach(([id, met]) => {
+    document.getElementById(id)?.classList.toggle('met', met);
+  });
+  const bar   = document.getElementById('pwBar');
+  const label = document.getElementById('pwLabel');
+  const colors = ['','#e74c3c','#e67e22','#f1c40f','#2ecc71'];
+  const labels = ['','Weak','Fair','Good','Strong'];
+  bar.style.width      = (pwScore * 25) + '%';
+  bar.style.background = colors[pwScore];
+  label.textContent    = labels[pwScore];
+}
+
+// ─────────────────────────────────────────────
+// FINAL SUBMIT
+// ─────────────────────────────────────────────
+function submitRegister() {
+  // Allow score 3 (Good) or 4 (Strong) — don't block a genuinely strong password
+  if (pwScore < 3) {
+    showToast('Please create a stronger password 🔐 — add uppercase, numbers or symbols', 'error'); return;
+  }
+  const pw = document.getElementById('reg-password').value;
+  const fn = document.getElementById('reg-firstname').value.trim();
+  const ln = document.getElementById('reg-lastname').value.trim();
+
+  document.getElementById('hiddenName').value     = fn + ' ' + ln;
+  document.getElementById('hiddenEmail').value    = document.getElementById('reg-email').value.trim();
+  document.getElementById('hiddenPhone').value    = getSAPhoneDigits();
+  document.getElementById('hiddenPassword').value = pw;
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = 'Creating account…';
+  document.getElementById('registerForm').submit();
+}
+
+// ─────────────────────────────────────────────
+// OTP INPUT — auto-advance, paste support
+// ─────────────────────────────────────────────
+document.querySelectorAll('.otp-digit').forEach((inp, i, all) => {
+  inp.addEventListener('input', e => {
+    // Allow only digits
+    inp.value = inp.value.replace(/\D/g,'').slice(-1);
+    inp.classList.toggle('otp-filled', !!inp.value);
+    if (inp.value && i < all.length - 1) all[i+1].focus();
+  });
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Backspace' && !inp.value && i > 0) {
+      all[i-1].focus(); all[i-1].value = ''; all[i-1].classList.remove('otp-filled');
+    }
+  });
+  inp.addEventListener('paste', e => {
+    e.preventDefault();
+    const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g,'');
+    [...pasted.slice(0,6)].forEach((ch, j) => {
+      if (all[j]) { all[j].value = ch; all[j].classList.add('otp-filled'); }
+    });
+    all[Math.min(pasted.length, all.length - 1)].focus();
+  });
+});
+
+// ─────────────────────────────────────────────
+// ENTER KEY
+// ─────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  if (currentStep === 1) goStep(2);
+  else if (currentStep === 2) sendOtp();
+  else if (currentStep === 3) verifyOtp();
+  else if (currentStep === 4) submitRegister();
+});
+
+// ─────────────────────────────────────────────
+// MISC
+// ─────────────────────────────────────────────
+function togglePw(id, btn) {
+  const inp = document.getElementById(id);
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  btn.textContent = inp.type === 'password' ? '👁' : '🙈';
+}
+
+// ── Randomised password suggestions ─────────────────────────
+(function generatePwSuggestions() {
+  const adj   = ['Royal','Golden','Velvet','Silk','Pearl','Crystal','Lunar','Mystic','Amber','Ivory','Azure','Regal','Sacred','Divine','Noble'];
+  const nouns = ['Abaya','Palace','Princess','Crown','Jewel','Sceptre','Throne','Garden','Petal','Crescent','Falcon','Gazelle','Blossom','Ember','Prism'];
+  const nums  = () => String(Math.floor(10 + Math.random() * 90));
+  const syms  = ['!','@','#','$','*','&'];
+  const sym   = () => syms[Math.floor(Math.random() * syms.length)];
+  const pick  = arr => arr[Math.floor(Math.random() * arr.length)];
+  const suggestions = [];
+  while (suggestions.length < 6) {
+    const candidate = pick(adj) + pick(nouns) + nums() + sym();
+    if (!suggestions.includes(candidate)) suggestions.push(candidate);
+  }
+  const dl = document.getElementById('pw-suggestions');
+  if (dl) suggestions.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s; dl.appendChild(opt);
+  });
+})();
+
+gsap.from('#authFormWrap', { opacity:0, y:35, duration:.8, ease:'power3.out', delay:.2 });
+
+const panel = document.getElementById('particles');
+if (panel) {
+  for (let i = 0; i < 12; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*100}%;animation-delay:${Math.random()*4}s;animation-duration:${3+Math.random()*4}s`;
+    panel.appendChild(p);
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="<%= theme %>">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title><%= title %></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Cinzel:wght@400;500;600&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.4/gsap.min.js"></script>
+  <script src="https://js.yoco.com/sdk/v1/yoco-sdk-web.js"></script>
+  <style>
+    .yoco-modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.9);
+      z-index: 9990; display: none; align-items: center; justify-content: center; padding: 16px;
+    }
+    .yoco-modal-overlay.open { display: flex; }
+    .yoco-modal {
+      background: #0D1117; border: 1px solid rgba(197,160,89,.25);
+      max-width: 480px; width: 100%; position: relative; padding: 2rem 2rem 1.5rem;
+      font-family: 'Jost', sans-serif; animation: ymodalIn .3s ease;
+    }
+    @keyframes ymodalIn { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:none; } }
+    .yoco-modal-close { position:absolute; top:.9rem; right:.9rem; background:none; border:none; color:rgba(232,229,224,.3); font-size:1.1rem; cursor:pointer; transition:color .2s; }
+    .yoco-modal-close:hover { color: #E8E5E0; }
+    .yoco-modal-title { font-family:'Cinzel',serif; font-size:1rem; letter-spacing:.25em; color:#C5A059; margin-bottom:.3rem; text-transform:uppercase; }
+    .yoco-modal-ornament { font-size:.6rem; letter-spacing:.4em; color:rgba(197,160,89,.4); margin-bottom:1.4rem; }
+    .yoco-summary-box { background:rgba(197,160,89,.06); border:1px solid rgba(197,160,89,.15); padding:12px 16px; margin-bottom:1.2rem; }
+    .yoco-summary-row { display:flex; justify-content:space-between; font-size:.78rem; margin-bottom:4px; color:rgba(232,229,224,.6); }
+    .yoco-summary-row strong { color:#F0EDE8; }
+    .yoco-summary-total { display:flex; justify-content:space-between; font-size:1rem; margin-top:8px; padding-top:8px; border-top:1px solid rgba(197,160,89,.15); }
+    .yoco-summary-total span { color:#C5A059; font-weight:500; }
+    #cart-yoco-frame { min-height:110px; margin:.8rem 0; background:rgba(255,255,255,.03); border:1px solid rgba(197,160,89,.2); padding:10px; }
+    .ym-error { color:#e74c3c; font-size:.75rem; min-height:18px; margin-bottom:.5rem; }
+    .ym-secure { font-size:.65rem; color:rgba(240,237,232,.25); text-align:center; margin-top:.6rem; letter-spacing:.06em; }
+  </style>
+</head>
+<body>
+<%- include('nav') %>
+
+<header class="vault-header">
+  <div class="vault-header-inner">
+    <div class="section-badge">🛍</div>
+    <h1 class="vault-title">Shopping Cart</h1>
+    <p class="vault-subtitle"><%= cart.length %> item<%= cart.length !== 1 ? 's' : '' %></p>
+  </div>
+</header>
+
+<main class="cart-main">
+  <% if (cart.length > 0) { %>
+    <div class="cart-layout">
+
+      <!-- LEFT: Details + Items -->
+      <div class="cart-left-col">
+
+        <div class="checkout-block" id="checkoutBlock">
+          <div class="checkout-block-header">
+            <span class="checkout-step-num">1</span>
+            <h3>Your Details</h3>
+            <p>Fill in your delivery info before checkout</p>
+          </div>
+          <div class="checkout-form">
+            <div class="checkout-row">
+              <div class="checkout-field">
+                <label>Full Name *</label>
+                <input type="text" id="co_name" class="auth-input" placeholder="Fatima Al-Rashid"
+                  value="<%= user ? user.name : '' %>" required maxlength="100"/>
+              </div>
+              <div class="checkout-field">
+                <label>Phone Number *</label>
+                <input type="tel" id="co_phone" class="auth-input" placeholder="+27 000 000 0000"
+                  value="<%= user && user.phone ? user.phone : '' %>" required inputmode="tel"/>
+              </div>
+            </div>
+            <div class="checkout-field">
+              <label>Email Address *</label>
+              <input type="email" id="co_email" class="auth-input" placeholder="your@email.com"
+                value="<%= user ? user.email : '' %>" required inputmode="email" maxlength="254"/>
+            </div>
+            <div class="checkout-field">
+              <label>Delivery Address *</label>
+              <textarea id="co_address" class="auth-input auth-textarea" placeholder="14 Rose Street, Cape Town, 8001&#10;Include suburb &amp; postal code" rows="3" required></textarea>
+            </div>
+            <div class="checkout-field">
+              <label>Special Notes <span style="color:var(--t3)">(optional)</span></label>
+              <input type="text" id="co_notes" class="auth-input" placeholder="e.g. gift wrapping, colour preference..."/>
+            </div>
+          </div>
+        </div>
+
+        <div class="checkout-block">
+          <div class="checkout-block-header">
+            <span class="checkout-step-num">2</span>
+            <h3>Your Items</h3>
+            <p>Review and adjust quantities</p>
+          </div>
+          <div class="cart-items">
+            <% cart.forEach(function(item) { %>
+              <div class="cart-item" data-id="<%= item.id %>" data-size="<%= item.size || '' %>" data-max="<%= item.stock_qty || 99 %>">
+                <div class="cart-item-img">
+                  <% if (item.image_url) { %>
+                    <img src="<%= item.image_url %>" alt="<%= item.name %>" loading="lazy"/>
+                  <% } else { %>
+                    <div class="cart-item-placeholder">✦</div>
+                  <% } %>
+                </div>
+                <div class="cart-item-info">
+                  <a href="/product/<%= item.id %>" class="cart-item-name"><%= item.name %></a>
+                  <% if (item.size)  { %><span class="cart-item-size">Size: <%= item.size %></span><% } %>
+                  <% if (item.color && item.color !== 'undefined') { %><span class="cart-item-size">Colour: <%= item.color %></span><% } %>
+                  <span class="cart-item-price">R<%= Number(item.price).toLocaleString('en-ZA') %> each</span>
+                  <% if (item.stock_qty) { %>
+                    <span class="stock-indicator <%= item.stock_qty <= 3 ? 'low-stock' : 'in-stock-badge' %>">
+                      <%= item.stock_qty <= 3 ? `Only ${item.stock_qty} left!` : `${item.stock_qty} in stock` %>
+                    </span>
+                  <% } %>
+                </div>
+                <div class="cart-item-qty">
+                  <button onclick="changeQty('<%= item.id %>', '<%= item.size || '' %>', -1)" aria-label="Decrease">−</button>
+                  <span class="qty-display"><%= item.qty %></span>
+                  <button onclick="changeQty('<%= item.id %>', '<%= item.size || '' %>', 1)" aria-label="Increase">+</button>
+                </div>
+                <div class="cart-item-subtotal">R<%= Number(item.price * item.qty).toLocaleString('en-ZA') %></div>
+                <button class="cart-item-remove" onclick="removeItem('<%= item.id %>', '<%= item.size || '' %>', this)" aria-label="Remove item">✕</button>
+              </div>
+            <% }); %>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Summary + Checkout -->
+      <div class="cart-summary">
+        <h3>Order Summary</h3>
+        <div class="cart-summary-lines">
+          <% cart.forEach(function(item) { %>
+            <div class="cart-summary-line">
+              <span><%= item.name %> <small>x<%= item.qty %></small></span>
+              <span>R<%= Number(item.price * item.qty).toLocaleString('en-ZA') %></span>
+            </div>
+          <% }); %>
+        </div>
+        <div class="cart-summary-divider"></div>
+        <div class="cart-summary-line"><span>Subtotal</span><span>R<%= Number(total).toLocaleString('en-ZA') %></span></div>
+        <div class="cart-summary-line"><span>Shipping</span><span class="text-gold">Calculated on order</span></div>
+        <div class="cart-summary-total"><span>Total</span><span>R<%= Number(total).toLocaleString('en-ZA') %></span></div>
+
+        <button class="btn-royal full-width" id="cartCheckoutBtn" onclick="openCartPayment()">
+          🔒 Proceed to Checkout
+        </button>
+        <a href="/vault" class="btn-ghost full-width" style="margin-top:.75rem">Continue Shopping</a>
+        <div class="cart-trust">
+          <span>🔒 Secure &amp; Private</span>
+          <span>✦ Handcrafted Quality</span>
+          <span>📦 5–7 Day Delivery</span>
+        </div>
+      </div>
+    </div>
+
+  <% } else { %>
+    <div class="empty-state">
+      <span>🛍</span>
+      <h3>Your cart is empty</h3>
+      <p>Let the palace fill it.</p>
+      <a href="/vault" class="btn-royal" style="margin-top:.5rem">Explore The Vault</a>
+    </div>
+  <% } %>
+</main>
+
+<%- include('footer') %>
+<%- include('toast') %>
+
+<!-- Yoco Payment Modal -->
+<div class="yoco-modal-overlay" id="cartPayModal" onclick="if(event.target===this)closeCartPayment()">
+  <div class="yoco-modal">
+    <button class="yoco-modal-close" onclick="closeCartPayment()">✕</button>
+    <div class="yoco-modal-title">Secure Checkout</div>
+    <div class="yoco-modal-ornament">✦ &nbsp; ✦ &nbsp; ✦</div>
+
+    <div class="yoco-summary-box">
+      <% cart.forEach(function(item) { %>
+        <div class="yoco-summary-row">
+          <span><%= item.name %><% if(item.size){ %> · <%= item.size %><% } %> ×<%= item.qty %></span>
+          <strong>R<%= Number(item.price * item.qty).toLocaleString('en-ZA') %></strong>
+        </div>
+      <% }); %>
+      <div class="yoco-summary-total">
+        <span style="color:rgba(232,229,224,.6)">Total</span>
+        <span>R<%= Number(total).toLocaleString('en-ZA') %></span>
+      </div>
+    </div>
+
+    <div style="font-size:.72rem;color:rgba(232,229,224,.4);margin-bottom:1rem" id="ymDeliveryPreview"></div>
+
+    <div style="font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(232,229,224,.35);margin-bottom:5px">Card Details</div>
+    <div id="cart-yoco-frame"></div>
+
+    <div class="ym-error" id="cartPayError"></div>
+
+    <button class="btn-royal" style="width:100%" id="cartPayBtn" onclick="submitCartPayment()">
+      ✦ Pay R<%= Number(total).toLocaleString('en-ZA') %>
+    </button>
+    <p class="ym-secure">🔒 Secured by Yoco · South African payment gateway</p>
+  </div>
+</div>
+
+<script src="/js/main.js"></script>
+<script>
+  window.YOCO_PUBLIC_KEY = '<%= locals.YOCO_PUBLIC_KEY || "pk_test_ed3c54a6gOol69qa7f45" %>';
+  const CART_TOTAL = <%= total %>;
+  const CART_ITEMS = <%- JSON.stringify(cart.map(i => ({
+    id: i.id, name: i.name, size: i.size||'', color: i.color||'', qty: i.qty, price: i.price
+  }))) %>;
+
+  let cartYocoSDK = null, cartYocoFrame = null;
+
+  function changeQty(id, size, delta) {
+    const item    = document.querySelector(`.cart-item[data-id="${id}"][data-size="${size}"]`);
+    const display = item.querySelector('.qty-display');
+    const max     = parseInt(item.dataset.max) || 99;
+    const cur     = parseInt(display.textContent);
+    if (delta > 0 && cur >= max) { showToast('Only ' + max + ' left in stock', 'error'); return; }
+    fetch('/cart/update', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ product_id: id, size, qty: Math.max(1, Math.min(cur + delta, max)) })
+    }).then(() => location.reload());
+  }
+
+  function removeItem(id, size, btn) {
+    fetch('/cart/remove', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ product_id: id, size })
+    }).then(() => {
+      gsap.to(btn.closest('.cart-item'), { opacity:0, height:0, marginBottom:0, duration:0.4, onComplete: () => location.reload() });
+    });
+  }
+
+  function openCartPayment() {
+    const name    = document.getElementById('co_name')?.value.trim();
+    const phone   = document.getElementById('co_phone')?.value.trim();
+    const email   = document.getElementById('co_email')?.value.trim();
+    const address = document.getElementById('co_address')?.value.trim();
+
+    if (!name)    { showToast('Please enter your name', 'error');             document.getElementById('co_name').focus();    return; }
+    if (!phone)   { showToast('Please enter your phone number', 'error');     document.getElementById('co_phone').focus();   return; }
+    if (!email)   { showToast('Please enter your email', 'error');            document.getElementById('co_email').focus();   return; }
+    if (!address) { showToast('Please enter your delivery address', 'error'); document.getElementById('co_address').focus(); return; }
+
+    document.getElementById('ymDeliveryPreview').innerHTML =
+      'Delivering to <strong style="color:#F0EDE8">' + name + '</strong> &nbsp;·&nbsp; ' + address.split('\n')[0];
+
+    document.getElementById('cartPayModal').classList.add('open');
+    document.getElementById('cartPayError').textContent = '';
+
+    if (!cartYocoSDK) {
+      cartYocoSDK   = new window.YocoSDK({ publicKey: window.YOCO_PUBLIC_KEY });
+      cartYocoFrame = cartYocoSDK.inline({
+        containerId: 'cart-yoco-frame',
+        layout: 'field',
+        style: { variables: {
+          colorPrimary: '#C5A059', colorBackground: 'rgba(255,255,255,0.04)',
+          colorText: '#F0EDE8', colorTextSecondary: 'rgba(240,237,232,0.5)',
+          fontFamily: 'Jost, sans-serif'
+        }}
+      });
+    }
+  }
+
+  function closeCartPayment() { document.getElementById('cartPayModal').classList.remove('open'); }
+
+  async function submitCartPayment() {
+    const name    = document.getElementById('co_name').value.trim();
+    const phone   = document.getElementById('co_phone').value.trim();
+    const email   = document.getElementById('co_email').value.trim();
+    const address = document.getElementById('co_address').value.trim();
+    const notes   = document.getElementById('co_notes')?.value.trim() || '';
+    const errEl   = document.getElementById('cartPayError');
+    const btn     = document.getElementById('cartPayBtn');
+
+    btn.disabled = true; btn.textContent = 'Processing…';
+    errEl.textContent = '';
+
+    try {
+      const result = await cartYocoFrame.createToken();
+      if (result.error) {
+        errEl.textContent = result.error.message;
+        btn.disabled = false; btn.textContent = 'Pay R' + CART_TOTAL.toLocaleString('en-ZA');
+        return;
+      }
+
+      const res  = await fetch('/payment/cart-checkout', {
+        method: 'POST', credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token: result.id,
+          amountCents: Math.round(CART_TOTAL * 100),
+          items: CART_ITEMS,
+          customer_name:    name,
+          customer_email:   email,
+          customer_phone:   phone,
+          delivery_address: address,
+          notes,
+        })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        closeCartPayment();
+        showToast('Payment successful! Order confirmed ✦', 'success');
+        setTimeout(() => window.location.href = '/track', 2200);
+      } else {
+        errEl.textContent = data.message || 'Payment failed. Please try again.';
+        btn.disabled = false; btn.textContent = 'Pay R' + CART_TOTAL.toLocaleString('en-ZA');
+      }
+    } catch(e) {
+      errEl.textContent = 'Network error. Please check your connection.';
+      btn.disabled = false; btn.textContent = 'Pay R' + CART_TOTAL.toLocaleString('en-ZA');
+    }
+  }
+
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCartPayment(); });
+  gsap.from('.cart-item',      { opacity:0, y:18, duration:0.5, stagger:0.07, ease:'power3.out', delay:0.25 });
+  gsap.from('.checkout-block', { opacity:0, y:25, duration:0.6, stagger:0.12, ease:'power3.out', delay:0.15 });
+</script>
+</body>
+</html>

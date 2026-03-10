@@ -1,0 +1,13 @@
+# Secrets
+.env
+env
+
+# Dependencies
+node_modules/
+
+# Database / SQL
+schema_FINAL.sql
+schema_additions.sql
+
+# System files
+.DS_Store

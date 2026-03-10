@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title><%= title %></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400&family=Cinzel:wght@400;500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <link rel="stylesheet" href="/css/admin.css"/>
+</head>
+<body class="admin-body">
+
+<aside class="admin-sidebar">
+  <div class="admin-sidebar-logo">✦ Admin</div>
+  <nav class="admin-nav">
+    <a href="#tab-products" class="admin-nav-link active" onclick="showTab('products',event)">📦 Products</a>
+    <a href="#tab-orders"   class="admin-nav-link"        onclick="showTab('orders',event)">🚚 Orders</a>
+    <a href="#tab-users"    class="admin-nav-link"         onclick="showTab('users',event)">👥 Users</a>
+    <a href="#tab-add"      class="admin-nav-link"         onclick="showTab('add',event)">➕ Add Product</a>
+    <a href="#tab-discounts" class="admin-nav-link"         onclick="showTab('discounts',event)">🏷 Discounts</a>
+  </nav>
+  <a href="/" class="admin-back-link">← Back to Store</a>
+</aside>
+
+<main class="admin-main">
+  <% if (locals.query && locals.query.success) { %>
+    <div class="admin-success-banner"><%= locals.query.success %></div>
+  <% } %>
+
+  <!-- ── PRODUCTS TAB ───────────────────────────────────── -->
+  <section class="admin-tab active" id="tab-products">
+    <div class="admin-tab-header">
+      <h2>All Products (<%= products.length %>)</h2>
+    </div>
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr><th>Image</th><th>Name</th><th>Price</th><th>Category</th><th>Stock</th><th>Featured</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+          <% products.forEach(p => { %>
+            <tr>
+              <td><% if(p.image_url){ %><img src="<%= p.image_url %>" class="admin-thumb"/><% }else{ %><span class="admin-no-img">✦</span><% } %></td>
+              <td class="admin-product-name"><%= p.name %></td>
+              <td>R<%= Number(p.price).toLocaleString('en-ZA') %></td>
+              <td><span class="admin-badge"><%= p.category %></span></td>
+              <td>
+                <span class="<%= p.in_stock ? 'admin-in-stock' : 'admin-out-stock' %>">
+                  <%= p.in_stock ? (p.stock_qty !== undefined ? '✓ '+p.stock_qty : '✓') : '✗ Out' %>
+                </span>
+              </td>
+              <td><%= p.is_featured ? '⭐' : '—' %></td>
+              <td class="admin-actions">
+                <button class="admin-btn-edit"
+                  onclick="openEdit('<%= encodeURIComponent(JSON.stringify({...p, discounts: p.discounts||[], variantStock: p.variantStock||{}})) %>')">
+                  Edit
+                </button>
+                <form action="/admin/products/delete/<%= p.id %>" method="POST" style="display:inline"
+                      onsubmit="return confirm('Delete <%= p.name.replace(/'/g,"\\'") %>?')">
+                  <button type="submit" class="admin-btn-del">Delete</button>
+                </form>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ── ORDERS TAB ────────────────────────────────────── -->
+  <section class="admin-tab" id="tab-orders">
+    <div class="admin-tab-header"><h2>Recent Orders (<%= orders.length %>)</h2></div>
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr><th>Order ID</th><th>Customer</th><th>Total</th><th>Status</th><th>Payment</th><th>Date</th><th>Update</th></tr>
+        </thead>
+        <tbody>
+          <% orders.forEach(o => { %>
+            <tr>
+              <td><strong><%= o.id %></strong></td>
+              <td><%= o.customer_name %></td>
+              <td>R<%= Number(o.total_price).toLocaleString('en-ZA') %></td>
+              <td><span class="admin-badge status-<%= (o.status||'').toLowerCase().replace(/ /g,'-') %>"><%= o.status %></span></td>
+              <td><span class="admin-badge <%= o.payment_status==='paid'?'status-shipped':'' %>"><%= o.payment_status||'unpaid' %></span></td>
+              <td><%= new Date(o.created_at).toLocaleDateString('en-ZA') %></td>
+              <td>
+                <form action="/admin/orders/update/<%= o.id %>" method="POST" style="display:flex;gap:6px">
+                  <select name="status" class="admin-select">
+                    <% ['Pending','Confirmed','In Production','Shipped','Delivered'].forEach(s => { %>
+                      <option value="<%= s %>" <%= o.status === s ? 'selected' : '' %>><%= s %></option>
+                    <% }); %>
+                  </select>
+                  <button type="submit" class="admin-btn-edit">Save</button>
+                </form>
+              </td>
+            </tr>
+          <% }); %>
+          <% if (!orders.length) { %><tr><td colspan="7" class="admin-empty">No orders yet</td></tr><% } %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ── USERS TAB ─────────────────────────────────────── -->
+  <section class="admin-tab" id="tab-users">
+    <div class="admin-tab-header"><h2>Registered Users (<%= users.length %>)</h2></div>
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Joined</th><th>Admin</th><th>Status</th></tr></thead>
+        <tbody>
+          <% users.forEach(u => { %>
+            <tr>
+              <td><%= u.name %></td>
+              <td><%= u.email %></td>
+              <td><%= u.phone||'—' %></td>
+              <td><%= new Date(u.created_at).toLocaleDateString('en-ZA') %></td>
+              <td><%= u.is_admin ? '✓ Admin' : '—' %></td>
+              <td><span class="admin-badge"><%= u.status||'active' %></span></td>
+            </tr>
+          <% }); %>
+          <% if (!users.length) { %><tr><td colspan="6" class="admin-empty">No users yet</td></tr><% } %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ── ADD PRODUCT TAB ───────────────────────────────── -->
+  <section class="admin-tab" id="tab-add">
+    <div class="admin-tab-header"><h2>Add New Product</h2></div>
+    <form action="/admin/products/create" method="POST" class="admin-form" id="add-product-form"
+      onsubmit="pfSync_add()">
+      <%- include('product-form', { p: null }) %>
+      <button type="submit" class="btn-royal" style="margin-top:1rem">✦ Create Product</button>
+    </form>
+  </section>
+
+  <!-- ── DISCOUNTS TAB ─────────────────────────────────── -->
+  <section class="admin-tab" id="tab-discounts">
+    <div class="admin-tab-header">
+      <h2>Discounts</h2>
+      <button class="admin-btn-edit" onclick="discOpenForm()">+ New Discount</button>
+    </div>
+
+    <!-- Active discounts table -->
+    <div class="admin-table-wrap" id="disc-table-wrap">
+      <table class="admin-table" id="disc-table">
+        <thead>
+          <tr><th>Product</th><th>Size</th><th>Color</th><th>% Off</th><th>Starts</th><th>Ends</th><th>Status</th><th>Actions</th></tr>
+        </thead>
+        <tbody id="disc-tbody">
+          <tr><td colspan="8" class="admin-empty">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Discount Form Modal -->
+  <div id="discModal" class="admin-modal">
+    <div class="admin-modal-inner" style="max-width:560px">
+      <button class="admin-modal-close" onclick="discCloseForm()">✕</button>
+      <h3 class="admin-modal-title" id="discModalTitle">New Discount</h3>
+
+      <div class="admin-field">
+        <label>Product *</label>
+        <select id="disc-product" class="admin-input" onchange="discLoadVariants()">
+          <option value="">— Select a product —</option>
+          <% products.forEach(p => { %>
+            <option value="<%= p.id %>" data-sizes='<%= JSON.stringify(Array.isArray(p.sizes)?p.sizes:(p.sizes||"").split(",").map(s=>s.trim())) %>' data-colors='<%= JSON.stringify(Array.isArray(p.colors)?p.colors:(p.colors||"").split(",").map(c=>c.trim())) %>'><%= p.name %></option>
+          <% }); %>
+        </select>
+      </div>
+
+      <div class="admin-field-row">
+        <div class="admin-field">
+          <label>Size <span style="color:rgba(232,229,224,.35)">(blank = all sizes)</span></label>
+          <select id="disc-size" class="admin-input">
+            <option value="">All Sizes</option>
+          </select>
+        </div>
+        <div class="admin-field">
+          <label>Color <span style="color:rgba(232,229,224,.35)">(blank = all colors)</span></label>
+          <select id="disc-color" class="admin-input">
+            <option value="">All Colors</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="admin-field">
+        <label>% Off *</label>
+        <input type="number" id="disc-pct" class="admin-input" min="1" max="99" placeholder="e.g. 20"/>
+      </div>
+
+      <div class="admin-field-row">
+        <div class="admin-field">
+          <label>Starts</label>
+          <input type="datetime-local" id="disc-starts" class="admin-input"/>
+        </div>
+        <div class="admin-field">
+          <label>Ends *</label>
+          <input type="datetime-local" id="disc-ends" class="admin-input"/>
+        </div>
+      </div>
+
+      <div id="disc-stock-preview" style="display:none;margin-bottom:1rem;padding:12px;background:rgba(197,160,89,.06);border:1px solid rgba(197,160,89,.15);font-size:.78rem;color:rgba(232,229,224,.6)">
+        Stock for this variant: <strong id="disc-stock-val" style="color:#C5A059">—</strong>
+      </div>
+
+      <div id="disc-form-error" style="color:#e74c3c;font-size:.78rem;min-height:20px;margin-bottom:10px"></div>
+      <input type="hidden" id="disc-id"/>
+
+      <div style="display:flex;gap:10px">
+        <button class="btn-royal" style="flex:1" onclick="discSave()">✦ Save Discount</button>
+        <button class="admin-btn-edit" onclick="discCloseForm()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ── Edit Product Modal ──────────────────────────────── -->
+<div id="editModal" class="admin-modal">
+  <div class="admin-modal-inner" style="max-width:800px">
+    <button class="admin-modal-close" onclick="closeEdit()">✕</button>
+    <h3 class="admin-modal-title">Edit Product</h3>
+    <form id="editForm" method="POST" class="admin-form" onsubmit="pfSync_edit()">
+      <div id="editFormFields">
+        <%# Populated dynamically by openEdit() — see script below %>
+      </div>
+      <button type="submit" class="btn-royal" style="margin-top:1rem">✦ Save Changes</button>
+    </form>
+  </div>
+</div>
+
+<%
+// Make colorToHex available for product-form.ejs includes
+function colorToHex(colorName) {
+  const map = {
+    'black':'#000000','midnight black':'#101820','white':'#ffffff','ivory white':'#FFFFF0',
+    'ivory':'#FFFFF0','champagne gold':'#C5A059','gold':'#C5A059','champagne':'#F7E7CE',
+    'dusty rose':'#DCAE96','blush':'#F9CADA','blush ivory':'#FFF5EE','navy':'#001F5B',
+    'midnight navy':'#001F5B','forest emerald':'#1C6B4A','sage green':'#8FAF7E',
+    'ecru':'#C2B280','sand':'#C2A97D','chalk white':'#F8F8F0','charcoal':'#3C3C3C',
+    'plum':'#7B2D8B','forest green':'#228B22','caramel':'#C67946','olive':'#5D6914',
+    'oatmeal':'#D6C7A8','terracotta':'#C25E3C','french blue':'#4F6D8E','rose':'#FF007F',
+    'antique white':'#FAEBD7','grey':'#808080','n/a':'#555555'
+  };
+  return map[(colorName||'').toLowerCase()] || '#C5A059';
+}
+%>
+
+<script>
+  function showTab(name, e) {
+    if (e) e.preventDefault();
+    document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.admin-nav-link').forEach(l => l.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    if (e) e.currentTarget.classList.add('active');
+  }
+
+  // ── Edit Modal ─────────────────────────────────────────
+  // We server-render a hidden edit form container. When edit is clicked,
+  // we swap it into the modal via AJAX to get the full product-form template.
+  async function openEdit(encodedProduct) {
+    const p = JSON.parse(decodeURIComponent(encodedProduct));
+    document.getElementById('editForm').action = `/admin/products/update/${p.id}`;
+
+    // Fetch the rendered edit form HTML
+    const res = await fetch(`/admin/product-form-html/${p.id}`);
+    const html = await res.text();
+    document.getElementById('editFormFields').innerHTML = html;
+    document.getElementById('editModal').classList.add('open');
+  }
+
+  function closeEdit() {
+    document.getElementById('editModal').classList.remove('open');
+    document.getElementById('editFormFields').innerHTML = '';
+  }
+
+
+  // ── Discounts Tab ──────────────────────────────────────────────
+  let discVariants = []; // [{size, color, stock_qty}]
+
+  async function discLoadTable() {
+    try {
+      const res  = await fetch('/admin/discounts-data', { credentials: 'same-origin' });
+      const data = await res.json();
+      const tbody = document.getElementById('disc-tbody');
+      if (!data.discounts || !data.discounts.length) {
+        tbody.innerHTML = '<tr><td colspan="8" class="admin-empty">No discounts yet. Click + New Discount to add one.</td></tr>';
+        return;
+      }
+      const now = new Date();
+      tbody.innerHTML = data.discounts.map(d => {
+        const start  = new Date(d.starts_at);
+        const end    = new Date(d.ends_at);
+        const active = start <= now && end >= now;
+        const ended  = end < now;
+        const badge  = ended
+          ? '<span class="admin-badge" style="color:rgba(232,229,224,.3)">Expired</span>'
+          : active
+            ? '<span class="admin-badge status-shipped">Active</span>'
+            : '<span class="admin-badge">Scheduled</span>';
+        return `<tr>
+          <td class="admin-product-name">${d.products?.name || '—'}</td>
+          <td>${d.size  || '<span style="color:rgba(232,229,224,.35)">All</span>'}</td>
+          <td>${d.color || '<span style="color:rgba(232,229,224,.35)">All</span>'}</td>
+          <td><strong style="color:#C5A059">${d.percent_off}%</strong></td>
+          <td style="font-size:.74rem">${new Date(d.starts_at).toLocaleDateString('en-ZA')}</td>
+          <td style="font-size:.74rem">${new Date(d.ends_at).toLocaleDateString('en-ZA')}</td>
+          <td>${badge}</td>
+          <td class="admin-actions">
+            <button class="admin-btn-edit" onclick='discEdit(${JSON.stringify(d)})'>Edit</button>
+            <button class="admin-btn-del"  onclick="discDelete('${d.id}')">Delete</button>
+          </td>
+        </tr>`;
+      }).join('');
+    } catch(e) { console.error('discLoadTable:', e); }
+  }
+
+  async function discLoadVariants() {
+    const sel = document.getElementById('disc-product');
+    const productId = sel.value;
+    const sizeEl  = document.getElementById('disc-size');
+    const colorEl = document.getElementById('disc-color');
+    sizeEl.innerHTML  = '<option value="">All Sizes</option>';
+    colorEl.innerHTML = '<option value="">All Colors</option>';
+    document.getElementById('disc-stock-preview').style.display = 'none';
+    if (!productId) return;
+
+    try {
+      const res  = await fetch('/admin/product-variants/' + productId, { credentials: 'same-origin' });
+      const data = await res.json();
+      discVariants = data.variants || [];
+
+      // Unique sizes and colors from variants with stock > 0
+      const sizes  = [...new Set(discVariants.map(v => v.size).filter(Boolean))];
+      const colors = [...new Set(discVariants.map(v => v.color).filter(Boolean))];
+
+      // Fallback to product arrays if no variants saved yet
+      if (!sizes.length && data.product?.sizes) {
+        const arr = Array.isArray(data.product.sizes) ? data.product.sizes : data.product.sizes.split(',');
+        arr.forEach(s => { if(s.trim()) sizes.push(s.trim()); });
+      }
+      if (!colors.length && data.product?.colors) {
+        const arr = Array.isArray(data.product.colors) ? data.product.colors : data.product.colors.split(',');
+        arr.forEach(c => { if(c.trim()) colors.push(c.trim()); });
+      }
+
+      sizes.forEach(s  => sizeEl.innerHTML  += `<option value="${s}">${s}</option>`);
+      colors.forEach(c => colorEl.innerHTML += `<option value="${c}">${c}</option>`);
+    } catch(e) { console.error('discLoadVariants:', e); }
+  }
+
+  function discUpdateStockPreview() {
+    const size  = document.getElementById('disc-size').value;
+    const color = document.getElementById('disc-color').value;
+    const wrap  = document.getElementById('disc-stock-preview');
+    const val   = document.getElementById('disc-stock-val');
+    if (!size && !color) { wrap.style.display = 'none'; return; }
+    const match = discVariants.find(v =>
+      (!size  || v.size  === size)  &&
+      (!color || v.color === color)
+    );
+    if (match !== undefined) {
+      val.textContent = match ? match.stock_qty + ' units' : '0 units';
+      wrap.style.display = 'block';
+    } else {
+      wrap.style.display = 'none';
+    }
+  }
+
+  function discOpenForm(reset=true) {
+    if (reset) {
+      document.getElementById('disc-id').value       = '';
+      document.getElementById('disc-product').value  = '';
+      document.getElementById('disc-size').innerHTML = '<option value="">All Sizes</option>';
+      document.getElementById('disc-color').innerHTML= '<option value="">All Colors</option>';
+      document.getElementById('disc-pct').value      = '';
+      document.getElementById('disc-form-error').textContent = '';
+      document.getElementById('disc-stock-preview').style.display = 'none';
+      // Default dates: now → +7 days
+      const now = new Date(); const end = new Date(now.getTime()+7*24*60*60*1000);
+      const fmt = d => d.toISOString().slice(0,16);
+      document.getElementById('disc-starts').value = fmt(now);
+      document.getElementById('disc-ends').value   = fmt(end);
+      document.getElementById('discModalTitle').textContent = 'New Discount';
+    }
+    document.getElementById('discModal').classList.add('open');
+  }
+
+  function discCloseForm() { document.getElementById('discModal').classList.remove('open'); }
+
+  async function discEdit(d) {
+    document.getElementById('discModalTitle').textContent = 'Edit Discount';
+    document.getElementById('disc-id').value       = d.id;
+    document.getElementById('disc-pct').value      = d.percent_off;
+    document.getElementById('disc-starts').value   = d.starts_at?.slice(0,16) || '';
+    document.getElementById('disc-ends').value     = d.ends_at?.slice(0,16)   || '';
+    document.getElementById('disc-form-error').textContent = '';
+
+    // Set product and load variants first
+    const prodSel = document.getElementById('disc-product');
+    prodSel.value = d.product_id;
+    await discLoadVariants();
+
+    // Now set size and color
+    document.getElementById('disc-size').value  = d.size  || '';
+    document.getElementById('disc-color').value = d.color || '';
+    discUpdateStockPreview();
+    discOpenForm(false);
+  }
+
+  async function discSave() {
+    const discount_id = document.getElementById('disc-id').value;
+    const product_id  = document.getElementById('disc-product').value;
+    const size        = document.getElementById('disc-size').value;
+    const color       = document.getElementById('disc-color').value;
+    const percent_off = document.getElementById('disc-pct').value;
+    const starts_at   = document.getElementById('disc-starts').value;
+    const ends_at     = document.getElementById('disc-ends').value;
+    const errEl       = document.getElementById('disc-form-error');
+
+    if (!product_id) { errEl.textContent = 'Please select a product.'; return; }
+    if (!percent_off || percent_off < 1 || percent_off > 99) { errEl.textContent = 'Enter a % between 1 and 99.'; return; }
+    if (!ends_at)    { errEl.textContent = 'End date is required.'; return; }
+
+    try {
+      const res  = await fetch('/admin/discounts/save', {
+        method: 'POST', credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ discount_id, product_id, size, color, percent_off, starts_at, ends_at })
+      });
+      const data = await res.json();
+      if (!data.success) { errEl.textContent = data.message || 'Save failed.'; return; }
+      discCloseForm();
+      discLoadTable();
+    } catch(e) { errEl.textContent = 'Error: ' + e.message; }
+  }
+
+  async function discDelete(id) {
+    if (!confirm('Delete this discount?')) return;
+    await fetch('/admin/discounts/delete/' + id, { method: 'POST', credentials: 'same-origin' });
+    discLoadTable();
+  }
+
+  // Load discount table when tab becomes active
+  const origShowTab = window.showTab;
+  window.showTab = function(name, e) {
+    origShowTab && origShowTab(name, e);
+    if (name === 'discounts') discLoadTable();
+  };
+
+  // Add stock preview listeners once DOM ready
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('disc-size')?.addEventListener('change',  discUpdateStockPreview);
+    document.getElementById('disc-color')?.addEventListener('change', discUpdateStockPreview);
+  });
+
+  // Close on backdrop click
+  document.getElementById('editModal').addEventListener('click', function(e) {
+    if (e.target === this) closeEdit();
+  });
+</script>
+</body>
+</html>

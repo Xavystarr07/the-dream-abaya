@@ -1,0 +1,39 @@
+<!-- ══ PRODUCT CARD ═══════════════════════════════════════════ -->
+<article class="product-card" data-id="<%= p.id %>">
+  <a href="/product/<%= p.id %>" class="product-card-img-wrap">
+    <% if (p.image_url) { %>
+      <img src="<%= p.image_url %>" alt="<%= p.name %>" class="product-card-img" loading="lazy"/>
+    <% } else { %>
+      <div class="product-card-placeholder"><span>✦</span></div>
+    <% } %>
+    <div class="product-card-overlay">
+      <span class="overlay-cta">Quick View</span>
+    </div>
+    <% if (p.is_featured) { %>
+      <div class="product-card-badge">Featured</div>
+    <% } %>
+    <% if (!p.in_stock) { %>
+      <div class="product-card-badge sold-out">Sold Out</div>
+    <% } %>
+  </a>
+  <div class="product-card-body">
+    <div class="product-card-top">
+      <span class="product-card-cat"><%= p.section || p.category %></span>
+      <!-- Wishlist heart -->
+      <button class="wishlist-btn" data-id="<%= p.id %>" title="Add to Wishlist" onclick="toggleWishlist(this, '<%= p.id %>', event)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+      </button>
+    </div>
+    <a href="/product/<%= p.id %>">
+      <h3 class="product-card-name"><%= p.name %></h3>
+    </a>
+    <div class="product-card-bottom">
+      <span class="product-card-price">R<%= Number(p.price).toLocaleString('en-ZA') %></span>
+      <% if (p.in_stock !== false) { %>
+        <button class="btn-add-cart" onclick="quickAddCart('<%= p.id %>', this)">+ Cart</button>
+      <% } else { %>
+        <span class="sold-out-label">Sold Out</span>
+      <% } %>
+    </div>
+  </div>
+</article>

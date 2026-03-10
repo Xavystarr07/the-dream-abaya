@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="<%= theme %>">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title><%= title %></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Cinzel:wght@400;500&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.4/gsap.min.js"></script>
+  <!-- Yoco payment SDK -->
+  <script src="https://js.yoco.com/sdk/v1/yoco-sdk-web.js"></script>
+
+  <style>
+  /* ── Drop-to-cart animation ───────────────────────────── */
+  .flying-item {
+    position: fixed;
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #C5A059;
+    pointer-events: none;
+    z-index: 9999;
+    box-shadow: 0 0 16px rgba(197,160,89,.5);
+    transition: none;
+  }
+
+  /* ── Discount badge ───────────────────────────────────── */
+  .pd-discount-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 12px;
+    background: rgba(231,76,60,.12); border: 1px solid rgba(231,76,60,.35);
+    color: #e74c3c; font-size: .72rem; letter-spacing: .1em;
+    text-transform: uppercase; margin-bottom: 4px;
+  }
+  .pd-price-orig {
+    font-size: 1rem; color: rgba(240,237,232,.35);
+    text-decoration: line-through; margin-left: 8px;
+  }
+  .pd-price-sale { color: #e74c3c; }
+  .pd-discount-expires {
+    font-size: .68rem; color: rgba(240,237,232,.35); margin-top: 2px;
+  }
+
+  /* ── Variant discount tags on size/color buttons ─────── */
+  .size-btn.has-discount::after {
+    content: attr(data-discount);
+    font-size: .55rem; background: #e74c3c; color: white;
+    padding: 1px 4px; border-radius: 2px; margin-left: 4px;
+    vertical-align: middle;
+  }
+  .color-btn.has-discount .color-dot::after {
+    content: '%'; position: absolute; bottom: -4px; right: -4px;
+    font-size: .5rem; background: #e74c3c; color: white;
+    width: 12px; height: 12px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .color-btn { position: relative; }
+
+  /* ── Payment modal ────────────────────────────────────── */
+  .payment-modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.85);
+    z-index: 9998; display: none; align-items: center; justify-content: center; padding: 20px;
+  }
+  .payment-modal-overlay.open { display: flex; }
+  .payment-modal {
+    background: #0D1117; border: 1px solid rgba(197,160,89,.3);
+    padding: 2.5rem; max-width: 480px; width: 100%;
+    font-family: 'Jost', sans-serif;
+  }
+  .payment-modal h3 {
+    font-family: 'Cormorant Garamond', serif; font-size: 1.5rem;
+    font-weight: 300; color: #F0EDE8; margin-bottom: 1.2rem;
+  }
+  .payment-field { margin-bottom: 1rem; }
+  .payment-field label { display: block; font-size: .62rem; letter-spacing: .15em; text-transform: uppercase; color: rgba(240,237,232,.4); margin-bottom: 6px; }
+  .payment-field input {
+    width: 100%; padding: 11px 14px;
+    background: rgba(255,255,255,.04); border: 1px solid rgba(197,160,89,.2);
+    color: #F0EDE8; font-size: .85rem; font-family: 'Jost', sans-serif; outline: none;
+    transition: border-color .25s;
+  }
+  .payment-field input:focus { border-color: rgba(197,160,89,.5); }
+  #yoco-card-frame { min-height: 120px; margin: 1rem 0; background: rgba(255,255,255,.03); border: 1px solid rgba(197,160,89,.2); padding: 12px; }
+  .payment-summary {
+    background: rgba(197,160,89,.06); border: 1px solid rgba(197,160,89,.15);
+    padding: 14px; margin-bottom: 1.2rem; font-size: .82rem;
+  }
+  .payment-summary-row { display: flex; justify-content: space-between; padding: 4px 0; color: rgba(240,237,232,.65); }
+  .payment-summary-row.total { color: #C5A059; font-size: .95rem; border-top: 1px solid rgba(197,160,89,.2); margin-top: 6px; padding-top: 8px; }
+  .payment-error { color: #e74c3c; font-size: .78rem; margin-bottom: 10px; min-height: 20px; }
+  .payment-btns { display: flex; gap: 10px; }
+  </style>
+</head>
+<body>
+<%- include('nav') %>
+
+<!-- Breadcrumb -->
+<div class="breadcrumb-bar">
+  <a href="/">Home</a> <span>›</span>
+  <a href="/vault">Vault</a> <span>›</span>
+  <% if (product.category) { %><a href="/vault?category=<%= product.category %>"><%= product.section || product.category %></a> <span>›</span><% } %>
+  <span><%= product.name %></span>
+</div>
+
+<main class="product-detail-main">
+  <div class="product-detail-grid">
+
+    <!-- IMAGE -->
+    <div class="product-detail-media" id="pdMedia">
+      <div class="product-detail-img-wrap">
+        <% if (product.image_url) { %>
+          <img src="<%= product.image_url %>" alt="<%= product.name %>" class="product-detail-img" id="mainImg"/>
+        <% } else { %>
+          <div class="product-detail-placeholder"><span>✦</span></div>
+        <% } %>
+        <% if (product.is_featured) { %><div class="product-card-badge">Featured</div><% } %>
+        <%
+          // Check if any active discount exists
+          const now = new Date();
+          const activeDiscounts = (product.discounts||[]).filter(d => new Date(d.starts_at) <= now && new Date(d.ends_at) >= now);
+          const globalDiscount = activeDiscounts.find(d => !d.size && !d.color);
+          if (globalDiscount) {
+        %>
+          <div class="product-card-badge" style="top:auto;bottom:12px;background:rgba(231,76,60,.9)">-<%= globalDiscount.percent_off %>%</div>
+        <% } %>
+      </div>
+      <p class="img-hint">✦ Click image to zoom</p>
+    </div>
+
+    <!-- INFO -->
+    <div class="product-detail-info" id="pdInfo">
+      <div class="pd-section-badge"><%= product.section || product.category %></div>
+      <h1 class="pd-title"><%= product.name %></h1>
+
+      <%
+        const basePrice = Number(product.price);
+        let displayPrice = basePrice;
+        let discountPct = 0;
+        if (globalDiscount) {
+          discountPct = globalDiscount.percent_off;
+          displayPrice = basePrice * (1 - discountPct/100);
+        }
+      %>
+
+      <% if (discountPct > 0) { %>
+        <div class="pd-discount-badge">🏷 <%= discountPct %>% OFF</div>
+        <div class="pd-price">
+          <span class="pd-price-sale">R<%= displayPrice.toLocaleString('en-ZA',{maximumFractionDigits:0}) %></span>
+          <span class="pd-price-orig">R<%= basePrice.toLocaleString('en-ZA') %></span>
+        </div>
+        <div class="pd-discount-expires">
+          Offer ends <%= new Date(globalDiscount.ends_at).toLocaleDateString('en-ZA',{day:'numeric',month:'long',year:'numeric'}) %>
+        </div>
+      <% } else { %>
+        <div class="pd-price">R<%= basePrice.toLocaleString('en-ZA') %></div>
+      <% } %>
+
+      <div class="pd-divider">— ✦ —</div>
+
+      <!-- Details -->
+      <div class="pd-meta-grid">
+        <% if (product.material) { %>
+          <div class="pd-meta-item"><span class="pd-meta-label">Material</span><span class="pd-meta-val"><%= product.material %></span></div>
+        <% } %>
+        <% if (product.style) { %>
+          <div class="pd-meta-item"><span class="pd-meta-label">Style</span><span class="pd-meta-val"><%= product.style %></span></div>
+        <% } %>
+        <div class="pd-meta-item">
+          <span class="pd-meta-label">Availability</span>
+          <span class="pd-meta-val <%= product.in_stock!==false ? 'in-stock' : 'out-stock' %>">
+            <%= product.in_stock!==false ? '✓ In Stock' : '✗ Sold Out' %>
+          </span>
+        </div>
+      </div>
+
+      <!-- SIZE SELECTOR -->
+      <% const sizes = Array.isArray(product.sizes) ? product.sizes : (product.sizes ? product.sizes.split(',') : ['S','M','L','XL']); %>
+      <% if (sizes.length > 0) { %>
+        <div class="pd-selector">
+          <label class="pd-selector-label">Size — <span id="selectedSizeLabel"><%= sizes[0] %></span></label>
+          <div class="pd-size-options" id="sizeOptions">
+            <% sizes.forEach((s, i) => {
+              const st = s.trim();
+              const sizeDiscount = activeDiscounts.find(d => d.size === st && !d.color);
+            %>
+              <button class="size-btn <%= i===0?'active':'' %> <%= sizeDiscount?'has-discount':'' %>"
+                data-size="<%= st %>"
+                data-base-price="<%= basePrice %>"
+                <% if (sizeDiscount) { %>data-discount="<%= sizeDiscount.percent_off %>%"<% } %>
+                onclick="selectSize(this)">
+                <%= st %>
+              </button>
+            <% }); %>
+          </div>
+        </div>
+      <% } %>
+
+      <!-- COLOR SELECTOR -->
+      <% const colors = Array.isArray(product.colors) ? product.colors : (product.colors ? product.colors.split(',') : []); %>
+      <% if (colors.length > 0 && colors[0] !== 'N/A') { %>
+        <div class="pd-selector">
+          <label class="pd-selector-label">Color — <span id="selectedColorLabel"><%= colors[0] %></span></label>
+          <div class="pd-color-options" id="colorOptions">
+            <% colors.forEach((c, i) => {
+              const ct = c.trim();
+              const colorDiscount = activeDiscounts.find(d => d.color === ct && !d.size);
+            %>
+              <button class="color-btn <%= i===0?'active':'' %> <%= colorDiscount?'has-discount':'' %>"
+                data-color="<%= ct %>"
+                onclick="selectColor(this)" title="<%= ct %>">
+                <span class="color-dot" style="background: <%= colorToHex(ct) %>"></span>
+              </button>
+            <% }); %>
+          </div>
+        </div>
+      <% } %>
+
+      <!-- DESCRIPTION -->
+      <% if (product.description) { %>
+        <div class="pd-description"><p><%= product.description %></p></div>
+      <% } %>
+
+      <!-- ACTION BUTTONS -->
+      <div class="pd-actions">
+        <% if (product.in_stock !== false) { %>
+          <button class="btn-royal pd-add-cart" id="addToCartBtn"
+            onclick="addToCartAnimated('<%= product.id %>', this)">
+            🛍️ Add to Cart
+          </button>
+        <% } else { %>
+          <button class="btn-royal pd-add-cart disabled" disabled>Sold Out</button>
+        <% } %>
+        <button class="btn-ghost pd-wishlist" onclick="toggleWishlist(this, '<%= product.id %>')">
+          ❤️ Wishlist
+        </button>
+      </div>
+
+      <div class="pd-trust">
+        <span>✦ Handcrafted & Inspected</span>
+        <span>✦ Ships 5–7 working days</span>
+        <span>✦ Halal Certified</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- RELATED PRODUCTS -->
+  <% if (related && related.length > 0) { %>
+    <section class="related-section">
+      <h3 class="related-title">You May Also Love</h3>
+      <div class="products-row">
+        <% related.slice(0,4).forEach(function(rp){ %>
+          <%- include('product-card', { p: rp }) %>
+        <% }); %>
+      </div>
+    </section>
+  <% } %>
+</main>
+
+<!-- Image Lightbox -->
+<div id="lightbox" class="lightbox" onclick="closeLightbox()">
+  <img id="lightboxImg" src="" alt=""/>
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+</div>
+
+<!-- ── Payment Modal ─────────────────────────────────────── -->
+<div class="payment-modal-overlay" id="paymentModal">
+  <div class="payment-modal">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem">
+      <h3 style="margin:0">✦ Checkout</h3>
+      <button onclick="closePayment()" style="background:none;border:none;color:rgba(240,237,232,.4);font-size:1.2rem;cursor:pointer">✕</button>
+    </div>
+
+    <div class="payment-summary" id="paymentSummary">
+      <div class="payment-summary-row">
+        <span id="psSummaryName"></span>
+        <span id="psSummaryVariant" style="color:rgba(240,237,232,.4)"></span>
+      </div>
+      <div class="payment-summary-row total">
+        <span>Total</span>
+        <span id="psSummaryTotal"></span>
+      </div>
+    </div>
+
+    <div class="payment-field">
+      <label>Full Name</label>
+      <input type="text" id="payName" placeholder="Fatima Al-Rashid" autocomplete="name"/>
+    </div>
+    <div class="payment-field">
+      <label>Email Address</label>
+      <input type="email" id="payEmail" placeholder="your@email.com" autocomplete="email"
+        value="<%= user ? user.email : '' %>"/>
+    </div>
+    <div class="payment-field">
+      <label>Phone</label>
+      <input type="tel" id="payPhone" placeholder="081 234 5678" autocomplete="tel"/>
+    </div>
+    <div class="payment-field">
+      <label>Delivery Address</label>
+      <input type="text" id="payAddress" placeholder="14 Rose Street, Cape Town, 8001"/>
+    </div>
+
+    <!-- Yoco card frame injected here -->
+    <div id="yoco-card-frame"></div>
+
+    <div class="payment-error" id="paymentError"></div>
+
+    <div class="payment-btns">
+      <button class="btn-royal" style="flex:1" id="paySubmitBtn" onclick="submitPayment()">
+        ✦ Pay Now
+      </button>
+      <button class="btn-ghost" onclick="closePayment()">Cancel</button>
+    </div>
+    <p style="font-size:.68rem;color:rgba(240,237,232,.25);margin-top:12px;text-align:center">
+      🔒 Secured by Yoco · South African payment gateway
+    </p>
+  </div>
+</div>
+
+<%- include('footer') %>
+<%- include('toast') %>
+<%- include('cart-drawer') %>
+
+<script src="/js/main.js"></script>
+<script>
+  // Inject Yoco public key
+  window.YOCO_PUBLIC_KEY = '<%= locals.YOCO_PUBLIC_KEY || "pk_test_ed3c54a6gOol69qa7f45" %>';
+
+  // ── Product data ─────────────────────────────────────────
+  const PRODUCT = {
+    id:       '<%= product.id %>',
+    name:     `<%= product.name.replace(/`/g,'\\`') %>`,
+    price:    <%= Number(product.price) %>,
+    imageUrl: '<%= (product.image_url||'').replace(/'/g,"\\'") %>',
+    inStock:  <%= product.in_stock !== false %>,
+  };
+
+  // Active discounts passed from server
+  const ACTIVE_DISCOUNTS = <%- JSON.stringify(activeDiscounts) %>;
+
+  let selectedSize  = '<%= sizes[0] || "" %>';
+  let selectedColor = '<%= colors[0] || "" %>';
+  let currentPrice  = <%= displayPrice.toFixed(2) %>;
+
+  // ── Size / Color selectors ───────────────────────────────
+  function selectSize(btn) {
+    document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedSize = btn.dataset.size;
+    document.getElementById('selectedSizeLabel').textContent = selectedSize;
+    updatePriceDisplay();
+  }
+  function selectColor(btn) {
+    document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedColor = btn.dataset.color;
+    document.getElementById('selectedColorLabel').textContent = selectedColor;
+    updatePriceDisplay();
+  }
+
+  function updatePriceDisplay() {
+    // Find best discount for current selection
+    const match = ACTIVE_DISCOUNTS.find(d =>
+      (!d.size  || d.size  === selectedSize)  &&
+      (!d.color || d.color === selectedColor)
+    );
+    const pct = match ? match.percent_off : 0;
+    currentPrice = PRODUCT.price * (1 - pct/100);
+    const priceEl = document.querySelector('.pd-price');
+    if (priceEl) {
+      if (pct > 0) {
+        priceEl.innerHTML = `<span class="pd-price-sale">R${currentPrice.toLocaleString('en-ZA',{maximumFractionDigits:0})}</span>
+          <span class="pd-price-orig">R${PRODUCT.price.toLocaleString('en-ZA')}</span>`;
+      } else {
+        priceEl.innerHTML = `R${PRODUCT.price.toLocaleString('en-ZA')}`;
+      }
+    }
+  }
+
+  // ── Drop-to-cart animation ───────────────────────────────
+  function addToCartAnimated(productId, btnEl) {
+    const btn = btnEl || document.getElementById('addToCartBtn');
+    const imgSrc = PRODUCT.imageUrl;
+
+    // First add to cart
+    fetch('/cart/add', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ product_id: productId, qty: 1, size: selectedSize, color: selectedColor })
+    }).then(r => r.json()).then(d => {
+      if (d.requireLogin) {
+        showToast('Please sign in to add to cart ✦', 'info');
+        setTimeout(() => window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname), 1200);
+        return;
+      }
+      if (!d.success) { showToast('Could not add to cart', 'error'); return; }
+      updateCartCount(d.cartCount);
+      showToast('Added to your cart ✦', 'success');
+
+      // Button pulse
+      gsap.fromTo(btn, {scale:.92},{scale:1,duration:.4,ease:'back.out(3)'});
+
+      // Create flying element from product image
+      if (!imgSrc) return;
+      const fly = document.createElement('img');
+      fly.className = 'flying-item';
+      fly.src = imgSrc;
+
+      // Start from button position
+      const btnRect = btn.getBoundingClientRect();
+      fly.style.left = (btnRect.left + btnRect.width/2 - 26) + 'px';
+      fly.style.top  = (btnRect.top  + btnRect.height/2 - 26) + 'px';
+      document.body.appendChild(fly);
+
+      // End at cart icon in nav
+      const cartEl = document.querySelector('.nav-icon-btn') || document.querySelector('a[href="/cart"]');
+      const cartRect = cartEl ? cartEl.getBoundingClientRect() : { left: window.innerWidth - 80, top: 40, width: 32, height: 32 };
+      const endX = cartRect.left + cartRect.width/2 - 10;
+      const endY = cartRect.top  + cartRect.height/2 - 10;
+
+      gsap.timeline({ onComplete: () => fly.remove() })
+        .to(fly, {
+          left: endX, top: endY,
+          width: 20, height: 20,
+          opacity: 0,
+          duration: .85,
+          ease: 'power2.in',
+        });
+
+    });
+  }
+
+  // ── Yoco Payment ─────────────────────────────────────────
+  let yocoSDK = null;
+  let yocoCardFrame = null;
+
+  function openPayment() {
+    document.getElementById('psSummaryName').textContent    = PRODUCT.name;
+    document.getElementById('psSummaryVariant').textContent = [selectedSize, selectedColor].filter(Boolean).join(' · ');
+    document.getElementById('psSummaryTotal').textContent   = 'R' + currentPrice.toLocaleString('en-ZA', {maximumFractionDigits:0});
+    document.getElementById('paymentError').textContent     = '';
+    document.getElementById('paymentModal').classList.add('open');
+
+    // Init Yoco on first open
+    if (!yocoSDK) {
+      yocoSDK = new window.YocoSDK({ publicKey: window.YOCO_PUBLIC_KEY || 'pk_test_ed3c54a6gOol69qa7f45' });
+      yocoCardFrame = yocoSDK.inline({
+        containerId: 'yoco-card-frame',
+        layout: 'field',
+        style: {
+          variables: {
+            colorPrimary: '#C5A059', colorBackground: 'rgba(255,255,255,0.04)',
+            colorText: '#F0EDE8', colorTextSecondary: 'rgba(240,237,232,0.5)',
+            fontFamily: 'Jost, sans-serif',
+          }
+        }
+      });
+    }
+  }
+
+  function closePayment() {
+    document.getElementById('paymentModal').classList.remove('open');
+  }
+
+  async function submitPayment() {
+    const name    = document.getElementById('payName').value.trim();
+    const email   = document.getElementById('payEmail').value.trim();
+    const phone   = document.getElementById('payPhone').value.trim();
+    const address = document.getElementById('payAddress').value.trim();
+    const errEl   = document.getElementById('paymentError');
+    const btn     = document.getElementById('paySubmitBtn');
+
+    if (!name || !email || !address) { errEl.textContent = 'Please fill in all required fields.'; return; }
+
+    btn.disabled = true; btn.textContent = 'Processing…';
+    errEl.textContent = '';
+
+    try {
+      // Tokenise card
+      const result = await yocoCardFrame.createToken();
+      if (result.error) { errEl.textContent = result.error.message; btn.disabled = false; btn.textContent = '✦ Pay Now'; return; }
+
+      // Submit to server
+      const res = await fetch('/payment/checkout', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          token:       result.id,
+          amountCents: Math.round(currentPrice * 100),
+          product_id:  PRODUCT.id,
+          product_name: PRODUCT.name,
+          size:         selectedSize,
+          color:        selectedColor,
+          customer_name: name, customer_email: email,
+          customer_phone: phone, delivery_address: address,
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        closePayment();
+        showToast('Payment successful! Order placed ✦', 'success');
+        setTimeout(() => window.location.href = '/track', 2000);
+      } else {
+        errEl.textContent = data.message || 'Payment failed. Please try again.';
+        btn.disabled = false; btn.textContent = '✦ Pay Now';
+      }
+    } catch(e) {
+      errEl.textContent = 'Payment error: ' + e.message;
+      btn.disabled = false; btn.textContent = '✦ Pay Now';
+    }
+  }
+
+  // ── Lightbox ──────────────────────────────────────────────
+  document.getElementById('mainImg')?.addEventListener('click', () => {
+    document.getElementById('lightboxImg').src = PRODUCT.imageUrl;
+    document.getElementById('lightbox').classList.add('open');
+  });
+  function closeLightbox() { document.getElementById('lightbox').classList.remove('open'); }
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeLightbox(); closePayment(); } });
+
+  // Entrance animations
+  gsap.from('#pdMedia', { opacity:0, x:-50, duration:.9, ease:'power3.out', delay:.2 });
+  gsap.from('#pdInfo',  { opacity:0, x:50,  duration:.9, ease:'power3.out', delay:.35 });
+</script>
+</body>
+</html>
+
+<%
+function colorToHex(colorName) {
+  const map = {
+    'black':'#000000','midnight black':'#101820','white':'#ffffff','ivory white':'#FFFFF0',
+    'ivory':'#FFFFF0','champagne gold':'#C5A059','gold':'#C5A059','champagne':'#F7E7CE',
+    'dusty rose':'#DCAE96','blush':'#F9CADA','blush ivory':'#FFF5EE','navy':'#001F5B',
+    'midnight navy':'#001F5B','forest emerald':'#1C6B4A','sage green':'#8FAF7E',
+    'ecru':'#C2B280','sand':'#C2A97D','chalk white':'#F8F8F0','charcoal':'#3C3C3C',
+    'plum':'#7B2D8B','forest green':'#228B22','caramel':'#C67946','olive':'#5D6914',
+    'oatmeal':'#D6C7A8','terracotta':'#C25E3C','french blue':'#4F6D8E','rose':'#FF007F',
+    'antique white':'#FAEBD7','grey':'#808080','n/a':'#555555'
+  };
+  return map[(colorName||'').toLowerCase()] || '#C5A059';
+}
+%>

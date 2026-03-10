@@ -1,0 +1,570 @@
+<%
+// product-form.ejs — used in both Add tab and Edit modal
+// p = product object (null for new)
+
+// colorToHex defined here so this partial is self-contained
+function colorToHex(colorName) {
+  const map = {
+    'black':'#000000','midnight black':'#101820','white':'#ffffff','ivory white':'#FFFFF0',
+    'ivory':'#FFFFF0','champagne gold':'#C5A059','gold':'#C5A059','champagne':'#F7E7CE',
+    'dusty rose':'#DCAE96','blush':'#F9CADA','blush ivory':'#FFF5EE','navy':'#001F5B',
+    'midnight navy':'#001F5B','forest emerald':'#1C6B4A','sage green':'#8FAF7E',
+    'ecru':'#C2B280','sand':'#C2A97D','chalk white':'#F8F8F0','charcoal':'#3C3C3C',
+    'plum':'#7B2D8B','forest green':'#228B22','caramel':'#C67946','olive':'#5D6914',
+    'oatmeal':'#D6C7A8','terracotta':'#C25E3C','french blue':'#4F6D8E','rose':'#FF007F',
+    'antique white':'#FAEBD7','grey':'#808080','n/a':'#555555'
+  };
+  return map[(colorName||'').toLowerCase()] || '#C5A059';
+}
+
+const isEdit = !!p;
+const fId = isEdit ? 'edit' : 'add'; // prefix to avoid ID collisions
+const cats = ['dream','modest','aesthetic','hijabs','accessories','perfumes'];
+const currentCat = p ? p.category : 'dream';
+
+const MATERIALS = {
+  dream:       ['Japanese Crepe','Pure Silk Chiffon','French Lace over Duchess Satin','Mikado Silk','Embroidered Organza','Duchess Satin','Velvet','Georgette','Premium Crepe','Hand-Embroidered Silk'],
+  modest:      ['Scuba Crepe','Nida Fabric','Jersey Knit','Abaya Fabric','Poly Crepe','Linen Blend','Cotton Twill','Interlock Knit'],
+  aesthetic:   ['Linen Blend','Pure Linen','Cotton Gauze','Tencel','Bamboo Jersey','Ecru Cotton','Raw Denim','Linen-Cotton Blend'],
+  hijabs:      ['100% Silk Satin','Premium Jersey','Lightweight Chiffon','Cotton Lawn','Modal Jersey','Viscose','Georgette','Bamboo Cotton'],
+  accessories: ['Gold-Plated Alloy','Vegan Leather + Gold Hardware','Satin + Beaded Closure','Sterling Silver','Genuine Oud Wood','Brass','14K Gold Filled'],
+  perfumes:    ['Alcohol-Free Perfume Oil','Eau de Parfum — Alcohol-Free','Alcohol-Free Body Mist','Pure Attar / Perfume Oil','Oud Chips + Ceramic Burner']
+};
+const STYLES = {
+  dream:       ['Flared A-Line','Balloon Sleeves','Layered Cape-Over','Ballgown Cathedral Train','Kimono Sleeves','Cocoon Fit','Princess Seam','Empire Waist'],
+  modest:      ['Classic Straight Cut','Open-Front Kimono','Wrap Front with Belt','Shift Dress','Maxi Relaxed','Side-Split','Button Down'],
+  aesthetic:   ['Oversized Minimalist','Wide-Leg + Longline Top','Drop Shoulder','Boxy Cocoon','Relaxed Taper','Asymmetric Hem'],
+  hijabs:      ['Square Scarf','Slip-On Instant','Half-Face with Elastic','Bonnet + Overlay Scarf','Rectangular Wrap','Triangular Drape'],
+  accessories: ['Gemstone Head Pins','Wide Obi Belt','Evening Clutch','Tasbih','Adjustable Chain','Cuff Bangle'],
+  perfumes:    ['Oriental Oud','White Musk','Bakhoor Incense','Floral Oriental','Fresh Floral Musk','Warm Oriental','Discovery Set']
+};
+const SIZES_BY_CAT = {
+  dream:       ['XS','S','M','L','XL','XXL','Custom'],
+  modest:      ['XS','S','M','L','XL','XXL'],
+  aesthetic:   ['XS','S','M','L','XL'],
+  hijabs:      ['One Size','Standard (180x75cm)','Large (200x75cm)','Standard','Extended'],
+  accessories: ['One Size','XS-S','M-L','XL-XXL','Set of 6','33 Beads','99 Beads'],
+  perfumes:    ['2ml','3ml','5ml','6ml','10ml','12ml','30ml','50ml','100ml','200ml','50g + Burner','Set of 6']
+};
+const COLORS_POOL = ['Black','White','Ivory','Champagne Gold','Dusty Rose','Blush','Navy','Midnight Navy','Forest Emerald','Sage Green','Ecru','Sand','Chalk White','Charcoal','Plum','Forest Green','Caramel','Olive','Oatmeal','Terracotta','French Blue','Rose','Antique White','Blush Ivory','N/A'];
+
+const currentSizes  = p && p.sizes  ? (Array.isArray(p.sizes)  ? p.sizes  : p.sizes.split(',').map(s=>s.trim()))  : [];
+const currentColors = p && p.colors ? (Array.isArray(p.colors) ? p.colors : p.colors.split(',').map(c=>c.trim())) : [];
+const currentMat    = p ? (p.material || '') : '';
+const currentStyle  = p ? (p.style || '')    : '';
+%>
+
+<style>
+/* ── Product Form Enhanced Styles ─────────────────────────── */
+.pf-section { margin-bottom: 1.6rem; }
+.pf-section-title {
+  font-size: .58rem; letter-spacing: .25em; text-transform: uppercase;
+  color: #C5A059; margin-bottom: .9rem; padding-bottom: .5rem;
+  border-bottom: 1px solid rgba(197,160,89,.15);
+}
+.pf-image-tabs { display: flex; gap: 8px; margin-bottom: 10px; }
+.pf-img-tab {
+  padding: 6px 16px; font-size: .65rem; letter-spacing: .1em; text-transform: uppercase;
+  border: 1px solid rgba(197,160,89,.25); background: transparent; color: rgba(232,229,224,.5);
+  cursor: pointer; transition: all .25s;
+}
+.pf-img-tab.active { background: rgba(197,160,89,.12); color: #C5A059; border-color: rgba(197,160,89,.5); }
+.pf-img-panel { display: none; }
+.pf-img-panel.active { display: block; }
+.pf-img-preview {
+  width: 100%; max-height: 180px; object-fit: cover;
+  border: 1px solid rgba(197,160,89,.2); margin-top: 8px; display: none;
+}
+.pf-ai-row { display: flex; gap: 8px; margin-top: 10px; }
+.pf-ai-btn {
+  padding: 9px 18px; background: linear-gradient(135deg,rgba(197,160,89,.15),rgba(197,160,89,.08));
+  border: 1px solid rgba(197,160,89,.4); color: #C5A059; font-size: .68rem; letter-spacing: .12em;
+  text-transform: uppercase; cursor: pointer; transition: all .25s; white-space: nowrap;
+  font-family: 'Jost', sans-serif;
+}
+.pf-ai-btn:hover { background: rgba(197,160,89,.22); }
+.pf-ai-btn:disabled { opacity: .45; cursor: not-allowed; }
+.pf-ai-status { font-size: .72rem; color: rgba(232,229,224,.45); margin-top: 6px; min-height: 18px; }
+.pf-combo-wrap { position: relative; }
+.pf-combo-input { width: 100%; }
+.pf-combo-list {
+  position: absolute; top: 100%; left: 0; right: 0; z-index: 200;
+  background: #1C2430; border: 1px solid rgba(197,160,89,.25);
+  max-height: 180px; overflow-y: auto; display: none;
+}
+.pf-combo-list.open { display: block; }
+.pf-combo-opt {
+  padding: 9px 14px; font-size: .8rem; color: rgba(232,229,224,.75);
+  cursor: pointer; transition: background .15s;
+}
+.pf-combo-opt:hover { background: rgba(197,160,89,.1); color: #C5A059; }
+.pf-checkbox-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.pf-check-pill {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border: 1px solid rgba(197,160,89,.2);
+  background: rgba(255,255,255,.03); cursor: pointer;
+  font-size: .75rem; color: rgba(232,229,224,.6); transition: all .2s; user-select: none;
+}
+.pf-check-pill input { display: none; }
+.pf-check-pill.checked { border-color: #C5A059; background: rgba(197,160,89,.12); color: #C5A059; }
+.pf-color-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.pf-color-pill {
+  display: flex; align-items: center; gap: 7px;
+  padding: 6px 12px; border: 1px solid rgba(197,160,89,.2);
+  background: rgba(255,255,255,.03); cursor: pointer;
+  font-size: .75rem; color: rgba(232,229,224,.6); transition: all .2s; user-select: none;
+}
+.pf-color-pill input { display: none; }
+.pf-color-pill.checked { border-color: #C5A059; background: rgba(197,160,89,.12); color: #C5A059; }
+.pf-color-dot { width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(255,255,255,.2); flex-shrink: 0; }
+.pf-custom-color-row { display: flex; gap: 8px; margin-top: 10px; align-items: center; }
+.pf-custom-color-row input { flex: 1; }
+.pf-add-btn {
+  padding: 7px 14px; background: rgba(197,160,89,.08); border: 1px solid rgba(197,160,89,.3);
+  color: #C5A059; font-size: .72rem; cursor: pointer; white-space: nowrap; font-family: 'Jost',sans-serif;
+}
+
+/* Variant stock table */
+.pf-variant-table { width: 100%; border-collapse: collapse; font-size: .78rem; margin-top: 10px; }
+.pf-variant-table th { padding: 8px 10px; font-size: .58rem; letter-spacing: .15em; text-transform: uppercase; color: rgba(232,229,224,.35); border-bottom: 1px solid rgba(197,160,89,.12); text-align: left; }
+.pf-variant-table td { padding: 7px 10px; border-bottom: 1px solid rgba(255,255,255,.04); }
+.pf-variant-table input[type=number] { width: 70px; padding: 5px 8px; background: rgba(255,255,255,.04); border: 1px solid rgba(197,160,89,.18); color: #E8E5E0; font-size: .8rem; text-align: center; outline: none; }
+.pf-variant-table input[type=number]:focus { border-color: rgba(197,160,89,.5); }
+
+
+</style>
+
+<!-- ─────────────────────────────────────────────────────── -->
+<!-- IMAGE SECTION -->
+<!-- ─────────────────────────────────────────────────────── -->
+<div class="pf-section">
+  <div class="pf-section-title">Product Image</div>
+  <div class="pf-image-tabs">
+    <button type="button" class="pf-img-tab active" onclick="pfImgTab(this,'url','<%= fId %>')">URL</button>
+    <button type="button" class="pf-img-tab" onclick="pfImgTab(this,'upload','<%= fId %>')">Upload</button>
+  </div>
+  <div class="pf-img-panel active" id="<%= fId %>-img-url">
+    <input type="text" name="image_url" id="<%= fId %>-image-url" class="admin-input"
+      placeholder="https://images.unsplash.com/..."
+      value="<%= p ? (p.image_url||'') : '' %>"
+      oninput="pfPreviewUrl('<%= fId %>')"
+    />
+  </div>
+  <div class="pf-img-panel" id="<%= fId %>-img-upload">
+    <input type="file" id="<%= fId %>-img-file" class="admin-input" accept="image/*"
+      onchange="pfHandleUpload(this,'<%= fId %>')" style="padding:8px"/>
+    <input type="hidden" name="image_base64" id="<%= fId %>-image-base64"/>
+  </div>
+  <img id="<%= fId %>-img-preview" class="pf-img-preview"
+    src="<%= p && p.image_url ? p.image_url : '' %>"
+    style="display:<%= p && p.image_url ? 'block' : 'none' %>"
+  />
+  <div class="pf-ai-row">
+    <button type="button" class="pf-ai-btn" onclick="pfGenerateAI('<%= fId %>')">✦ Generate Description</button>
+  </div>
+  <div class="pf-ai-status" id="<%= fId %>-ai-status"></div>
+</div>
+
+<!-- ─────────────────────────────────────────────────────── -->
+<!-- NAME & DESCRIPTION -->
+<!-- ─────────────────────────────────────────────────────── -->
+<div class="pf-section">
+  <div class="pf-section-title">Details</div>
+  <div class="admin-field">
+    <label>Product Name *</label>
+    <input type="text" name="name" id="<%= fId %>-name" class="admin-input"
+      value="<%= p ? p.name : '' %>" required placeholder="e.g. Noir Embroidered Abaya"/>
+  </div>
+  <div class="admin-field">
+    <label>Description</label>
+    <textarea name="description" id="<%= fId %>-desc" class="admin-input admin-textarea"
+      placeholder="Full product description..."><%= p ? (p.description||'') : '' %></textarea>
+  </div>
+</div>
+
+<!-- ─────────────────────────────────────────────────────── -->
+<!-- PRICE & CATEGORY -->
+<!-- ─────────────────────────────────────────────────────── -->
+<div class="admin-field-row">
+  <div class="admin-field">
+    <label>Price (ZAR) *</label>
+    <input type="number" name="price" step="0.01" class="admin-input"
+      value="<%= p ? p.price : '' %>" required placeholder="1850.00"/>
+  </div>
+  <div class="admin-field">
+    <label>Category *</label>
+    <select name="category" id="<%= fId %>-cat" class="admin-input"
+      onchange="pfCatChanged('<%= fId %>')">
+      <% cats.forEach(c => { %>
+        <option value="<%= c %>" <%= currentCat === c ? 'selected' : '' %>><%= c %></option>
+      <% }); %>
+    </select>
+  </div>
+</div>
+
+<!-- ─────────────────────────────────────────────────────── -->
+<!-- MATERIAL (combo: dropdown + free type) -->
+<!-- ─────────────────────────────────────────────────────── -->
+<div class="pf-section">
+  <div class="pf-section-title">Material & Style</div>
+  <div class="admin-field-row">
+    <div class="admin-field">
+      <label>Material</label>
+      <div class="pf-combo-wrap">
+        <input type="text" name="material" id="<%= fId %>-material" class="admin-input pf-combo-input"
+          value="<%= currentMat %>" placeholder="Type or choose..."
+          autocomplete="off"
+          onfocus="pfComboOpen('<%= fId %>-material-list')"
+          oninput="pfComboFilter(this,'<%= fId %>-material-list')"
+        />
+        <div class="pf-combo-list" id="<%= fId %>-material-list">
+          <% (MATERIALS[currentCat]||MATERIALS.dream).forEach(m => { %>
+            <div class="pf-combo-opt" onclick="pfComboSelect('<%= fId %>-material','<%= m.replace(/'/g,"\\'") %>','<%= fId %>-material-list')"><%= m %></div>
+          <% }); %>
+        </div>
+      </div>
+    </div>
+    <div class="admin-field">
+      <label>Style</label>
+      <div class="pf-combo-wrap">
+        <input type="text" name="style" id="<%= fId %>-style" class="admin-input pf-combo-input"
+          value="<%= currentStyle %>" placeholder="Type or choose..."
+          autocomplete="off"
+          onfocus="pfComboOpen('<%= fId %>-style-list')"
+          oninput="pfComboFilter(this,'<%= fId %>-style-list')"
+        />
+        <div class="pf-combo-list" id="<%= fId %>-style-list">
+          <% (STYLES[currentCat]||STYLES.dream).forEach(s => { %>
+            <div class="pf-combo-opt" onclick="pfComboSelect('<%= fId %>-style','<%= s.replace(/'/g,"\\'") %>','<%= fId %>-style-list')"><%= s %></div>
+          <% }); %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────────────────────────────────────────────────── -->
+<!-- SIZES — checkboxes -->
+<!-- ─────────────────────────────────────────────────────── -->
+<div class="pf-section">
+  <div class="pf-section-title">Sizes</div>
+  <div class="pf-checkbox-grid" id="<%= fId %>-sizes-grid">
+    <% (SIZES_BY_CAT[currentCat]||SIZES_BY_CAT.dream).forEach(s => {
+      const checked = currentSizes.includes(s); %>
+      <label class="pf-check-pill <%= checked ? 'checked' : '' %>">
+        <input type="checkbox" name="sizes[]" value="<%= s %>" <%= checked ? 'checked' : '' %>
+          onchange="pfTogglePill(this)"/>
+        <%= s %>
+      </label>
+    <% }); %>
+  </div>
+  <div class="pf-custom-color-row" style="margin-top:8px">
+    <input type="text" id="<%= fId %>-custom-size" class="admin-input" placeholder="Custom size..." style="max-width:200px"/>
+    <button type="button" class="pf-add-btn" onclick="pfAddCustomSize('<%= fId %>')">+ Add</button>
+  </div>
+  <%# Hidden aggregated field for form submission %>
+  <input type="hidden" name="sizes" id="<%= fId %>-sizes-hidden"/>
+</div>
+
+<!-- ─────────────────────────────────────────────────────── -->
+<!-- COLORS — visual pills -->
+<!-- ─────────────────────────────────────────────────────── -->
+<div class="pf-section">
+  <div class="pf-section-title">Colors</div>
+  <div class="pf-color-grid" id="<%= fId %>-colors-grid">
+    <% COLORS_POOL.forEach(c => {
+      const hex = colorToHex(c);
+      const checked = currentColors.includes(c); %>
+      <label class="pf-color-pill <%= checked ? 'checked' : '' %>">
+        <input type="checkbox" value="<%= c %>" <%= checked ? 'checked' : '' %>
+          onchange="pfTogglePill(this)"/>
+        <span class="pf-color-dot" style="background:<%= hex %>"></span>
+        <%= c %>
+      </label>
+    <% }); %>
+  </div>
+  <div class="pf-custom-color-row">
+    <input type="text" id="<%= fId %>-custom-color" class="admin-input" placeholder="Custom color name..."/>
+    <button type="button" class="pf-add-btn" onclick="pfAddCustomColor('<%= fId %>')">+ Add</button>
+  </div>
+  <input type="hidden" name="colors" id="<%= fId %>-colors-hidden"/>
+</div>
+
+<!-- ─────────────────────────────────────────────────────── -->
+<!-- STOCK PER VARIANT -->
+<!-- ─────────────────────────────────────────────────────── -->
+<div class="pf-section">
+  <div class="pf-section-title">Stock per Variant</div>
+  <p style="font-size:.72rem;color:rgba(232,229,224,.4);margin-bottom:10px">
+    Set stock for each size × color combination. Changes as customers purchase.
+  </p>
+  <div id="<%= fId %>-variant-wrap">
+    <table class="pf-variant-table">
+      <thead><tr><th>Size</th><th>Color</th><th>Stock Qty</th></tr></thead>
+      <tbody id="<%= fId %>-variant-body">
+        <%# Populated by JS from selected sizes/colors %>
+      </tbody>
+    </table>
+  </div>
+  <input type="hidden" name="variants_json" id="<%= fId %>-variants-json"/>
+</div>
+
+<!-- ─────────────────────────────────────────────────────── -->
+<!-- FEATURED / IN STOCK -->
+<!-- ─────────────────────────────────────────────────────── -->
+<div class="admin-field-row" style="margin-top:.5rem">
+  <label class="admin-checkbox">
+    <input type="checkbox" name="is_featured" <%= p && p.is_featured ? 'checked' : '' %>/> Mark as Featured
+  </label>
+  <label class="admin-checkbox">
+    <input type="checkbox" name="in_stock" <%= !p || p.in_stock !== false ? 'checked' : '' %>/> In Stock
+  </label>
+</div>
+
+<!-- ─────────────────────────────────────────────────────── -->
+<!-- DATA PASSED TO JS -->
+<!-- ─────────────────────────────────────────────────────── -->
+<script>
+(function() {
+  const FID = '<%= fId %>';
+
+  // Existing variant stock if editing
+  const existingVariants = <%- p && p.variantStock ? JSON.stringify(p.variantStock) : '{}' %>;
+
+  const MATERIALS_MAP = <%- JSON.stringify(MATERIALS) %>;
+  const STYLES_MAP    = <%- JSON.stringify(STYLES) %>;
+  const SIZES_MAP     = <%- JSON.stringify(SIZES_BY_CAT) %>;
+
+  const COLOR_HEX = {
+    'Black':'#000000','White':'#ffffff','Ivory':'#FFFFF0','Champagne Gold':'#C5A059',
+    'Dusty Rose':'#DCAE96','Blush':'#F9CADA','Navy':'#001F5B','Midnight Navy':'#001F5B',
+    'Forest Emerald':'#1C6B4A','Sage Green':'#8FAF7E','Ecru':'#C2B280','Sand':'#C2A97D',
+    'Chalk White':'#F8F8F0','Charcoal':'#3C3C3C','Plum':'#7B2D8B','Forest Green':'#228B22',
+    'Caramel':'#C67946','Olive':'#5D6914','Oatmeal':'#D6C7A8','Terracotta':'#C25E3C',
+    'French Blue':'#4F6D8E','Rose':'#FF007F','Antique White':'#FAEBD7','Blush Ivory':'#FFF5EE','N/A':'#555'
+  };
+
+  // ── Sync hidden fields before form submit ────────────────
+  function pfSyncHidden() {
+    // Sizes
+    const checkedSizes = [...document.querySelectorAll(`#${FID}-sizes-grid input:checked`)].map(i => i.value);
+    const sh = document.getElementById(`${FID}-sizes-hidden`);
+    if (sh) sh.value = checkedSizes.join(',');
+
+    // Colors
+    const checkedColors = [...document.querySelectorAll(`#${FID}-colors-grid input:checked`)].map(i => i.value);
+    const ch = document.getElementById(`${FID}-colors-hidden`);
+    if (ch) ch.value = checkedColors.join(',');
+
+    // Variants JSON
+    const rows = document.querySelectorAll(`#${FID}-variant-body tr`);
+    const variants = {};
+    rows.forEach(row => {
+      const key = row.dataset.key;
+      const inp = row.querySelector('input[type=number]');
+      if (key && inp) variants[key] = parseInt(inp.value) || 0;
+    });
+    const vj = document.getElementById(`${FID}-variants-json`);
+    if (vj) vj.value = JSON.stringify(variants);
+  }
+
+  // Expose to outer scope
+  window[`pfSync_${FID}`] = pfSyncHidden;
+
+  // ── Build variant stock table ────────────────────────────
+  function pfBuildVariants() {
+    const sizes  = [...document.querySelectorAll(`#${FID}-sizes-grid input:checked`)].map(i => i.value);
+    const colors = [...document.querySelectorAll(`#${FID}-colors-grid input:checked`)].map(i => i.value);
+    const tbody  = document.getElementById(`${FID}-variant-body`);
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    if (!sizes.length || !colors.length) {
+      tbody.innerHTML = '<tr><td colspan="3" style="color:rgba(232,229,224,.3);font-size:.75rem;padding:12px">Select sizes and colors above to set stock.</td></tr>';
+      return;
+    }
+    sizes.forEach(size => {
+      colors.forEach(color => {
+        const key = `${size}__${color}`;
+        const existing = existingVariants[key] || 0;
+        const tr = document.createElement('tr');
+        tr.dataset.key = key;
+        tr.innerHTML = `<td style="color:rgba(232,229,224,.7)">${size}</td>
+          <td style="color:rgba(232,229,224,.7)">${color}</td>
+          <td><input type="number" min="0" value="${existing}" oninput="window.pfSync_${FID}()"/></td>`;
+        tbody.appendChild(tr);
+      });
+    });
+  }
+  window[`pfBuildVariants_${FID}`] = pfBuildVariants;
+
+  // Run on load
+  setTimeout(() => { pfBuildVariants(); pfSyncHidden(); }, 100);
+
+  // ── Toggle pill active state ─────────────────────────────
+  window.pfTogglePill = function(inp) {
+    const pill = inp.closest('.pf-check-pill, .pf-color-pill');
+    if (pill) pill.classList.toggle('checked', inp.checked);
+    pfBuildVariants();
+    pfSyncHidden();
+  };
+
+  // ── Category changed — reload material/style/size options ─
+  window.pfCatChanged = function(fid) {
+    if (fid !== FID) return;
+    const cat = document.getElementById(`${fid}-cat`).value;
+
+    // Material list
+    const ml = document.getElementById(`${fid}-material-list`);
+    if (ml) {
+      ml.innerHTML = (MATERIALS_MAP[cat]||MATERIALS_MAP.dream).map(m =>
+        `<div class="pf-combo-opt" onclick="pfComboSelect('${fid}-material','${m.replace(/'/g,"\\'")}','${fid}-material-list')">${m}</div>`
+      ).join('');
+    }
+    // Style list
+    const sl = document.getElementById(`${fid}-style-list`);
+    if (sl) {
+      sl.innerHTML = (STYLES_MAP[cat]||STYLES_MAP.dream).map(s =>
+        `<div class="pf-combo-opt" onclick="pfComboSelect('${fid}-style','${s.replace(/'/g,"\\'")}','${fid}-style-list')">${s}</div>`
+      ).join('');
+    }
+    // Sizes grid
+    const sg = document.getElementById(`${fid}-sizes-grid`);
+    if (sg) {
+      const newSizes = SIZES_MAP[cat]||SIZES_MAP.dream;
+      sg.innerHTML = newSizes.map(s =>
+        `<label class="pf-check-pill"><input type="checkbox" name="sizes[]" value="${s}" onchange="pfTogglePill(this)"/> ${s}</label>`
+      ).join('');
+      pfBuildVariants(); pfSyncHidden();
+    }
+  };
+
+  // ── Combo box helpers ────────────────────────────────────
+  window.pfComboOpen = function(listId) {
+    document.querySelectorAll('.pf-combo-list.open').forEach(l => { if (l.id !== listId) l.classList.remove('open'); });
+    document.getElementById(listId)?.classList.add('open');
+  };
+  window.pfComboFilter = function(inp, listId) {
+    const q = inp.value.toLowerCase();
+    document.getElementById(listId)?.querySelectorAll('.pf-combo-opt').forEach(opt => {
+      opt.style.display = opt.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+    document.getElementById(listId)?.classList.add('open');
+  };
+  window.pfComboSelect = function(inputId, value, listId) {
+    const inp = document.getElementById(inputId);
+    if (inp) inp.value = value;
+    document.getElementById(listId)?.classList.remove('open');
+  };
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.pf-combo-wrap')) {
+      document.querySelectorAll('.pf-combo-list.open').forEach(l => l.classList.remove('open'));
+    }
+  });
+
+  // ── Image tab switching ──────────────────────────────────
+  window.pfImgTab = function(btn, panel, fid) {
+    btn.closest('.pf-image-tabs').querySelectorAll('.pf-img-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(`${fid}-img-url`).classList.toggle('active', panel === 'url');
+    document.getElementById(`${fid}-img-upload`).classList.toggle('active', panel === 'upload');
+  };
+  window.pfPreviewUrl = function(fid) {
+    const url = document.getElementById(`${fid}-image-url`).value.trim();
+    const img = document.getElementById(`${fid}-img-preview`);
+    if (url) { img.src = url; img.style.display = 'block'; }
+    else img.style.display = 'none';
+  };
+  window.pfHandleUpload = function(fileInput, fid) {
+    const file = fileInput.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      document.getElementById(`${fid}-image-base64`).value = e.target.result;
+      const img = document.getElementById(`${fid}-img-preview`);
+      img.src = e.target.result; img.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // ── AI description generator ─────────────────────────────
+  window.pfGenerateAI = async function(fid) {
+    const urlInput  = document.getElementById(`${fid}-image-url`);
+    const fileInput = document.getElementById(`${fid}-img-file`);
+    const statusEl  = document.getElementById(`${fid}-ai-status`);
+    const btn       = document.querySelector(`#${fid}-ai-status`).previousElementSibling.querySelector('.pf-ai-btn');
+
+    const imageUrl  = urlInput?.value?.trim();
+    const imageFile = fileInput?.files?.[0];
+
+    if (!imageUrl && !imageFile) {
+      statusEl.textContent = '⚠ Add an image URL or upload a file first.';
+      return;
+    }
+
+    btn.disabled = true;
+    statusEl.textContent = '✦ Analysing image…';
+
+    try {
+      let fetchOptions;
+      if (imageFile) {
+        // Send as multipart — avoids payload limits entirely
+        const fd = new FormData();
+        fd.append('imageFile', imageFile);
+        fetchOptions = { method: 'POST', body: fd, credentials: 'same-origin' };
+      } else {
+        fetchOptions = {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({ imageUrl })
+        };
+      }
+      const res  = await fetch('/admin/ai-describe', fetchOptions);
+      if (!res.ok) { statusEl.textContent = '✗ Server error ' + res.status; btn.disabled=false; return; }
+      const data = await res.json();
+      if (data.name)        document.getElementById(`${fid}-name`).value = data.name;
+      if (data.description) document.getElementById(`${fid}-desc`).value = data.description;
+      statusEl.textContent = data.name ? '✓ Description generated!' : '⚠ ' + (data.description || 'No result');
+    } catch(e) {
+      statusEl.textContent = '✗ Error: ' + e.message;
+    } finally {
+      btn.disabled = false;
+    }
+  };
+
+  // ── Add custom size ──────────────────────────────────────
+  window.pfAddCustomSize = function(fid) {
+    const inp = document.getElementById(`${fid}-custom-size`);
+    const val = inp.value.trim();
+    if (!val) return;
+    const grid = document.getElementById(`${fid}-sizes-grid`);
+    const lbl = document.createElement('label');
+    lbl.className = 'pf-check-pill checked';
+    lbl.innerHTML = `<input type="checkbox" name="sizes[]" value="${val}" checked onchange="pfTogglePill(this)"/> ${val}`;
+    grid.appendChild(lbl);
+    inp.value = '';
+    pfBuildVariants(); pfSyncHidden();
+  };
+
+  // ── Add custom color ─────────────────────────────────────
+  window.pfAddCustomColor = function(fid) {
+    const inp = document.getElementById(`${fid}-custom-color`);
+    const val = inp.value.trim();
+    if (!val) return;
+    const grid = document.getElementById(`${fid}-colors-grid`);
+    const lbl = document.createElement('label');
+    lbl.className = 'pf-color-pill checked';
+    lbl.innerHTML = `<input type="checkbox" value="${val}" checked onchange="pfTogglePill(this)"/>
+      <span class="pf-color-dot" style="background:#C5A059"></span> ${val}`;
+    grid.appendChild(lbl);
+    inp.value = '';
+    pfBuildVariants(); pfSyncHidden();
+  };
+
+
+  // Sync before any parent form submission
+  document.querySelectorAll('form').forEach(form => {
+    form.addEventListener('submit', () => pfSyncHidden());
+  });
+})();
+</script>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="<%= theme %>">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title><%= title %></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Cinzel:wght@400;500&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.4/gsap.min.js"></script>
+</head>
+<body>
+<%- include('nav') %>
+
+<header class="vault-header">
+  <div class="vault-header-inner">
+    <div class="section-badge">The Vault</div>
+    <h1 class="vault-title">Our Full Collection</h1>
+    <p class="vault-subtitle"><%= products.length %> pieces curated for you</p>
+  </div>
+</header>
+
+<!-- Filter + Sort Bar -->
+<div class="filter-bar" id="filterBar">
+  <div class="filter-bar-inner">
+    <!-- Category Pills -->
+    <div class="filter-pills">
+      <% const cats = [
+        {val:'all',          label:'All'},
+        {val:'dream',        label:'👑 Dream'},
+        {val:'modest',       label:'🌸 Modest'},
+        {val:'aesthetic',    label:'🤍 Aesthetic'},
+        {val:'hijabs',       label:'🕌 Hijabs'},
+        {val:'accessories',  label:'💍 Accessories'},
+        {val:'perfumes',     label:'🌹 Perfumes'}
+      ]; %>
+      <% cats.forEach(c => { %>
+        <a href="/vault?category=<%= c.val === 'all' ? '' : c.val %>&sort=<%= sort %>"
+           class="filter-pill <%= activeCategory === c.val || (c.val === 'all' && activeCategory === 'all') ? 'active' : '' %>">
+          <%= c.label %>
+        </a>
+      <% }); %>
+    </div>
+
+    <!-- Search (with suggestions) + Sort -->
+    <div class="filter-controls">
+      <!-- Search with live suggestions -->
+      <div class="filter-search-wrap">
+        <form action="/vault" method="GET" class="filter-search-form">
+          <input type="hidden" name="category" value="<%= activeCategory !== 'all' ? activeCategory : '' %>"/>
+          <input type="text" name="search" id="vaultSearch" class="filter-search"
+            placeholder="Search pieces..." value="<%= search %>"
+            autocomplete="off"/>
+          <button type="submit" class="filter-search-btn" aria-label="Search">🔍</button>
+        </form>
+        <!-- Suggestions dropdown -->
+        <div class="search-suggestions" id="searchSuggestions"></div>
+      </div>
+
+      <!-- Sort — FIXED: explicit bg/fg for dark mode -->
+      <div class="sort-select-wrap">
+        <select class="sort-select" id="sortSelect" onchange="doSort(this.value)" aria-label="Sort products">
+          <option value="">Sort by</option>
+          <option value="price-asc"  <%= sort==='price-asc' ?'selected':'' %>>Price: Low → High</option>
+          <option value="price-desc" <%= sort==='price-desc'?'selected':'' %>>Price: High → Low</option>
+          <option value="name-asc"   <%= sort==='name-asc'  ?'selected':'' %>>Name A → Z</option>
+        </select>
+      </div>
+
+      <button class="filter-btn" id="priceFilterBtn" onclick="togglePriceFilter()">
+        💰 Price Range
+      </button>
+    </div>
+  </div>
+
+  <!-- Price filter panel -->
+  <div class="price-filter-panel" id="priceFilterPanel">
+    <form action="/vault" method="GET" class="price-filter-form">
+      <input type="hidden" name="category" value="<%= activeCategory !== 'all' ? activeCategory : '' %>"/>
+      <input type="hidden" name="sort" value="<%= sort %>"/>
+      <label>Min: R<span id="minLabel">0</span></label>
+      <input type="range" name="min" min="0" max="6000" step="100" value="0"
+        oninput="document.getElementById('minLabel').textContent=this.value"/>
+      <label>Max: R<span id="maxLabel">6000</span></label>
+      <input type="range" name="max" min="0" max="6000" step="100" value="6000"
+        oninput="document.getElementById('maxLabel').textContent=this.value"/>
+      <button type="submit" class="btn-royal">Apply</button>
+    </form>
+  </div>
+</div>
+
+<!-- Products Grid -->
+<main class="vault-main">
+  <% if (products && products.length > 0) { %>
+    <div class="products-grid" id="productsGrid">
+      <% products.forEach(function(p){ %>
+        <%- include('product-card', { p }) %>
+      <% }); %>
+    </div>
+  <% } else { %>
+    <div class="empty-state">
+      <span>✦</span>
+      <h3>No pieces found</h3>
+      <p><a href="/vault">Clear filters →</a></p>
+    </div>
+  <% } %>
+</main>
+
+<%- include('footer') %>
+<%- include('toast') %>
+<%- include('cart-drawer') %>
+
+<script src="/js/main.js"></script>
+<script>
+  function doSort(val) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('sort', val);
+    window.location.href = url.toString();
+  }
+  function togglePriceFilter() {
+    document.getElementById('priceFilterPanel').classList.toggle('open');
+  }
+  // Sticky filter bar
+  const bar = document.getElementById('filterBar');
+  window.addEventListener('scroll', () => {
+    bar.classList.toggle('stuck', window.scrollY > 200);
+  }, { passive:true });
+  // Animate cards in
+  if (typeof gsap !== 'undefined') {
+    gsap.from('.product-card', { opacity:0, y:28, duration:0.55, stagger:0.05, ease:'power3.out', delay:0.2 });
+  }
+</script>
+</body>
+</html>

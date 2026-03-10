@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="<%= theme %>">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title><%= title %></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.4/gsap.min.js"></script>
+</head>
+<body>
+<%- include('nav') %>
+
+<header class="vault-header">
+  <div class="vault-header-inner">
+    <div class="section-badge">📦</div>
+    <h1 class="vault-title">Track Your Order</h1>
+    <p class="vault-subtitle">Enter your Order ID for live status</p>
+  </div>
+</header>
+
+<main class="track-main">
+
+  <% if (!user) { %>
+    <!-- Not logged in — show login prompt -->
+    <div class="empty-state" style="padding:3rem 1rem">
+      <span>🔐</span>
+      <h3>Sign in to track your orders</h3>
+      <p>For your security, you must be signed in to track an order. Your order details are private to your account.</p>
+      <div style="display:flex;gap:.8rem;flex-wrap:wrap;justify-content:center;margin-top:.5rem">
+        <a href="/login?redirect=/track" class="btn-royal">Sign In</a>
+        <a href="/register" class="btn-ghost">Create Account</a>
+      </div>
+    </div>
+  <% } else { %>
+
+    <div class="track-form-wrap">
+      <form action="/track" method="POST" class="track-form">
+        <div class="track-input-group">
+          <input type="text" name="order_id" class="track-input"
+            placeholder="e.g. ORD-00001"
+            value="<%= searchId %>" required
+            autocomplete="off"
+            style="text-transform:uppercase"
+          />
+          <button type="submit" class="btn-royal">Track</button>
+        </div>
+        <p class="track-hint">Your Order ID was sent in your WhatsApp confirmation. It starts with ORD-</p>
+      </form>
+    </div>
+
+    <% if (order) { %>
+      <div class="order-result" id="orderResult">
+        <div class="order-card">
+          <div class="order-card-header">
+            <span class="order-id-label">Order #<%= order.id %></span>
+            <span class="order-status-badge"><%= order.status %></span>
+          </div>
+
+          <% if (order.products) { %>
+            <div class="order-product-row">
+              <% if (order.products.image_url) { %>
+                <img src="<%= order.products.image_url %>" class="order-thumb" alt="<%= order.products.name %>"/>
+              <% } %>
+              <span><%= order.products.name %></span>
+            </div>
+          <% } %>
+
+          <div class="order-details-grid">
+            <div class="order-detail-item">
+              <span class="detail-label">Customer</span>
+              <span><%= order.customer_name %></span>
+            </div>
+            <div class="order-detail-item">
+              <span class="detail-label">Total</span>
+              <span>R<%= Number(order.total_price).toLocaleString('en-ZA') %></span>
+            </div>
+            <div class="order-detail-item">
+              <span class="detail-label">Order Date</span>
+              <span><%= new Date(order.created_at).toLocaleDateString('en-ZA',{year:'numeric',month:'long',day:'numeric'}) %></span>
+            </div>
+            <% if (order.delivery_address) { %>
+              <div class="order-detail-item">
+                <span class="detail-label">Delivery To</span>
+                <span><%= order.delivery_address %></span>
+              </div>
+            <% } %>
+          </div>
+
+          <!-- Status timeline -->
+          <%
+            const statuses = ['Pending','Confirmed','In Production','Shipped','Delivered'];
+            const curIdx   = statuses.findIndex(s => s.toLowerCase() === order.status.toLowerCase());
+          %>
+          <div class="status-timeline">
+            <% statuses.forEach(function(s, i) { %>
+              <div class="timeline-step <%= i <= curIdx ? 'completed' : '' %> <%= i === curIdx ? 'current' : '' %>">
+                <div class="timeline-dot"></div>
+                <span class="timeline-label"><%= s %></span>
+              </div>
+              <% if (i < statuses.length - 1) { %>
+                <div class="timeline-line <%= i < curIdx ? 'filled' : '' %>"></div>
+              <% } %>
+            <% }); %>
+          </div>
+        </div>
+      </div>
+
+    <% } else if (searchId) { %>
+      <div class="empty-state">
+        <span>🔍</span>
+        <h3>Order not found</h3>
+        <p>No order matching <strong><%= searchId %></strong> was found on your account.</p>
+        <p style="font-size:.76rem;color:var(--t3);margin-top:.3rem">Orders can only be viewed by the account that placed them.</p>
+        <a href="https://wa.me/27000000000" class="btn-ghost" target="_blank" rel="noopener" style="margin-top:.5rem">
+          💬 Contact Support
+        </a>
+      </div>
+    <% } %>
+
+  <% } %>
+</main>
+
+<%- include('footer') %>
+<%- include('toast') %>
+<script src="/js/main.js"></script>
+<script>
+  const result = document.getElementById('orderResult');
+  if (result && typeof gsap !== 'undefined') {
+    gsap.from(result, { opacity:0, y:30, duration:0.8, ease:'power3.out', delay:0.2 });
+  }
+  // Auto-uppercase order ID
+  const inp = document.querySelector('.track-input');
+  if (inp) inp.addEventListener('input', () => { inp.value = inp.value.toUpperCase(); });
+</script>
+</body>
+</html>

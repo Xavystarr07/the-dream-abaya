@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="<%= theme %>" id="top">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title><%= title %></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Cinzel:wght@400;500;600;700&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <link rel="stylesheet" href="/css/elite.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.4/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.4/ScrollTrigger.min.js"></script>
+</head>
+<body class="elite-page">
+
+<%- include('reveal') %>
+<%- include('nav') %>
+
+<!-- ══════════════════════════════════════════════════════════
+     SECTION 1 — HERO  (space-black → deep purple, fireworks)
+     ══════════════════════════════════════════════════════════ -->
+<section class="elite-hero" id="hero">
+  <!-- Multi-layer canvas: stars + fireworks -->
+  <canvas id="starsCanvas" class="hero-canvas-layer" style="z-index:1"></canvas>
+  <canvas id="fireworksCanvas" class="hero-canvas-layer" style="z-index:2"></canvas>
+
+  <!-- Ground cloud layer (Disney-style, hides firework launch area) -->
+  <div class="hero-clouds" id="heroClouds">
+    <div class="cloud cloud-1"></div>
+    <div class="cloud cloud-2"></div>
+    <div class="cloud cloud-3"></div>
+    <div class="cloud cloud-4"></div>
+    <div class="cloud cloud-5"></div>
+    <div class="cloud cloud-6"></div>
+  </div>
+
+  <!-- Purple gradient overlays -->
+  <div class="hero-grad-overlay"></div>
+
+  <!-- Content — appears AFTER firework show -->
+  <div class="hero-content" id="heroContent" style="opacity:0">
+    <div class="hero-eyebrow">
+      <span class="eyebrow-line"></span>
+      <span>New Arrivals 2026</span>
+      <span class="eyebrow-line"></span>
+    </div>
+    <h1 class="hero-title">
+      <span class="hero-word">Where</span>
+      <span class="hero-word">Modesty</span>
+      <br/>
+      <em class="hero-word-em">Meets Majesty</em>
+    </h1>
+
+    <!-- Voyage Card Slider CTA -->
+    <div class="hero-question" id="heroQuestion">
+      <p class="hero-majesty-tagline">Where Modesty Meets Your Majesty</p>
+      <p class="question-text">What are you searching for today?</p>
+
+      <div class="voyage-app" id="voyageSlider">
+        <!-- Blurred background (behind everything) -->
+        <div class="voyage-app__bg" id="voyageBg">
+          <div class="voyage-app__bg__image current--image"><img src="https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=900&q=70" alt=""/></div>
+          <div class="voyage-app__bg__image next--image"><img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=900&q=70" alt=""/></div>
+          <div class="voyage-app__bg__image previous--image"><img src="https://images.unsplash.com/photo-1541643600914-78b084683702?w=900&q=70" alt=""/></div>
+          <div class="voyage-app__bg__image extra--image"><img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=900&q=70" alt=""/></div>
+        </div>
+
+        <!-- Cards -->
+        <div class="voyage-cardList">
+          <button class="voyage-cardList__btn voyage-btn--left" id="voyagePrev" aria-label="Previous">
+            <svg viewBox="0 0 512 512" width="24" height="24"><polyline points="328 112 184 256 328 400" style="fill:none;stroke:#fff;stroke-linecap:round;stroke-linejoin:round;stroke-width:48px"/></svg>
+          </button>
+
+          <div class="voyage-cards__wrapper" id="voyageCards">
+            <div class="voyage-card current--card" data-href="#section-dream">
+              <div class="voyage-card__image"><img src="https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=400&q=80" alt="Abayas" loading="eager"/></div>
+              <div class="voyage-card__label"><span class="voyage-card__icon">👑</span><span>Abayas &amp; Dresses</span></div>
+            </div>
+            <div class="voyage-card next--card" data-href="#section-hijabs">
+              <div class="voyage-card__image"><img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&q=80" alt="Hijabs" loading="eager"/></div>
+              <div class="voyage-card__label"><span class="voyage-card__icon">🕌</span><span>Hijabs &amp; Niqabs</span></div>
+            </div>
+            <div class="voyage-card previous--card" data-href="#section-accessories">
+              <div class="voyage-card__image"><img src="https://images.unsplash.com/photo-1541643600914-78b084683702?w=400&q=80" alt="Accessories" loading="eager"/></div>
+              <div class="voyage-card__label"><span class="voyage-card__icon">💍</span><span>Accessories &amp; Perfumes</span></div>
+            </div>
+            <div class="voyage-card extra--card" data-href="/vault">
+              <div class="voyage-card__image"><img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80" alt="Collection" loading="eager"/></div>
+              <div class="voyage-card__label"><span class="voyage-card__icon">✦</span><span>Full Collection</span></div>
+            </div>
+          </div>
+
+          <button class="voyage-cardList__btn voyage-btn--right" id="voyageNext" aria-label="Next">
+            <svg viewBox="0 0 512 512" width="24" height="24"><polyline points="184 112 328 256 184 400" style="fill:none;stroke:#fff;stroke-linecap:round;stroke-linejoin:round;stroke-width:48px"/></svg>
+          </button>
+        </div>
+
+        <!-- Info text below cards -->
+        <div class="voyage-infoList" id="voyageInfoList">
+          <div class="voyage-info__wrapper">
+            <div class="voyage-info current--info">
+              <h3 class="voyage-text voyage-name">Dream Abayas</h3>
+              <p class="voyage-text voyage-desc">Couture for the modest princess</p>
+            </div>
+            <div class="voyage-info next--info">
+              <h3 class="voyage-text voyage-name">Hijabs &amp; Niqabs</h3>
+              <p class="voyage-text voyage-desc">Crown your modesty in style</p>
+            </div>
+            <div class="voyage-info previous--info">
+              <h3 class="voyage-text voyage-name">Accessories</h3>
+              <p class="voyage-text voyage-desc">The finishing touch of elegance</p>
+            </div>
+            <div class="voyage-info extra--info">
+              <h3 class="voyage-text voyage-name">Full Collection</h3>
+              <p class="voyage-text voyage-desc">Explore everything we offer</p>
+            </div>
+          </div>
+        </div>
+      </div><!-- /voyage-app -->
+    </div>
+  </div>
+
+  <div class="hero-scroll" id="heroScroll" style="opacity:0">
+    <span>Scroll to explore</span>
+    <div class="hero-scroll-line"></div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     SECTION 2 — THE DREAM ABAYA  (purple→blue, princess anim)
+     ══════════════════════════════════════════════════════════ -->
+<section class="elite-section dream-section" id="section-dream">
+  <canvas class="section-canvas" id="dreamCanvas"></canvas>
+  <div class="section-bg-dream"></div>
+
+  <!-- Floating clouds + petals canvas animation -->
+  <div class="dream-floats-stage" id="dreamFloatsStage">
+    <canvas id="dreamFloatsCanvas" class="dream-floats-canvas"></canvas>
+  </div>
+
+  <div class="section-content-panel" id="dreamContent">
+    <div class="section-header-block">
+      <div class="section-badge dream-badge-elite">The Dream Abaya</div>
+      <h2 class="section-heading elite-heading">Absolute<br/><em>Princess</em></h2>
+      <p class="section-subheading">Couture abayas for women who refuse to be ordinary. Each piece is a statement of power and grace.</p>
+    </div>
+    <div class="products-row elite-products-row">
+      <% sections.dream.slice(0,4).forEach(function(p){ %>
+        <%- include('product-card', { p }) %>
+      <% }) %>
+    </div>
+    <div style="text-align:center;margin-top:2rem">
+      <a href="/vault?category=dream" class="btn-royal-elite">View All Dream Abayas <span>→</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     SECTION 3 — MODEST & BEAUTIFUL  (blue, floating feather + flower)
+     ══════════════════════════════════════════════════════════ -->
+<section class="elite-section modest-section-elite" id="section-modest">
+  <canvas class="section-canvas" id="modestCanvas"></canvas>
+  <div class="section-bg-modest"></div>
+
+  <!-- Floating flowers + petals canvas (replaces feather/flower) -->
+  <div class="modest-floats-stage" id="modestFloatsStage">
+    <canvas id="modestFloatsCanvas" class="modest-floats-canvas"></canvas>
+  </div>
+
+  <div class="section-content-panel section-content-left" id="modestContent">
+    <div class="section-header-block">
+      <div class="section-badge modest-badge-elite">Modest & Beautiful</div>
+      <h2 class="section-heading elite-heading">Stylish.<br/><em>Budget-Friendly.</em></h2>
+      <p class="section-subheading">Because elegance shouldn't cost a fortune. Modesty for every day, every occasion.</p>
+    </div>
+    <div class="products-row elite-products-row">
+      <% sections.modest.slice(0,4).forEach(function(p){ %>
+        <%- include('product-card', { p }) %>
+      <% }) %>
+    </div>
+    <div style="text-align:center;margin-top:2rem">
+      <a href="/vault?category=modest" class="btn-royal-elite">View All Modest Pieces <span>→</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     SECTION 4 — SIMPLY AESTHETIC  (blue, floating hearts)
+     ══════════════════════════════════════════════════════════ -->
+<section class="elite-section aesthetic-section-elite" id="section-aesthetic">
+  <canvas class="section-canvas" id="crownsCanvas"></canvas>
+  <div class="section-bg-aesthetic"></div>
+
+  <div class="section-content-panel" id="aestheticContent">
+    <div class="section-header-block">
+      <div class="section-badge aesthetic-badge-elite">Simply Aesthetic</div>
+      <h2 class="section-heading elite-heading">Clean.<br/><em>Calm. Considered.</em></h2>
+      <p class="section-subheading">Minimal silhouettes in earthy, natural tones. Aesthetic without effort.</p>
+    </div>
+    <div class="products-row elite-products-row">
+      <% sections.aesthetic.slice(0,4).forEach(function(p){ %>
+        <%- include('product-card', { p }) %>
+      <% }) %>
+    </div>
+    <div style="text-align:center;margin-top:2rem">
+      <a href="/vault?category=aesthetic" class="btn-royal-elite">View All Aesthetic <span>→</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     SECTION 5 — HIJABS & NIQABS  (purple→blue, hijabi crown anim)
+     ══════════════════════════════════════════════════════════ -->
+<section class="elite-section hijabs-section-elite" id="section-hijabs">
+  <canvas class="section-canvas" id="hijabCanvas"></canvas>
+  <div class="section-bg-hijabs"></div>
+
+  <!-- Floating handbags canvas animation -->
+  <div class="handbags-stage" id="handbagsStage">
+    <canvas id="handbagsCanvas" class="handbags-canvas"></canvas>
+  </div>
+
+  <div class="section-content-panel" id="hijabsContent">
+    <div class="section-header-block">
+      <div class="section-badge hijab-badge-elite">Hijabs & Niqabs</div>
+      <h2 class="section-heading elite-heading">Crown Your<br/><em>Modesty</em></h2>
+      <p class="section-subheading">From everyday jerseys to embroidered occasion pieces. Your hijab, your crown.</p>
+    </div>
+    <div class="products-row elite-products-row">
+      <% sections.hijabs.slice(0,4).forEach(function(p){ %>
+        <%- include('product-card', { p }) %>
+      <% }) %>
+    </div>
+    <div style="text-align:center;margin-top:2rem">
+      <a href="/vault?category=hijabs" class="btn-royal-elite">View All Hijabs & Niqabs <span>→</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     SECTION 6 — ACCESSORIES  (purple→blue, handbag lady walks)
+     ══════════════════════════════════════════════════════════ -->
+<section class="elite-section accessories-section-elite" id="section-accessories">
+  <div class="section-bg-accessories"></div>
+  <canvas class="section-canvas" id="accessoriesCanvas"></canvas>
+
+  <!-- Floating perfume bottles canvas animation -->
+  <div class="perfumes-float-stage" id="perfumesFloatStage">
+    <canvas id="perfumesFloatCanvas" class="perfumes-float-canvas"></canvas>
+  </div>
+
+  <div class="section-content-panel" id="accessoriesContent">
+    <div class="section-header-block">
+      <div class="section-badge accessories-badge-elite">Accessories</div>
+      <h2 class="section-heading elite-heading">The Finishing<br/><em>Touch</em></h2>
+      <p class="section-subheading">Pins, belts, bags, and prayer beads. Details that define who you are.</p>
+    </div>
+    <div class="products-row elite-products-row">
+      <% sections.accessories.slice(0,4).forEach(function(p){ %>
+        <%- include('product-card', { p }) %>
+      <% }) %>
+    </div>
+    <div style="text-align:center;margin-top:2rem">
+      <a href="/vault?category=accessories" class="btn-royal-elite">View All Accessories <span>→</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     SECTION 7 — PERFUMES  (purple→blue, perfume spray + floating bottles)
+     ══════════════════════════════════════════════════════════ -->
+<section class="elite-section perfumes-section-elite" id="section-perfumes">
+  <canvas class="section-canvas" id="perfumeCanvas"></canvas>
+  <div class="section-bg-perfumes"></div>
+
+  <!-- Perfume spray animation -->
+  <div class="perfume-stage" id="perfumeStage">
+    <!-- Floating perfume bottles -->
+    <div class="perf-bottle perf-b1">
+      <svg viewBox="0 0 60 120" xmlns="http://www.w3.org/2000/svg" width="60">
+        <rect x="22" y="8" width="16" height="12" rx="2" fill="#C5A059"/>
+        <rect x="18" y="18" width="24" height="4" rx="1" fill="#A08040"/>
+        <path d="M14 22 Q10 30 10 55 Q10 90 14 105 Q18 115 30 118 Q42 115 46 105 Q50 90 50 55 Q50 30 46 22 Z" fill="rgba(139,92,246,.4)" stroke="rgba(197,160,89,.6)" stroke-width="1.5"/>
+        <ellipse cx="30" cy="60" rx="12" ry="20" fill="rgba(255,255,255,.08)"/>
+        <text x="30" y="75" text-anchor="middle" font-size="5" fill="rgba(255,255,255,.5)">OUD</text>
+        <text x="30" y="83" text-anchor="middle" font-size="4" fill="rgba(197,160,89,.6)">Al Layl</text>
+      </svg>
+    </div>
+    <div class="perf-bottle perf-b2">
+      <svg viewBox="0 0 50 100" xmlns="http://www.w3.org/2000/svg" width="48">
+        <ellipse cx="25" cy="12" rx="10" ry="8" fill="#C5A059"/>
+        <rect x="20" y="8" width="10" height="8" fill="#A08040"/>
+        <path d="M10 20 Q6 30 6 50 Q6 80 10 90 Q15 98 25 100 Q35 98 40 90 Q44 80 44 50 Q44 30 40 20 Z" fill="rgba(59,130,246,.4)" stroke="rgba(197,160,89,.5)" stroke-width="1.5"/>
+        <ellipse cx="25" cy="55" rx="10" ry="16" fill="rgba(255,255,255,.07)"/>
+        <text x="25" y="62" text-anchor="middle" font-size="4.5" fill="rgba(255,255,255,.5)">MUSK</text>
+      </svg>
+    </div>
+    <div class="perf-bottle perf-b3">
+      <svg viewBox="0 0 55 115" xmlns="http://www.w3.org/2000/svg" width="55">
+        <polygon points="27,2 33,2 35,14 20,14" fill="#C5A059"/>
+        <rect x="19" y="12" width="17" height="5" fill="#A08040"/>
+        <path d="M12 18 Q8 28 8 52 Q8 85 12 98 Q17 110 27 112 Q37 110 43 98 Q47 85 47 52 Q47 28 43 18 Z" fill="rgba(167,139,250,.4)" stroke="rgba(197,160,89,.5)" stroke-width="1.5"/>
+        <text x="27" y="72" text-anchor="middle" font-size="4" fill="rgba(255,255,255,.5)">AMBER</text>
+        <text x="27" y="79" text-anchor="middle" font-size="3.5" fill="rgba(197,160,89,.55)">Oud</text>
+      </svg>
+    </div>
+
+    <!-- Spray mist particles (drawn on perfumeCanvas) -->
+    <div class="spray-icon" id="sprayIcon">
+      <svg viewBox="0 0 80 100" xmlns="http://www.w3.org/2000/svg" width="80">
+        <rect x="30" y="50" width="32" height="42" rx="6" fill="#C5A059" opacity=".9"/>
+        <rect x="36" y="38" width="10" height="16" rx="3" fill="#A08040"/>
+        <path d="M46 44 Q56 38 58 30" stroke="#C5A059" stroke-width="2" fill="none"/>
+        <rect x="55" y="24" width="18" height="10" rx="3" fill="#C5A059" opacity=".8"/>
+        <circle cx="73" cy="29" r="4" fill="#D4BA7E"/>
+        <ellipse cx="38" cy="62" rx="6" ry="10" fill="rgba(255,255,255,.08)"/>
+      </svg>
+    </div>
+  </div>
+
+  <div class="section-content-panel" id="perfumesContent">
+    <div class="section-header-block">
+      <div class="section-badge perfume-badge-elite">Perfumes</div>
+      <h2 class="section-heading elite-heading">Scent of<br/><em>Jannah</em></h2>
+      <p class="section-subheading">Alcohol-free. Halal-certified. Oud, musk, rose and more — wear the scent of paradise.</p>
+    </div>
+    <div class="products-row elite-products-row">
+      <% sections.perfumes.slice(0,4).forEach(function(p){ %>
+        <%- include('product-card', { p }) %>
+      <% }) %>
+    </div>
+    <div style="text-align:center;margin-top:2rem">
+      <a href="/vault?category=perfumes" class="btn-royal-elite">View All Perfumes <span>→</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     SECTION 8 — SEASONAL  (4 seasons chooser)
+     ══════════════════════════════════════════════════════════ -->
+<section class="elite-section seasonal-section" id="section-seasonal">
+  <canvas class="section-canvas" id="seasonalCanvas"></canvas>
+  <div class="section-bg-seasonal"></div>
+
+  <!-- Intro poem text -->
+  <div class="seasonal-intro" id="seasonalIntro">
+    <div class="section-badge seasonal-badge">Seasonal Collections</div>
+    <h2 class="section-heading elite-heading">Dressed for<br/><em>Every Season</em></h2>
+    <p class="seasonal-poem">
+      As the earth turns and the seasons change,<br/>
+      so does the language of modest fashion.<br/>
+      <em>Which season speaks to you today?</em>
+    </p>
+  </div>
+
+  <!-- Immersive season overlay canvas (contained within section) -->
+  <canvas id="seasonImmersiveCanvas" class="season-immersive-canvas" style="display:none;position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:5"></canvas>
+
+  <!-- Season chooser -->
+  <div class="season-chooser" id="seasonChooser">
+    <button class="season-card season-summer" onclick="selectSeason('summer')">
+      <canvas class="season-mini-canvas" id="summerCanvas" width="160" height="160"></canvas>
+      <div class="season-icon">☀️</div>
+      <div class="season-name">Summer</div>
+      <div class="season-desc">Light linens, soft pastels</div>
+    </button>
+    <button class="season-card season-autumn" onclick="selectSeason('autumn')">
+      <canvas class="season-mini-canvas" id="autumnCanvas" width="160" height="160"></canvas>
+      <div class="season-icon">🍂</div>
+      <div class="season-name">Autumn</div>
+      <div class="season-desc">Warm tones, layered richness</div>
+    </button>
+    <button class="season-card season-winter" onclick="selectSeason('winter')">
+      <canvas class="season-mini-canvas" id="winterCanvas" width="160" height="160"></canvas>
+      <div class="season-icon">❄️</div>
+      <div class="season-name">Winter</div>
+      <div class="season-desc">Velvet depth, royal textures</div>
+    </button>
+    <button class="season-card season-spring" onclick="selectSeason('spring')">
+      <canvas class="season-mini-canvas" id="springCanvas" width="160" height="160"></canvas>
+      <div class="season-icon">🌸</div>
+      <div class="season-name">Spring</div>
+      <div class="season-desc">Florals, soft blossoms</div>
+    </button>
+  </div>
+
+  <!-- Season display panel (shown after selection) -->
+  <div class="season-display" id="seasonDisplay" style="display:none">
+    <div class="season-display-inner">
+      <button class="season-back-btn" onclick="closeSeason()">← Back to Seasons</button>
+      <div class="season-display-header">
+        <span class="season-display-icon" id="sdIcon"></span>
+        <h2 class="season-display-title" id="sdTitle"></h2>
+        <p class="season-display-poem" id="sdPoem"></p>
+      </div>
+      <!-- Products from relevant categories for each season -->
+      <div class="products-row elite-products-row" id="seasonProducts"></div>
+      <div style="text-align:center;margin-top:2rem">
+        <a id="seasonViewAll" href="/vault" class="btn-royal-elite">View Full Collection →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     BRAND STORY — stays elegant
+     ══════════════════════════════════════════════════════════ -->
+<section class="elite-story" id="story-section">
+  <div class="story-inner">
+    <div class="story-text reveal-block">
+      <div class="section-badge">Our Story</div>
+      <h2 class="section-heading elite-heading">Born From<br/><em>A Vision</em></h2>
+      <p>The Dream Abaya was born from a conviction — that modest fashion deserves the same reverence as haute couture. Every abaya is cut from premium fabrics, finished by hand, and inspected to the standard of a R20,000 gown.</p>
+      <p>We believe the woman who covers does so with power. Every piece we create honours that power.</p>
+    </div>
+    <div class="story-visual reveal-block">
+      <div class="story-frame">
+        <div class="story-frame-inner">
+          <div class="story-stat"><span class="stat-num">24+</span><span class="stat-label">Unique Pieces</span></div>
+          <div class="story-divider">— ✦ —</div>
+          <div class="story-stat"><span class="stat-num">100%</span><span class="stat-label">Halal & Modest</span></div>
+          <div class="story-divider">— ✦ —</div>
+          <div class="story-stat"><span class="stat-num">Est.</span><span class="stat-label">2024 · South Africa</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<%- include('footer') %>
+<%- include('toast') %>
+<%- include('cart-drawer') %>
+
+<script src="/js/main.js"></script>
+<script src="/js/elite.js"></script>
+<script>
+  // Kick off the reveal curtain + all elite section animations
+  initReveal();
+  initElitePage();
+</script>
+</body>
+</html>

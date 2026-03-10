@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="<%= theme %>">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <meta name="description" content="Sign in to The Dream Abaya"/>
+  <meta http-equiv="X-Content-Type-Options" content="nosniff"/>
+  <title><%= title %></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Cinzel:wght@400;500&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.4/gsap.min.js"></script>
+</head>
+<body class="auth-body">
+<%- include('nav') %>
+
+<main class="auth-main login-main">
+  <div class="auth-split">
+
+    <!-- Brand Panel -->
+    <div class="auth-brand-panel">
+      <div class="auth-brand-content">
+        <div class="auth-brand-ornament">✦ ✦ ✦</div>
+        <h2 class="auth-brand-title">Welcome Back,<br/><em>Princess</em></h2>
+        <p class="auth-brand-desc">Your wishlist awaits. Your cart remembers. Your palace is ready.</p>
+        <div class="auth-perks">
+          <div class="auth-perk"><span>✦</span> Access your wishlist</div>
+          <div class="auth-perk"><span>✦</span> Track your orders</div>
+          <div class="auth-perk"><span>✦</span> Exclusive member deals</div>
+        </div>
+        <div class="auth-brand-particles" id="particles"></div>
+      </div>
+    </div>
+
+    <!-- Form Panel -->
+    <div class="auth-form-panel">
+      <div class="auth-form-wrap" id="authFormWrap">
+        <div class="auth-step-emoji">✨</div>
+        <h3 class="auth-form-title">Sign into your account</h3>
+        <p class="auth-form-sub">Enter your email and password below</p>
+
+        <% if (error) { %>
+          <div class="auth-error" role="alert"><%= error %></div>
+        <% } %>
+
+        <form action="/login" method="POST" novalidate>
+          <input type="hidden" name="redirect" value="<%= redirect %>"/>
+
+          <div class="auth-field">
+            <label for="loginEmail">Email Address</label>
+            <input
+              type="email" id="loginEmail" name="email"
+              class="auth-input" placeholder="your@email.com"
+              required autocomplete="username" inputmode="email"
+              maxlength="254"
+            />
+          </div>
+
+          <div class="auth-field">
+            <label for="loginPw">Password</label>
+            <div class="auth-input-wrap">
+              <input
+                type="password" id="loginPw" name="password"
+                class="auth-input" placeholder="Your password"
+                required autocomplete="current-password" data-lpignore="true" data-form-type="other"
+                maxlength="128"
+              />
+              <button type="button" class="auth-eye" onclick="togglePw('loginPw', this)" aria-label="Show password">👁</button>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-royal full-width">✦ Enter The Palace</button>
+        </form>
+      </div>
+
+      <p class="auth-switch">New here? <a href="/register">Create your account →</a></p>
+    </div>
+
+  </div>
+</main>
+
+<%- include('toast') %>
+<script src="/js/main.js"></script>
+<script>
+  function togglePw(id, btn) {
+    const inp = document.getElementById(id);
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+    btn.textContent = inp.type === 'password' ? '👁' : '🙈';
+    btn.setAttribute('aria-label', inp.type === 'password' ? 'Show password' : 'Hide password');
+  }
+  gsap.from('#authFormWrap', { opacity:0, y:35, duration:0.8, ease:'power3.out', delay:0.2 });
+
+  const panel = document.getElementById('particles');
+  if (panel) {
+    for (let i = 0; i < 10; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*100}%;animation-delay:${Math.random()*4}s;animation-duration:${3+Math.random()*4}s`;
+      panel.appendChild(p);
+    }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="<%= theme %>">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title><%= title %></title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=Jost:wght@300;400&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/css/style.css"/>
+</head>
+<body class="no-reveal">
+  <%- include('partials/nav') %>
+  <main class="not-found-main">
+    <div class="not-found-inner">
+      <span class="not-found-code">404</span>
+      <div class="section-badge">Page Not Found</div>
+      <h1 class="not-found-title">This page doesn't exist.</h1>
+      <p class="not-found-sub">Perhaps you were looking for something divine?</p>
+      <a href="/" class="btn-royal">Return Home</a>
+    </div>
+  </main>
+</body>
+</html>
