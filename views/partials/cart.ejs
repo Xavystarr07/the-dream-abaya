@@ -8,6 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="/css/style.css"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.4/gsap.min.js"></script>
+ 
 </head>
 <body>
 <%- include('nav') %>
@@ -36,20 +37,22 @@
               <div class="checkout-field">
                 <label>Full Name *</label>
                 <input type="text" id="co_name" class="auth-input" placeholder="Fatima Al-Rashid"
+                  value="<%= user ? user.name : '' %>" required maxlength="100"/>
               </div>
               <div class="checkout-field">
                 <label>Phone Number *</label>
                 <input type="tel" id="co_phone" class="auth-input" placeholder="+27 000 000 0000"
-                  required inputmode="tel"/>
+                  value="<%= user && user.phone ? user.phone : '' %>" required inputmode="tel"/>
               </div>
             </div>
             <div class="checkout-field">
               <label>Email Address *</label>
               <input type="email" id="co_email" class="auth-input" placeholder="your@email.com"
+                value="<%= user ? user.email : '' %>" required inputmode="email" maxlength="254"/>
             </div>
             <div class="checkout-field">
               <label>Delivery Address *</label>
-              <textarea id="co_address" class="auth-input auth-textarea" placeholder="14 Rose Street, Cape Town, 8001&#10;Include suburb & postal code" rows="3" required></textarea>
+              <textarea id="co_address" class="auth-input auth-textarea" placeholder="14 Rose Street, Cape Town, 8001&#10;Include suburb &amp; postal code" rows="3" required></textarea>
             </div>
             <div class="checkout-field">
               <label>Special Notes <span style="color:var(--t3)">(optional)</span></label>
@@ -66,43 +69,36 @@
           </div>
           <div class="cart-items">
             <% cart.forEach(function(item) { %>
+              <div class="cart-item" data-id="<%= item.id %>" data-size="<%= item.size || '' %>" data-max="<%= item.stock_qty || 99 %>">
                 <div class="cart-item-img">
                   <% if (item.image_url) { %>
-                    <img src="<%= item.image_url %>" 
-                         alt="<%= item.name %>" 
+                    <img src="<%= item.image_url %>"
+                         alt="<%= item.name %>"
                          loading="lazy"
-                         onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';" />
-                    <div class="cart-item-placeholder" style="display:none;">✦</div> 
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';"/>
+                    <div class="cart-item-placeholder" style="display:none;">✦</div>
                   <% } else { %>
                     <div class="cart-item-placeholder">✦</div>
                   <% } %>
-                </div><div class="cart-item-info">
+                </div>
+                <div class="cart-item-info">
                   <a href="/product/<%= item.id %>" class="cart-item-name"><%= item.name %></a>
-                  <% if (item.size)  { %><span class="cart-item-size">Size: <%= item.size %></span><% } %>
+                  <% if (item.size) { %><span class="cart-item-size">Size: <%= item.size %></span><% } %>
                   <% if (item.color && item.color !== 'undefined') { %><span class="cart-item-size">Colour: <%= item.color %></span><% } %>
                   <span class="cart-item-price">R<%= Number(item.price).toLocaleString('en-ZA') %> each</span>
                   <% if (item.stock_qty) { %>
-                      <%= item.stock_qty <= 3 ? `⚠️ Only ${item.stock_qty} left!` : `✓ ${item.stock_qty} in stock` %>
+                    <span class="stock-indicator <%= item.stock_qty <= 3 ? 'low-stock' : 'in-stock-badge' %>">
+                      <%= item.stock_qty <= 3 ? '⚠️ Only ' + item.stock_qty + ' left!' : '✓ ' + item.stock_qty + ' in stock' %>
                     </span>
                   <% } %>
                 </div>
                 <div class="cart-item-qty">
+                  <button onclick="changeQty('<%= item.id %>', '<%= item.size || '' %>', -1)" aria-label="Decrease">−</button>
                   <span class="qty-display"><%= item.qty %></span>
+                  <button onclick="changeQty('<%= item.id %>', '<%= item.size || '' %>', 1)" aria-label="Increase">+</button>
                 </div>
                 <div class="cart-item-subtotal">R<%= Number(item.price * item.qty).toLocaleString('en-ZA') %></div>
-                  <% } else { %>
-                    <div class="empty-state">
-                      <span>🛍️</span>
-                      <h3>Your cart is empty</h3>
-                      <p>Let the palace fill it.</p>
-                      <a href="/vault" class="btn-royal" style="margin-top:.5rem">Explore The Vault</a>
-                    </div>
-                  <% } %>
-                </main>
-                
-                <%- include('footer') %>
-                <%- include('toast') %>
-                ...existing code...e item">✕</button>
+                <button class="cart-item-remove" onclick="removeItem('<%= item.id %>', '<%= item.size || '' %>', this)" aria-label="Remove item">✕</button>
               </div>
             <% }); %>
           </div>
@@ -133,12 +129,12 @@
           <span>R<%= Number(total).toLocaleString('en-ZA') %></span>
         </div>
 
-        <button class="btn-royal full-width" id="placeOrderBtn" onclick="placeOrder('<%= total %>')">
-          💬 Place Order via WhatsApp
+        <button class="btn-royal full-width" id="cartCheckoutBtn" onclick="openCartPayment()">
+          🔒 Proceed to Checkout
         </button>
         <a href="/vault" class="btn-ghost full-width" style="margin-top:.75rem">Continue Shopping</a>
         <div class="cart-trust">
-          <span>🔒 Secure & Private</span>
+          <span>🔒 Secure &amp; Private</span>
           <span>✦ Handcrafted Quality</span>
           <span>📦 5–7 Day Delivery</span>
         </div>
@@ -160,68 +156,86 @@
 
 <script src="/js/main.js"></script>
 <script>
+  // ── Quantity controls ──────────────────────────────────────────
   function changeQty(id, size, delta) {
-    const item    = document.querySelector(`.cart-item[data-id="${id}"][data-size="${size}"]`);
+    const item    = document.querySelector('.cart-item[data-id="' + id + '"][data-size="' + size + '"]');
     const display = item.querySelector('.qty-display');
     const max     = parseInt(item.dataset.max) || 99;
-    const newQty  = Math.max(1, Math.min(parseInt(display.textContent) + delta, max));
-    
-    if (delta > 0 && parseInt(display.textContent) >= max) {
-      showToast(`Only ${max} left in stock`, 'error'); return;
-    }
-    
+    const cur     = parseInt(display.textContent);
+    if (delta > 0 && cur >= max) { showToast('Only ' + max + ' left in stock', 'error'); return; }
     fetch('/cart/update', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ product_id: id, size, qty: newQty })
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ product_id: id, size, qty: Math.max(1, Math.min(cur + delta, max)) })
     }).then(() => location.reload());
   }
 
+  // ── Remove item ────────────────────────────────────────────────
   function removeItem(id, size, btn) {
     fetch('/cart/remove', {
-      method:'POST', headers:{'Content-Type':'application/json'},
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ product_id: id, size })
     }).then(() => {
-      gsap.to(btn.closest('.cart-item'), { opacity:0, height:0, marginBottom:0, duration:0.4, onComplete: () => location.reload() });
+      gsap.to(btn.closest('.cart-item'), {
+        opacity: 0, height: 0, marginBottom: 0, duration: 0.4,
+        onComplete: () => location.reload()
+      });
     });
   }
 
-  function placeOrder(total) {
+  // ── Yoco checkout ──────────────────────────────────────────────
+  function openCartPayment() {
     const name    = document.getElementById('co_name')?.value.trim();
     const phone   = document.getElementById('co_phone')?.value.trim();
     const email   = document.getElementById('co_email')?.value.trim();
     const address = document.getElementById('co_address')?.value.trim();
-    const notes   = document.getElementById('co_notes')?.value.trim();
+    const notes   = document.getElementById('co_notes')?.value.trim() || '';
 
-    if (!name)    { showToast('Please enter your name', 'error'); document.getElementById('co_name').focus(); return; }
-    if (!phone)   { showToast('Please enter your phone number', 'error'); document.getElementById('co_phone').focus(); return; }
-    if (!email)   { showToast('Please enter your email', 'error'); document.getElementById('co_email').focus(); return; }
+    if (!name)    { showToast('Please enter your name', 'error');             document.getElementById('co_name').focus();    return; }
+    if (!phone)   { showToast('Please enter your phone number', 'error');     document.getElementById('co_phone').focus();   return; }
+    if (!email)   { showToast('Please enter your email', 'error');            document.getElementById('co_email').focus();   return; }
     if (!address) { showToast('Please enter your delivery address', 'error'); document.getElementById('co_address').focus(); return; }
 
-    const items = Array.from(document.querySelectorAll('.cart-item')).map(el => {
-      const n = el.querySelector('.cart-item-name')?.textContent?.trim();
-      const q = el.querySelector('.qty-display')?.textContent?.trim();
-      const s = el.querySelector('.cart-item-size')?.textContent?.trim() || '';
-      return `  • ${n} x${q}${s ? ' (' + s + ')' : ''}`;
-    }).join('\n');
+    const amountCents = <%= Math.round(total * 100) %>;
+    const items       = <%- JSON.stringify(cart.map(function(i) { return { id: i.id, name: i.name, qty: i.qty, size: i.size || '', color: i.color || '', price: i.price }; })) %>;
 
-    const msg = `✦ NEW ORDER — The Dream Abaya ✦\n\n`
-      + `👤 Name: ${name}\n`
-      + `📞 Phone: ${phone}\n`
-      + `📧 Email: ${email}\n`
-      + `📍 Address: ${address}\n`
-      + (notes ? `📝 Notes: ${notes}\n` : '')
-      + `\n🛍️ Items:\n${items}\n`
-      + `\n💰 Order Total: R${Number(total).toLocaleString('en-ZA')}\n\n`
-      + `Please confirm my order. Thank you! 🙏`;
+    const btn = document.getElementById('cartCheckoutBtn');
+    btn.textContent = 'Redirecting to payment…';
+    btn.disabled = true;
 
-    const waUrl = `https://wa.me/27000000000?text=${encodeURIComponent(msg)}`;
-    window.open(waUrl, '_blank', 'noopener');
+    fetch('/payment/cart-checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        amountCents:      amountCents,
+        items:            items,
+        customer_name:    name,
+        customer_email:   email,
+        customer_phone:   phone,
+        delivery_address: address,
+        notes:            notes
+      })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.success && data.redirectUrl) {
+        window.location.href = data.redirectUrl;
+      } else {
+        showToast(data.message || 'Something went wrong. Please try again.', 'error');
+        btn.textContent = '🔒 Proceed to Checkout';
+        btn.disabled = false;
+      }
+    })
+    .catch(function() {
+      showToast('Network error. Please try again.', 'error');
+      btn.textContent = '🔒 Proceed to Checkout';
+      btn.disabled = false;
+    });
   }
 
-  // Animation sequences
+  // ── Entry animations ───────────────────────────────────────────
   if (typeof gsap !== 'undefined') {
-    gsap.from('.cart-item', { opacity:0, y:18, duration:0.5, stagger:0.07, ease:'power3.out', delay:0.25 });
-    gsap.from('.checkout-block', { opacity:0, y:25, duration:0.6, stagger:0.12, ease:'power3.out', delay:0.15 });
+    gsap.from('.cart-item',       { opacity: 0, y: 18, duration: 0.5, stagger: 0.07, ease: 'power3.out', delay: 0.25 });
+    gsap.from('.checkout-block',  { opacity: 0, y: 25, duration: 0.6, stagger: 0.12, ease: 'power3.out', delay: 0.15 });
   }
 </script>
 </body>

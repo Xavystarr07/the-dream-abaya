@@ -30,9 +30,12 @@ app.use(express.json({ limit: '25mb' }));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
+const SupabaseSessionStore = require('./supabase-session-store');
 app.use(session({
   secret: process.env.SESSION_SECRET || 'dream-abaya-royal-secret-2025',
-  resave: true, saveUninitialized: false,
+  resave: false,
+  saveUninitialized: false,
+  store: new SupabaseSessionStore(supabase),
   cookie: { maxAge: 7 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'lax' }
 }));
 
@@ -633,86 +636,40 @@ app.get('/admin/product-form-html/:id', requireAdmin, async (req, res) => {
 // ── Create product — handle variants + discounts ──────────────────
 // (overrides the simple route below)
 
-// ── Cart checkout (multi-item) ────────────────────────────────────
+
+// ── Cart checkout (multi-item) — Yoco Redirect Flow ──────────────
 app.post('/payment/cart-checkout', async (req, res) => {
-  const { token, amountCents, items, customer_name, customer_email, customer_phone, delivery_address, notes } = req.body;
-  if (!token || !amountCents || !items?.length) {
+  console.log('Cart checkout hit — body:', JSON.stringify(req.body).slice(0, 200));
+  const { amountCents, items, customer_name, customer_email, customer_phone, delivery_address, notes } = req.body;
+  if (!amountCents || !items?.length) {
+    console.log('Missing fields — amountCents:', amountCents, 'items:', items?.length);
     return res.json({ success: false, message: 'Missing required checkout fields.' });
   }
   try {
-    // Charge via Yoco
-    const yocoRes = await fetch('https://online.yoco.com/v1/charges/', {
+    const yocoRes = await fetch('https://payments.yoco.com/api/checkouts', {
       method: 'POST',
-      headers: { 'X-Auth-Secret-Key': process.env.YOCO_SECRET_KEY || 'sk_test_960bfauthenticate45321af0vlxi', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token, amountInCents: amountCents, currency: 'ZAR' })
+      headers: {
+        'Authorization': 'Bearer ' + process.env.YOCO_SECRET_KEY,
+        'Content-Type': 'application/json',
+        'Idempotency-Key': Date.now().toString()
+      },
+      body: JSON.stringify({
+        amount:     amountCents,
+        currency:   'ZAR',
+        successUrl: (process.env.BASE_URL || 'http://localhost:3000') + '/order-success',
+        cancelUrl:  (process.env.BASE_URL || 'http://localhost:3000') + '/cart',
+        metadata:   { customer_name, customer_email, customer_phone, delivery_address, notes }
+      })
     });
     const yocoData = await yocoRes.json();
-    if (!yocoData.id || yocoData.status !== 'successful') {
-      return res.json({ success: false, message: yocoData.displayMessage || 'Card payment failed.' });
+    console.log('Yoco response:', JSON.stringify(yocoData));
+    if (!yocoData.redirectUrl) {
+      return res.json({ success: false, message: yocoData.displayMessage || yocoData.message || 'Payment setup failed.' });
     }
-
-    // Create order for each item
-    const userId = req.session?.userId || null;
-    const orderIds = [];
-    for (const item of items) {
-      const { data: order } = await supabase.from('orders').insert([{
-        product_id:       item.id,
-        product_name:     item.name,
-        product_price:    item.price,
-        product_size:     item.size || null,
-        product_color:    item.color || null,
-        qty:              item.qty || 1,
-        customer_name,
-        customer_email,
-        customer_phone:   customer_phone || null,
-        delivery_address,
-        notes:            notes || null,
-        status:           'paid',
-        payment_status:   'paid',
-        payment_ref:      yocoData.id,
-        user_id:          userId,
-      }]).select().single();
-      if (order) {
-        orderIds.push(order.id);
-        await deductVariantStock(item.id, item.size, item.color, item.qty || 1).catch(() => {});
-        await supabase.from('payments').insert([{
-          order_id:    order.id,
-          user_id:     userId,
-          amount_cents: Math.round(item.price * (item.qty||1) * 100),
-          currency:    'ZAR',
-          status:      'paid',
-          gateway:     'yoco',
-          gateway_ref: yocoData.id,
-        }]).catch(() => {});
-      }
-    }
-
-    // Clear cart from session
-    req.session.cart = [];
-
-    // Send confirmation email
-    if (resend && customer_email) {
-      const itemsList = items.map(i => `<li>${i.name}${i.size?' ('+i.size+')':''} × ${i.qty||1} — R${(i.price*(i.qty||1)).toLocaleString('en-ZA')}</li>`).join('');
-      resend.emails.send({
-        from: process.env.RESEND_FROM || 'The Dream Abaya <onboarding@resend.dev>',
-        to:   customer_email,
-        subject: '✦ Order Confirmed — The Dream Abaya',
-        html: `<div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;background:#0a0d14;color:#E8E5E0;padding:32px">
-          <h2 style="color:#C5A059;font-weight:300;letter-spacing:.2em">ORDER CONFIRMED</h2>
-          <p>Assalamu Alaikum ${customer_name},</p>
-          <p>Your order has been confirmed and payment received. We will begin preparing your items.</p>
-          <ul style="padding-left:20px;color:#C5A059">${itemsList}</ul>
-          <p><strong style="color:#C5A059">Total Paid: R${(amountCents/100).toLocaleString('en-ZA')}</strong></p>
-          <p style="color:rgba(232,229,224,.5);font-size:.85em">Order ID: ${orderIds.join(', ')}</p>
-          <hr style="border-color:rgba(197,160,89,.2);margin:24px 0"/>
-          <p>Delivering to: ${delivery_address}</p>
-          <p style="color:rgba(232,229,224,.5)">Questions? Reply to this email or contact us via our website.</p>
-          <p style="color:#C5A059">✦ The Dream Abaya</p>
-        </div>`
-      }).catch(() => {});
-    }
-
-    res.json({ success: true, orderIds });
+    // Store pending order in session — fulfilled on /order-success
+    req.session.pendingOrder = { amountCents, items, customer_name, customer_email, customer_phone, delivery_address, notes };
+    req.session.save();
+    res.json({ success: true, redirectUrl: yocoData.redirectUrl });
   } catch(e) {
     console.error('Cart checkout error:', e.message);
     res.json({ success: false, message: 'Checkout error. Please try again.' });
@@ -729,93 +686,6 @@ app.get('/admin/discounts-data', requireAdmin, async (req, res) => {
     res.json({ success: true, discounts: data || [] });
   } catch(e) { res.json({ success: true, discounts: [] }); }
 });
-
-// ── Cart checkout (multi-item) ────────────────────────────────────
-app.post('/payment/cart-checkout', async (req, res) => {
-  const { token, amountCents, items, customer_name, customer_email, customer_phone, delivery_address, notes } = req.body;
-  if (!token || !amountCents || !items?.length) {
-    return res.json({ success: false, message: 'Missing required checkout fields.' });
-  }
-  try {
-    // Charge via Yoco
-    const yocoRes = await fetch('https://online.yoco.com/v1/charges/', {
-      method: 'POST',
-      headers: { 'X-Auth-Secret-Key': process.env.YOCO_SECRET_KEY || 'sk_test_960bfauthenticate45321af0vlxi', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token, amountInCents: amountCents, currency: 'ZAR' })
-    });
-    const yocoData = await yocoRes.json();
-    if (!yocoData.id || yocoData.status !== 'successful') {
-      return res.json({ success: false, message: yocoData.displayMessage || 'Card payment failed.' });
-    }
-
-    // Create order for each item
-    const userId = req.session?.userId || null;
-    const orderIds = [];
-    for (const item of items) {
-      const { data: order } = await supabase.from('orders').insert([{
-        product_id:       item.id,
-        product_name:     item.name,
-        product_price:    item.price,
-        product_size:     item.size || null,
-        product_color:    item.color || null,
-        qty:              item.qty || 1,
-        customer_name,
-        customer_email,
-        customer_phone:   customer_phone || null,
-        delivery_address,
-        notes:            notes || null,
-        status:           'paid',
-        payment_status:   'paid',
-        payment_ref:      yocoData.id,
-        user_id:          userId,
-      }]).select().single();
-      if (order) {
-        orderIds.push(order.id);
-        await deductVariantStock(item.id, item.size, item.color, item.qty || 1).catch(() => {});
-        await supabase.from('payments').insert([{
-          order_id:    order.id,
-          user_id:     userId,
-          amount_cents: Math.round(item.price * (item.qty||1) * 100),
-          currency:    'ZAR',
-          status:      'paid',
-          gateway:     'yoco',
-          gateway_ref: yocoData.id,
-        }]).catch(() => {});
-      }
-    }
-
-    // Clear cart from session
-    req.session.cart = [];
-
-    // Send confirmation email
-    if (resend && customer_email) {
-      const itemsList = items.map(i => `<li>${i.name}${i.size?' ('+i.size+')':''} × ${i.qty||1} — R${(i.price*(i.qty||1)).toLocaleString('en-ZA')}</li>`).join('');
-      resend.emails.send({
-        from: process.env.RESEND_FROM || 'The Dream Abaya <onboarding@resend.dev>',
-        to:   customer_email,
-        subject: '✦ Order Confirmed — The Dream Abaya',
-        html: `<div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;background:#0a0d14;color:#E8E5E0;padding:32px">
-          <h2 style="color:#C5A059;font-weight:300;letter-spacing:.2em">ORDER CONFIRMED</h2>
-          <p>Assalamu Alaikum ${customer_name},</p>
-          <p>Your order has been confirmed and payment received. We will begin preparing your items.</p>
-          <ul style="padding-left:20px;color:#C5A059">${itemsList}</ul>
-          <p><strong style="color:#C5A059">Total Paid: R${(amountCents/100).toLocaleString('en-ZA')}</strong></p>
-          <p style="color:rgba(232,229,224,.5);font-size:.85em">Order ID: ${orderIds.join(', ')}</p>
-          <hr style="border-color:rgba(197,160,89,.2);margin:24px 0"/>
-          <p>Delivering to: ${delivery_address}</p>
-          <p style="color:rgba(232,229,224,.5)">Questions? Reply to this email or contact us via our website.</p>
-          <p style="color:#C5A059">✦ The Dream Abaya</p>
-        </div>`
-      }).catch(() => {});
-    }
-
-    res.json({ success: true, orderIds });
-  } catch(e) {
-    console.error('Cart checkout error:', e.message);
-    res.json({ success: false, message: 'Checkout error. Please try again.' });
-  }
-});
-
 // ── Discounts tab: get variants for a product ────────────────────
 app.get('/admin/product-variants/:id', requireAdmin, async (req, res) => {
   try {
@@ -827,93 +697,6 @@ app.get('/admin/product-variants/:id', requireAdmin, async (req, res) => {
     res.json({ success: true, variants: variants || [], product: prod || {} });
   } catch(e) { res.json({ success: false, variants: [], product: {} }); }
 });
-
-// ── Cart checkout (multi-item) ────────────────────────────────────
-app.post('/payment/cart-checkout', async (req, res) => {
-  const { token, amountCents, items, customer_name, customer_email, customer_phone, delivery_address, notes } = req.body;
-  if (!token || !amountCents || !items?.length) {
-    return res.json({ success: false, message: 'Missing required checkout fields.' });
-  }
-  try {
-    // Charge via Yoco
-    const yocoRes = await fetch('https://online.yoco.com/v1/charges/', {
-      method: 'POST',
-      headers: { 'X-Auth-Secret-Key': process.env.YOCO_SECRET_KEY || 'sk_test_960bfauthenticate45321af0vlxi', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token, amountInCents: amountCents, currency: 'ZAR' })
-    });
-    const yocoData = await yocoRes.json();
-    if (!yocoData.id || yocoData.status !== 'successful') {
-      return res.json({ success: false, message: yocoData.displayMessage || 'Card payment failed.' });
-    }
-
-    // Create order for each item
-    const userId = req.session?.userId || null;
-    const orderIds = [];
-    for (const item of items) {
-      const { data: order } = await supabase.from('orders').insert([{
-        product_id:       item.id,
-        product_name:     item.name,
-        product_price:    item.price,
-        product_size:     item.size || null,
-        product_color:    item.color || null,
-        qty:              item.qty || 1,
-        customer_name,
-        customer_email,
-        customer_phone:   customer_phone || null,
-        delivery_address,
-        notes:            notes || null,
-        status:           'paid',
-        payment_status:   'paid',
-        payment_ref:      yocoData.id,
-        user_id:          userId,
-      }]).select().single();
-      if (order) {
-        orderIds.push(order.id);
-        await deductVariantStock(item.id, item.size, item.color, item.qty || 1).catch(() => {});
-        await supabase.from('payments').insert([{
-          order_id:    order.id,
-          user_id:     userId,
-          amount_cents: Math.round(item.price * (item.qty||1) * 100),
-          currency:    'ZAR',
-          status:      'paid',
-          gateway:     'yoco',
-          gateway_ref: yocoData.id,
-        }]).catch(() => {});
-      }
-    }
-
-    // Clear cart from session
-    req.session.cart = [];
-
-    // Send confirmation email
-    if (resend && customer_email) {
-      const itemsList = items.map(i => `<li>${i.name}${i.size?' ('+i.size+')':''} × ${i.qty||1} — R${(i.price*(i.qty||1)).toLocaleString('en-ZA')}</li>`).join('');
-      resend.emails.send({
-        from: process.env.RESEND_FROM || 'The Dream Abaya <onboarding@resend.dev>',
-        to:   customer_email,
-        subject: '✦ Order Confirmed — The Dream Abaya',
-        html: `<div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;background:#0a0d14;color:#E8E5E0;padding:32px">
-          <h2 style="color:#C5A059;font-weight:300;letter-spacing:.2em">ORDER CONFIRMED</h2>
-          <p>Assalamu Alaikum ${customer_name},</p>
-          <p>Your order has been confirmed and payment received. We will begin preparing your items.</p>
-          <ul style="padding-left:20px;color:#C5A059">${itemsList}</ul>
-          <p><strong style="color:#C5A059">Total Paid: R${(amountCents/100).toLocaleString('en-ZA')}</strong></p>
-          <p style="color:rgba(232,229,224,.5);font-size:.85em">Order ID: ${orderIds.join(', ')}</p>
-          <hr style="border-color:rgba(197,160,89,.2);margin:24px 0"/>
-          <p>Delivering to: ${delivery_address}</p>
-          <p style="color:rgba(232,229,224,.5)">Questions? Reply to this email or contact us via our website.</p>
-          <p style="color:#C5A059">✦ The Dream Abaya</p>
-        </div>`
-      }).catch(() => {});
-    }
-
-    res.json({ success: true, orderIds });
-  } catch(e) {
-    console.error('Cart checkout error:', e.message);
-    res.json({ success: false, message: 'Checkout error. Please try again.' });
-  }
-});
-
 // ── Discounts tab: save (create or update) ───────────────────────
 app.post('/admin/discounts/save', requireAdmin, async (req, res) => {
   const { product_id, size, color, percent_off, starts_at, ends_at, discount_id } = req.body;
@@ -936,93 +719,6 @@ app.post('/admin/discounts/save', requireAdmin, async (req, res) => {
     res.json({ success: true });
   } catch(e) { res.json({ success: false, message: e.message }); }
 });
-
-// ── Cart checkout (multi-item) ────────────────────────────────────
-app.post('/payment/cart-checkout', async (req, res) => {
-  const { token, amountCents, items, customer_name, customer_email, customer_phone, delivery_address, notes } = req.body;
-  if (!token || !amountCents || !items?.length) {
-    return res.json({ success: false, message: 'Missing required checkout fields.' });
-  }
-  try {
-    // Charge via Yoco
-    const yocoRes = await fetch('https://online.yoco.com/v1/charges/', {
-      method: 'POST',
-      headers: { 'X-Auth-Secret-Key': process.env.YOCO_SECRET_KEY || 'sk_test_960bfauthenticate45321af0vlxi', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token, amountInCents: amountCents, currency: 'ZAR' })
-    });
-    const yocoData = await yocoRes.json();
-    if (!yocoData.id || yocoData.status !== 'successful') {
-      return res.json({ success: false, message: yocoData.displayMessage || 'Card payment failed.' });
-    }
-
-    // Create order for each item
-    const userId = req.session?.userId || null;
-    const orderIds = [];
-    for (const item of items) {
-      const { data: order } = await supabase.from('orders').insert([{
-        product_id:       item.id,
-        product_name:     item.name,
-        product_price:    item.price,
-        product_size:     item.size || null,
-        product_color:    item.color || null,
-        qty:              item.qty || 1,
-        customer_name,
-        customer_email,
-        customer_phone:   customer_phone || null,
-        delivery_address,
-        notes:            notes || null,
-        status:           'paid',
-        payment_status:   'paid',
-        payment_ref:      yocoData.id,
-        user_id:          userId,
-      }]).select().single();
-      if (order) {
-        orderIds.push(order.id);
-        await deductVariantStock(item.id, item.size, item.color, item.qty || 1).catch(() => {});
-        await supabase.from('payments').insert([{
-          order_id:    order.id,
-          user_id:     userId,
-          amount_cents: Math.round(item.price * (item.qty||1) * 100),
-          currency:    'ZAR',
-          status:      'paid',
-          gateway:     'yoco',
-          gateway_ref: yocoData.id,
-        }]).catch(() => {});
-      }
-    }
-
-    // Clear cart from session
-    req.session.cart = [];
-
-    // Send confirmation email
-    if (resend && customer_email) {
-      const itemsList = items.map(i => `<li>${i.name}${i.size?' ('+i.size+')':''} × ${i.qty||1} — R${(i.price*(i.qty||1)).toLocaleString('en-ZA')}</li>`).join('');
-      resend.emails.send({
-        from: process.env.RESEND_FROM || 'The Dream Abaya <onboarding@resend.dev>',
-        to:   customer_email,
-        subject: '✦ Order Confirmed — The Dream Abaya',
-        html: `<div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;background:#0a0d14;color:#E8E5E0;padding:32px">
-          <h2 style="color:#C5A059;font-weight:300;letter-spacing:.2em">ORDER CONFIRMED</h2>
-          <p>Assalamu Alaikum ${customer_name},</p>
-          <p>Your order has been confirmed and payment received. We will begin preparing your items.</p>
-          <ul style="padding-left:20px;color:#C5A059">${itemsList}</ul>
-          <p><strong style="color:#C5A059">Total Paid: R${(amountCents/100).toLocaleString('en-ZA')}</strong></p>
-          <p style="color:rgba(232,229,224,.5);font-size:.85em">Order ID: ${orderIds.join(', ')}</p>
-          <hr style="border-color:rgba(197,160,89,.2);margin:24px 0"/>
-          <p>Delivering to: ${delivery_address}</p>
-          <p style="color:rgba(232,229,224,.5)">Questions? Reply to this email or contact us via our website.</p>
-          <p style="color:#C5A059">✦ The Dream Abaya</p>
-        </div>`
-      }).catch(() => {});
-    }
-
-    res.json({ success: true, orderIds });
-  } catch(e) {
-    console.error('Cart checkout error:', e.message);
-    res.json({ success: false, message: 'Checkout error. Please try again.' });
-  }
-});
-
 // ── Discounts tab: delete ────────────────────────────────────────
 app.post('/admin/discounts/delete/:id', requireAdmin, async (req, res) => {
   try {
@@ -1170,7 +866,7 @@ app.post('/payment/checkout', async (req, res) => {
     const yocoRes = await fetch('https://online.yoco.com/v1/charges/', {
       method: 'POST',
       headers: {
-        'X-Auth-Secret-Key': process.env.YOCO_SECRET_KEY || 'sk_test_960bfauthenticate45321af0vlxi',
+        'X-Auth-Secret-Key': process.env.YOCO_SECRET_KEY,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ token, amountInCents: amountCents, currency: 'ZAR' })
@@ -1212,6 +908,7 @@ app.post('/payment/checkout', async (req, res) => {
 
 // ── Inject YOCO_PUBLIC_KEY into product page ─────────────────────
 // (already in res.locals, but also expose as window var via script)
+
 
 app.use((req,res)=>res.status(404).render('partials/404',{title:'404 — Not Found',page:''}));
 app.listen(PORT,()=>console.log('\n👑  The Dream Abaya v3 LIVE → http://localhost:'+PORT+'\n'));

@@ -673,3 +673,176 @@ button{cursor:pointer}
   .royal-footer{padding-bottom:calc(28px + env(safe-area-inset-bottom))}
   .toast{bottom:calc(24px + env(safe-area-inset-bottom))}
 }
+
+/* --- START OF UPDATE --- */
+/* =========================================
+   HERO — "Veil of Stars" 
+   Luxury curtain-reveal hero section
+   ========================================= */
+
+.hero {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  background: #08090f; /* Deep midnight — richer than pure black */
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Ambient particle canvas — sits behind everything */
+.hero__particles {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* Curtain panels — start covering the screen, part on load */
+.hero__curtain {
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    135deg,
+    #0d0e18 0%,
+    #111220 50%,
+    #0a0b14 100%
+  );
+  z-index: 10;
+  /* Subtle fabric texture via repeating gradient */
+  background-image: 
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 2px,
+      rgba(200,170,110,0.015) 2px,
+      rgba(200,170,110,0.015) 4px
+    ),
+    linear-gradient(135deg, #0d0e18 0%, #111220 50%, #0a0b14 100%);
+}
+
+.hero__curtain--left  { left: 0;   transform-origin: left center; }
+.hero__curtain--right { right: 0;  transform-origin: right center; }
+
+/* Content — starts hidden, revealed after curtains part */
+.hero__content {
+  position: relative;
+  z-index: 5;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(1rem, 2.5vh, 1.8rem);
+  opacity: 0; /* GSAP will handle the reveal */
+}
+
+/* Eyebrow line */
+.hero__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  opacity: 0; /* GSAP target */
+}
+
+.hero__rule {
+  display: block;
+  width: 40px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #c8aa6e, transparent);
+}
+
+.hero__eyebrow-text {
+  font-family: 'Cormorant Garamond', 'Playfair Display', serif;
+  font-size: clamp(0.65rem, 1vw, 0.8rem);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: #c8aa6e;
+  opacity: 0.75;
+}
+
+/* SVG Logo sizing — the SVG partial has no width/height attrs */
+.hero__logo .brand-logo-svg {
+  width: clamp(180px, 22vw, 320px);
+  height: auto;
+  fill: #e8dcc8; /* Warm ivory — principal brand colour */
+  filter: drop-shadow(0 0 40px rgba(200,170,110,0.15));
+  opacity: 0; /* GSAP target */
+}
+
+/* Tagline letter spans — each animated individually */
+.hero__tagline {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(0.8rem, 1.5vw, 1rem);
+  letter-spacing: 0.45em;
+  text-transform: uppercase;
+  color: rgba(232, 220, 200, 0.6);
+  margin: 0;
+}
+
+.hero__tagline span {
+  display: inline-block;
+  opacity: 0; /* GSAP staggers these */
+  transform: translateY(8px);
+}
+
+/* CTA button */
+.hero__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+  padding: 0.75rem 2rem;
+  border: 1px solid rgba(200,170,110,0.35);
+  color: #c8aa6e;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  text-decoration: none;
+  opacity: 0; /* GSAP target */
+  transition: background 0.4s ease, border-color 0.4s ease, color 0.4s ease;
+}
+
+.hero__cta:hover {
+  background: rgba(200,170,110,0.08);
+  border-color: rgba(200,170,110,0.7);
+  color: #e8dcc8;
+}
+
+/* Scroll indicator */
+.hero__scroll-indicator {
+  position: absolute;
+  bottom: 2.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0; /* GSAP target */
+}
+
+.hero__scroll-line {
+  width: 1px;
+  height: 60px;
+  background: linear-gradient(to bottom, #c8aa6e, transparent);
+  margin: 0 auto;
+  animation: scrollPulse 2s ease-in-out infinite;
+  animation-play-state: paused; /* GSAP will start this */
+}
+
+@keyframes scrollPulse {
+  0%, 100% { transform: scaleY(1); opacity: 1; }
+  50%       { transform: scaleY(0.6); opacity: 0.3; }
+}
+
+/* Navbar logo sizing — applies wherever .brand-logo-svg appears */
+.navbar .brand-logo-svg,
+.site-header .brand-logo-svg {
+  width: clamp(80px, 8vw, 120px);
+  height: auto;
+  fill: #e8dcc8;
+  transition: fill 0.3s ease;
+}
+/* --- END OF UPDATE --- */

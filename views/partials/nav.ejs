@@ -2,10 +2,9 @@
 <nav class="royal-nav" id="royalNav">
   <div class="nav-inner">
     <!-- Logo: scroll to top, not reload -->
+    <!-- Logo: uses inline SVG partial for crisp rendering at all sizes -->
     <a href="#top" class="nav-logo nav-logo-img" onclick="event.preventDefault(); window.scrollTo({top:0,behavior:'smooth'})" aria-label="The Dream Abaya">
-      <img src="/images/logo.png" alt="The Dream Abaya" class="nav-logo-image"
-        onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex'"/>
-      <span class="nav-logo-fallback"><span class="logo-mark">✦</span><span class="logo-name">The Dream Abaya</span></span>
+      <%- include('./logo-svg') %>
     </a>
 
     <ul class="nav-links">
