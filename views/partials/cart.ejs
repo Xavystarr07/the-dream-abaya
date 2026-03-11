@@ -6,17 +6,34 @@
   <title><%= title %></title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="/css/style.css"/>
+  <link rel="stylesheet" href="/css/tokens.css"/>
+<link rel="stylesheet" href="/css/nav.css"/>
+<link rel="stylesheet" href="/css/logo.css"/>
+<link rel="stylesheet" href="/css/footer.css"/>
+<link rel="stylesheet" href="/css/cart.css"/>
+<link rel="stylesheet" href="/css/utilities.css"/>
+<link rel="stylesheet" href="/css/auth.css"/>
+<link rel="stylesheet" href="/css/cart-v3.css"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.4/gsap.min.js"></script>
  
 </head>
 <body>
+  <%- include('css-base') %>
 <%- include('nav') %>
 
-<header class="vault-header">
+<header class="vault-header cart-header-royal<% if (cart.length === 0) { %> cart-header-hidden<% } %>">
+  <canvas id="cartHeaderCanvas" class="cart-header-canvas"></canvas>
   <div class="vault-header-inner">
-    <div class="section-badge">🛍️</div>
+    <p class="cart-header-greeting">
+      <% if (user) { %><%= user.name.split(' ')[0] %>'s Collection<% } else { %>Your Collection<% } %>
+    </p>
     <h1 class="vault-title">Shopping Cart</h1>
+    <p class="cart-header-tagline"><em>What more shall we add to your world?</em></p>
+    <div class="cart-header-divider">
+      <span class="cart-header-line"></span>
+      <span class="cart-header-ornament">✦</span>
+      <span class="cart-header-line"></span>
+    </div>
   </div>
 </header>
 
@@ -130,9 +147,19 @@
         </div>
 
         <button class="btn-royal full-width" id="cartCheckoutBtn" onclick="openCartPayment()">
-          🔒 Proceed to Checkout
+          Checkout
+          <span class="button__icon-wrapper">
+            <svg class="button__icon-svg" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"/>
+              <polyline points="12 5 19 12 12 19"/>
+            </svg>
+            <svg class="button__icon-svg button__icon-svg--copy" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"/>
+              <polyline points="12 5 19 12 12 19"/>
+            </svg>
+          </span>
         </button>
-        <a href="/vault" class="btn-ghost full-width" style="margin-top:.75rem">Continue Shopping</a>
+        <a href="/vault" class="btn-ghost full-width"><span class="spn2">Continue Shopping</span></a>
         <div class="cart-trust">
           <span>🔒 Secure &amp; Private</span>
           <span>✦ Handcrafted Quality</span>
@@ -142,11 +169,25 @@
     </div>
 
   <% } else { %>
-    <div class="empty-state">
-      <span>🛍️</span>
-      <h3>Your cart is empty</h3>
-      <p>Let the palace fill it.</p>
-      <a href="/vault" class="btn-royal" style="margin-top:.5rem">Explore The Vault</a>
+    <div class="cart-empty-royal">
+      <canvas class="cart-empty-canvas" id="cartEmptyCanvas"></canvas>
+      <div class="cart-empty-inner">
+        <div class="cart-empty-ornament-top">
+          <span class="cer-line"></span>
+          <span class="cer-diamond"></span>
+          <span class="cer-line"></span>
+        </div>
+        <div class="cart-empty-logo">
+          <%- include('logo-svg') %>
+        </div>
+        <h2 class="cart-empty-heading">Your Cart Awaits</h2>
+        <p class="cart-empty-sub">Every royal collection begins with a single choice.</p>
+        <div class="cart-empty-ornament-bottom">— ✦ —</div>
+        <a href="/vault" class="cart-empty-cta">
+          <span class="cta-text">Explore The Vault</span>
+          <span class="cta-arrow">→</span>
+        </a>
+      </div>
     </div>
   <% } %>
 </main>
@@ -156,7 +197,6 @@
 
 <script src="/js/main.js"></script>
 <script>
-  // ── Quantity controls ──────────────────────────────────────────
   function changeQty(id, size, delta) {
     const item    = document.querySelector('.cart-item[data-id="' + id + '"][data-size="' + size + '"]');
     const display = item.querySelector('.qty-display');
@@ -169,7 +209,6 @@
     }).then(() => location.reload());
   }
 
-  // ── Remove item ────────────────────────────────────────────────
   function removeItem(id, size, btn) {
     fetch('/cart/remove', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -182,7 +221,6 @@
     });
   }
 
-  // ── Yoco checkout ──────────────────────────────────────────────
   function openCartPayment() {
     const name    = document.getElementById('co_name')?.value.trim();
     const phone   = document.getElementById('co_phone')?.value.trim();
@@ -190,16 +228,23 @@
     const address = document.getElementById('co_address')?.value.trim();
     const notes   = document.getElementById('co_notes')?.value.trim() || '';
 
-    if (!name)    { showToast('Please enter your name', 'error');             document.getElementById('co_name').focus();    return; }
+    if (!name)    { showToast('Please enter your name', 'error');             document.getElementById('co_name').focus();   return; }
     if (!phone)   { showToast('Please enter your phone number', 'error');     document.getElementById('co_phone').focus();   return; }
     if (!email)   { showToast('Please enter your email', 'error');            document.getElementById('co_email').focus();   return; }
     if (!address) { showToast('Please enter your delivery address', 'error'); document.getElementById('co_address').focus(); return; }
 
     const amountCents = <%= Math.round(total * 100) %>;
-    const items       = <%- JSON.stringify(cart.map(function(i) { return { id: i.id, name: i.name, qty: i.qty, size: i.size || '', color: i.color || '', price: i.price }; })) %>;
-
+    
+    // UPDATED PART: Moved mapping to a variable to avoid EJS Syntax Errors 
+    <% 
+      const cleanCart = cart.map(function(i) { 
+        return { id: i.id, name: i.name, qty: i.qty, size: i.size || '', color: i.color || '', price: i.price }; 
+      }); 
+    %>
+    const items = <%- JSON.stringify(cleanCart) %>; 
+    
     const btn = document.getElementById('cartCheckoutBtn');
-    btn.textContent = 'Redirecting to payment…';
+    btn.innerHTML = 'Redirecting… <span class="button__icon-wrapper"><svg class="button__icon-svg" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg><svg class="button__icon-svg button__icon-svg--copy" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>';
     btn.disabled = true;
 
     fetch('/payment/cart-checkout', {
@@ -221,22 +266,82 @@
         window.location.href = data.redirectUrl;
       } else {
         showToast(data.message || 'Something went wrong. Please try again.', 'error');
-        btn.textContent = '🔒 Proceed to Checkout';
+        btn.innerHTML = 'Checkout <span class="button__icon-wrapper"><svg class="button__icon-svg" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg><svg class="button__icon-svg button__icon-svg--copy" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>';
         btn.disabled = false;
       }
     })
     .catch(function() {
       showToast('Network error. Please try again.', 'error');
-      btn.textContent = '🔒 Proceed to Checkout';
+      btn.innerHTML = 'Checkout <span class="button__icon-wrapper"><svg class="button__icon-svg" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg><svg class="button__icon-svg button__icon-svg--copy" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>';
       btn.disabled = false;
     });
   }
 
-  // ── Entry animations ───────────────────────────────────────────
   if (typeof gsap !== 'undefined') {
     gsap.from('.cart-item',       { opacity: 0, y: 18, duration: 0.5, stagger: 0.07, ease: 'power3.out', delay: 0.25 });
     gsap.from('.checkout-block',  { opacity: 0, y: 25, duration: 0.6, stagger: 0.12, ease: 'power3.out', delay: 0.15 });
   }
+</script>
+
+<script>
+(function(){
+  function initParticles(canvasId) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let W, H, particles = [];
+
+    function resize() {
+      W = canvas.offsetWidth;
+      H = canvas.offsetHeight;
+      canvas.width  = W;
+      canvas.height = H;
+    }
+    resize();
+    window.addEventListener('resize', () => { resize(); init(); });
+
+    function Particle() {
+      this.x    = Math.random() * W;
+      this.y    = Math.random() * H;
+      this.r    = Math.random() * 1.4 + 0.4;
+      this.vx   = (Math.random() - .5) * .18;
+      this.vy   = -(Math.random() * .25 + .08);
+      this.life = Math.random();
+      this.spd  = Math.random() * .004 + .002;
+    }
+    Particle.prototype.update = function(){
+      this.x += this.vx;
+      this.y += this.vy;
+      this.life += this.spd;
+      if (this.y < -4 || this.life > 1) {
+        this.y = H + 4;
+        this.x = Math.random() * W;
+        this.life = 0;
+      }
+    };
+    Particle.prototype.draw = function(){
+      const a = Math.sin(this.life * Math.PI) * 0.55 + 0.05;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(197,160,89,' + a + ')';
+      ctx.fill();
+    };
+    function init() {
+      particles = [];
+      const count = Math.floor((W * H) / 900);
+      for (let i = 0; i < count; i++) particles.push(new Particle());
+    }
+    init();
+    function loop() {
+      ctx.clearRect(0, 0, W, H);
+      particles.forEach(p => { p.update(); p.draw(); });
+      requestAnimationFrame(loop);
+    }
+    loop();
+  }
+  initParticles('cartHeaderCanvas');
+  initParticles('cartEmptyCanvas');
+})();
 </script>
 </body>
 </html>

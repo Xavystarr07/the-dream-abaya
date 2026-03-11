@@ -1,0 +1,59 @@
+/* ============================================================
+   NAV FIXES — align Collections, fix theme toggle vertical pos
+   Add to bottom of nav.css
+   ============================================================ */
+
+/* ── NAV LINKS — force vertical centre alignment          */
+/* Collections button was sitting slightly high due to      */
+/* button default styles adding extra padding/margin        */
+.nav-links {
+  align-items: center !important;  /* flex items all on same baseline */
+}
+
+.nav-link,
+.nav-link-drop {
+  display: inline-flex !important;
+  align-items: center !important;
+  line-height: 1 !important;       /* remove any line-height offset   */
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  vertical-align: middle !important;
+}
+
+/* Button reset — browsers add extra top padding to <button> */
+button.nav-link-drop {
+  background: none !important;
+  border: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  font-size: .7rem !important;     /* match .nav-link font size       */
+  letter-spacing: .18em !important;
+  text-transform: uppercase !important;
+  cursor: pointer !important;
+}
+
+/* ── THEME TOGGLE — align with wishlist + cart icons      */
+/* .nav-actions is a flex row; toggle was floating high    */
+.nav-actions {
+  align-items: center !important;  /* all icons on same axis          */
+}
+
+.nav-icon-btn,
+.theme-toggle {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;           /* remove any asymmetric padding   */
+  margin: 0 !important;
+  line-height: 1 !important;
+  vertical-align: middle !important;
+}
+
+/* Ensure the SVG inside toggle doesn't push it up         */
+.theme-toggle svg,
+.theme-icon-dark svg,
+.theme-icon-light svg {
+  display: block !important;
+  vertical-align: middle !important;
+}
+

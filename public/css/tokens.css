@@ -1,0 +1,92 @@
+/* ============================================================
+   THE DREAM ABAYA v2 — style.css  FULLY UPDATED
+   Fixes: sort-select dark mode, social neon hover, back-to-top,
+          hero canvas bg, click dropdowns, profile modal,
+          sections-nav centred label, checkout block, mobile
+   ============================================================ */
+
+
+   /* make sure the logo isn’t “whited‑out” by any theme filter */
+.nav-logo-image {
+    /* cancel any filter/opacity that was being applied */
+    filter: none !important;
+    opacity: 1 !important;
+    background: transparent; /* just in case a white overlay was used */
+}
+/* ── TOKENS ─────────────────────────────────────────────── */
+:root {
+  --gold:       #C5A059;
+  --gold-light: #D4BA7E;
+  --gold-dark:  #A08040;
+  --gold-glow:  rgba(197,160,89,.22);
+  --font-display:'Cormorant Garamond',Georgia,serif;
+  --font-cinzel: 'Cinzel','Trajan Pro',serif;
+  --font-body:   'Jost','Helvetica Neue',sans-serif;
+  --ease:        cubic-bezier(0.4,0,0.2,1);
+  --t:           0.28s;
+  --ts:          0.55s;
+}
+
+/* ── DARK ────────────────────────────────────────────────── */
+[data-theme="dark"] {
+  --bg:         #0D1117;
+  --bg2:        #161B22;
+  --bg3:        #1C2430;
+  --surf:       #21272E;
+  --surf2:      #2A3240;
+  --bdr:        rgba(197,160,89,.15);
+  --bdr-s:      rgba(255,255,255,.06);
+  --t1:         #F0EDE8;
+  --t2:         #A9A29A;
+  --t3:         #6B6560;
+  --nav-bg:     rgba(13,17,23,.96);
+  --hero-bg:    linear-gradient(145deg,#0D1117 0%,#141E2A 55%,#1C2D1A 100%);
+  --card-bg:    #1A2030;
+  --badge-bg:   rgba(197,160,89,.1);
+  --inp-bg:     rgba(255,255,255,.04);
+  --shadow:     0 8px 40px rgba(0,0,0,.55);
+  --shadow-c:   0 2px 20px rgba(0,0,0,.35);
+  --shadow-g:   0 6px 30px rgba(197,160,89,.22);
+  --overlay:    rgba(0,0,0,.75);
+  /* FIX: sort select colours in dark mode */
+  --sel-bg:     #1A2030;
+  --sel-fg:     #F0EDE8;
+  --sel-opt-bg: #1A2030;
+}
+
+/* ── LIGHT ───────────────────────────────────────────────── */
+[data-theme="light"] {
+  --bg:         #FAF8F4;
+  --bg2:        #F3F0EA;
+  --bg3:        #EDE9E0;
+  --surf:       #FFFFFF;
+  --surf2:      #F5F2EC;
+  --bdr:        rgba(197,160,89,.22);
+  --bdr-s:      rgba(0,0,0,.07);
+  --t1:         #1A1410;
+  --t2:         #5C5048;
+  --t3:         #9A8C80;
+  --nav-bg:     rgba(250,248,244,.96);
+  --hero-bg:    linear-gradient(145deg,#101820 0%,#1A2535 55%,#1F2E1C 100%);
+  --card-bg:    #FFFFFF;
+  --badge-bg:   rgba(197,160,89,.09);
+  --inp-bg:     rgba(0,0,0,.03);
+  --shadow:     0 8px 40px rgba(0,0,0,.1);
+  --shadow-c:   0 2px 20px rgba(0,0,0,.08);
+  --shadow-g:   0 6px 30px rgba(197,160,89,.2);
+  --overlay:    rgba(0,0,0,.6);
+  --sel-bg:     #FFFFFF;
+  --sel-fg:     #1A1410;
+  --sel-opt-bg: #FFFFFF;
+}
+
+/* ── RESET ───────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;font-size:16px;-webkit-text-size-adjust:100%}
+body{font-family:var(--font-body);background:var(--bg);color:var(--t1);overflow-x:hidden;-webkit-font-smoothing:antialiased;transition:background var(--ts) var(--ease),color var(--ts) var(--ease)}
+img{display:block;max-width:100%;height:auto}
+a{text-decoration:none;color:inherit}
+ul{list-style:none}
+input,button,select,textarea{font-family:inherit}
+button{cursor:pointer}
+/* ── END tokens.css ── */

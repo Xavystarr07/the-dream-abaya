@@ -1,0 +1,88 @@
+/* ============================================================
+   logo.css — Brand SVG logo sizing & theme-aware colour
+   3 contexts: curtain reveal · nav · footer
+   ============================================================ */
+
+/* ── FALLBACK FILL — always visible ─────────────────────── */
+.brand-logo-svg path {
+  fill: #C5A059; /* gold base — CSS overrides per context below */
+}
+
+/* ── NAVBAR LOGO ─────────────────────────────────────────── */
+/* Increased from 48-68px → 70-100px */
+.nav-logo .brand-logo-svg,
+.nav-logo-img .brand-logo-svg {
+  width: clamp(200px, 9vw, 100px) !important;
+  height: auto;
+}
+
+/* ── FOOTER LOGO ─────────────────────────────────────────── */
+/* Increased from 36-52px → 60-80px */
+.footer-logo-svg .brand-logo-svg {
+  width: clamp(200px, 7vw, 80px) !important;
+  height: auto;
+  opacity: 0.85;
+}
+
+/* ── CURTAIN REVEAL LOGO ─────────────────────────────────── */
+/* Increased from 160-280px → 220-340px */
+.reveal-logo .brand-logo-svg,
+#revealLogo .brand-logo-svg {
+  width: clamp(620px, 28vw, 340px) !important;
+  height: auto;
+}
+
+/* ── CURTAIN REVEAL — large, pulsing gold glow ─────────── */
+#reveal-text .reveal-logo {
+  display: flex; align-items: center; justify-content: center;
+  margin: 0.5rem 0 0.8rem;
+}
+#reveal-text .reveal-logo .brand-logo-svg {
+  width: clamp(160px, 22vw, 280px);
+  height: auto;
+  animation: logoGlow 2.8s ease-in-out infinite alternate;
+}
+@keyframes logoGlow {
+  from { filter: drop-shadow(0 0 18px rgba(197,160,89,.55)) drop-shadow(0 0 40px rgba(197,160,89,.18)); }
+  to   { filter: drop-shadow(0 0 34px rgba(197,160,89,.9))  drop-shadow(0 0 80px rgba(197,160,89,.38)); }
+}
+
+/* ── NAV — compact, 68px header ────────────────────────── */
+.royal-nav .nav-logo .brand-logo-svg,
+.royal-nav .nav-logo-img .brand-logo-svg {
+  width: clamp(48px, 4.8vw, 68px);
+  height: auto; display: block;
+  transition: filter 0.3s ease;
+}
+.royal-nav .nav-logo:hover .brand-logo-svg,
+.royal-nav .nav-logo-img:hover .brand-logo-svg {
+  filter: drop-shadow(0 0 8px rgba(197,160,89,.6));
+}
+
+/* ── FOOTER — small mark ────────────────────────────────── */
+.footer-logo-svg .brand-logo-svg {
+  width: clamp(36px, 3.5vw, 52px);
+  height: auto; display: block;
+  opacity: 0.75; transition: opacity 0.3s ease;
+}
+.footer-logo-svg:hover .brand-logo-svg { opacity: 1; }
+
+/* ── THEME-AWARE FILL ───────────────────────────────────── */
+/* Dark mode → warm ivory */
+[data-theme="dark"] .brand-logo-svg path,
+:root:not([data-theme="light"]) .brand-logo-svg path {
+  fill: #E8E1D5 !important;
+}
+/* Curtain always gold — overrides dark mode rule above */
+#reveal-text .brand-logo-svg path { fill: #C5A059 !important; }
+/* Footer in dark mode — dimmed ivory */
+[data-theme="dark"] .footer-logo-svg .brand-logo-svg path {
+  fill: rgba(232,225,213,0.72) !important;
+}
+/* Light mode → gold */
+[data-theme="light"] .brand-logo-svg path { fill: #C5A059 !important; }
+/* Hover fills */
+[data-theme="dark"]  .royal-nav .nav-logo:hover .brand-logo-svg path { fill: #C5A059 !important; }
+[data-theme="light"] .royal-nav .nav-logo:hover .brand-logo-svg path { fill: #A0803A !important; }
+
+/* ── END logo.css ── */

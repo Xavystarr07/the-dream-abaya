@@ -1,0 +1,139 @@
+/* ══ SEASONAL SECTION ══════════════════════════════════════ */
+.seasonal-section {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #050E20 0%, #0A1830 35%, #0E1A3A 65%, #040A18 100%);
+  flex-direction: column; align-items: center; justify-content: center;
+  padding: 100px 5% 80px;
+  position: relative; overflow: hidden;
+}
+.section-bg-seasonal {
+  position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 50%, rgba(197,160,89,.05) 0%, transparent 60%);
+}
+.seasonal-intro {
+  text-align: center; position: relative; z-index: 10;
+  max-width: 680px; margin: 0 auto 3rem;
+}
+.seasonal-poem {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(1rem, 2.5vw, 1.3rem);
+  font-weight: 300; font-style: italic;
+  color: rgba(240,237,232,.55); line-height: 1.8;
+  margin-top: 1rem;
+}
+.seasonal-poem em { color: #C5A059; }
+.season-chooser {
+  display: flex; gap: 20px; flex-wrap: wrap;
+  justify-content: center; position: relative; z-index: 10;
+  max-width: 900px;
+}
+.season-card {
+  position: relative; overflow: hidden;
+  width: clamp(160px, 22vw, 220px); height: clamp(200px, 26vw, 260px);
+  border: 1px solid rgba(197,160,89,.2);
+  background: rgba(255,255,255,.04);
+  cursor: pointer; display: flex; flex-direction: column;
+  align-items: center; justify-content: flex-end; gap: 10px;
+  transition: all .4s ease; padding: 20px 16px 22px;
+}
+.season-mini-canvas {
+  position: absolute; inset: 0; width: 100% !important; height: 100% !important;
+  pointer-events: none; opacity: .6;
+}
+.season-card > * { position: relative; z-index: 2; }
+.season-card:hover {
+  transform: translateY(-8px) scale(1.03);
+  border-color: #C5A059;
+  box-shadow: 0 20px 50px rgba(0,0,0,.4), 0 0 30px rgba(197,160,89,.2);
+}
+.season-icon { font-size: 2.6rem; line-height: 1; position: relative; z-index: 3; }
+.season-name {
+  font-family: 'Cinzel', serif; font-size: .85rem;
+  letter-spacing: .15em; color: #F0EDE8;
+}
+.season-desc { font-size: .65rem; color: rgba(240,237,232,.4); text-align: center; }
+.season-summer { background: rgba(251,191,36,.06); }
+.season-autumn  { background: rgba(217,119,6,.06); }
+.season-winter  { background: rgba(99,179,237,.06); }
+.season-spring  { background: rgba(167,139,250,.06); }
+
+/* Season display */
+.season-display {
+  width: 100%; max-width: 1200px; position: relative; z-index: 10;
+}
+.season-display-inner { padding: 2rem 0; }
+.season-back-btn {
+  background: none; border: 1px solid rgba(197,160,89,.3);
+  color: rgba(197,160,89,.7); font-size: .7rem; letter-spacing: .15em;
+  text-transform: uppercase; padding: 8px 18px; cursor: pointer;
+  transition: all .25s; margin-bottom: 2rem;
+}
+.season-back-btn:hover { border-color: #C5A059; color: #C5A059; }
+.season-display-header { text-align: center; margin-bottom: 2.5rem; }
+.season-display-icon { font-size: 3rem; display: block; margin-bottom: .8rem; }
+.season-display-title {
+  font-family: 'Cinzel', serif; font-size: clamp(1.8rem, 4vw, 3rem);
+  font-weight: 500; color: #F0EDE8; margin-bottom: .8rem;
+}
+.season-display-poem {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(.9rem, 2vw, 1.1rem); font-style: italic;
+  color: rgba(240,237,232,.5); line-height: 1.7;
+}
+
+/* ══ BRAND STORY ═══════════════════════════════════════════ */
+.elite-story {
+  background: linear-gradient(180deg, #060E20 0%, #0A1428 100%);
+  padding: 90px 5%; border-top: 1px solid rgba(197,160,89,.1);
+}
+/* ── SEASONAL SECTION ICONS ─────────────────────────────── */
+/* Canvas fills the card fully and animation is the visual */
+.season-card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding-bottom: 1rem;
+}
+.season-mini-canvas {
+  position: absolute;
+}
+
+/* ── SUMMER CARD — sunlight rays instead of canvas sun ──── */
+
+/* Hide the JS-drawn orange sun for summer only             */
+#summerCanvas { display: none !important; }
+
+/* Replace with a cool golden light-ray background          */
+.season-summer {
+  background:
+    /* Centre glow */
+    radial-gradient(ellipse 60% 55% at 50% 30%,
+      rgba(255,230,120,.13) 0%,
+      rgba(197,160,89,.06) 45%,
+      transparent 70%),
+    /* Ray sweep — conic gradient for light beams            */
+    conic-gradient(
+      from 270deg at 50% 28%,
+      transparent 0deg,
+      rgba(255,220,80,.06) 8deg,
+      transparent 16deg,
+      rgba(255,220,80,.05) 24deg,
+      transparent 32deg,
+      rgba(255,220,80,.07) 40deg,
+      transparent 48deg,
+      rgba(255,220,80,.04) 56deg,
+      transparent 64deg,
+      rgba(255,220,80,.06) 72deg,
+      transparent 80deg,
+      rgba(255,220,80,.05) 88deg,
+      transparent 96deg,
+      rgba(255,220,80,.07) 104deg,
+      transparent 360deg
+    ),
+    /* Base card bg */
+    rgba(251,191,36,.04) !important;
+}
+/* ── END seasons.css ── */

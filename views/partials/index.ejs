@@ -7,13 +7,39 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Cinzel:wght@400;500;600;700&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="/css/style.css"/>
-  <link rel="stylesheet" href="/css/elite.css"/>
+  <!-- ── CORE (load first — variables & reset) ── -->
+  <link rel="stylesheet" href="/css/tokens.css"/>
+  <link rel="stylesheet" href="/css/animations.css"/>
+  <link rel="stylesheet" href="/css/utilities.css"/>
+  <!-- ── LAYOUT COMPONENTS ── -->
+  <link rel="stylesheet" href="/css/reveal.css"/>
+  <link rel="stylesheet" href="/css/nav.css"/>
+  <link rel="stylesheet" href="/css/logo.css"/>
+  <link rel="stylesheet" href="/css/footer.css"/>
+  <!-- ── PAGE SECTIONS ── -->
+  <link rel="stylesheet" href="/css/hero.css"/>
+  <link rel="stylesheet" href="/css/sections.css"/>
+  <link rel="stylesheet" href="/css/seasons.css"/>
+  <!-- ── FEATURE PAGES ── -->
+  <link rel="stylesheet" href="/css/products.css"/>
+  <link rel="stylesheet" href="/css/cart.css"/>
+  <link rel="stylesheet" href="/css/auth.css"/>
+  <link rel="stylesheet" href="/css/track.css"/>
+
+  <link rel="stylesheet" href="/css/nav.css"/>
+  <link rel="stylesheet" href="/css/nav-fixes.css"/>  <!-- ADD THIS -->
+  <link rel="stylesheet" href="/css/logo.css"/>
+  <link rel="stylesheet" href="/css/footer.css"/>
+  <!-- ── PAGE SECTIONS ── -->
+  <link rel="stylesheet" href="/css/hero.css"/>
+  <link rel="stylesheet" href="/css/hero-fixes.css"/>  <!-- ADD THIS -->
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.4/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.4/ScrollTrigger.min.js"></script>
 </head>
 <body class="elite-page">
 
+  <%- include('css-base') %>
 <%- include('reveal') %>
 <%- include('nav') %>
 

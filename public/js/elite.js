@@ -45,7 +45,8 @@ function initElitePage() {
 }
 
 // ─────────────────────────────────────────────────────────────
-// CURTAIN REVEAL  (overrides main.js initReveal for elite page)
+// MIST REVEAL  (replaces curtain — same event contract)
+// Fires 'eliteRevealDone' when dissolve completes
 // ─────────────────────────────────────────────────────────────
 function initReveal() {
   const overlay = document.getElementById('reveal-overlay');
@@ -56,44 +57,94 @@ function initReveal() {
 
   document.body.style.overflow = 'hidden';
 
-  // START: text visible on pure dark background — curtains hidden off-screen
-  gsap.set('#reveal-curtain-left',  { x: '-100%' });
-  gsap.set('#reveal-curtain-right', { x:  '100%' });
-  gsap.set('.curtain-pelmet',       { y: '-100%' });
-  gsap.set('.curtain-tie-centre',   { opacity: 0 });
-  gsap.set('#reveal-text',          { opacity: 1, y: 0 });
-  gsap.set('.reveal-loading-bar',   { width: 0 });
+  // ── Mist particle canvas ──────────────────────────────────
+  const mistCanvas = document.getElementById('mistCanvas');
+  if (mistCanvas) {
+    const ctx = mistCanvas.getContext('2d');
+    let W, H, motes = [], rafId;
+
+    function resizeMist() {
+      W = mistCanvas.width  = mistCanvas.offsetWidth  || window.innerWidth;
+      H = mistCanvas.height = mistCanvas.offsetHeight || window.innerHeight;
+    }
+
+    // Gold + purple drifting motes
+    const PALETTES = [
+      [197, 160, 89],   // gold
+      [220, 190, 110],  // pale gold
+      [140,  80, 200],  // purple
+      [100,  60, 180],  // deep purple
+      [255, 240, 200],  // ivory
+    ];
+
+    function makeMote() {
+      const [r, g, b] = PALETTES[Math.floor(Math.random() * PALETTES.length)];
+      return {
+        x:    Math.random() * W,
+        y:    Math.random() * H,
+        r:    0.5 + Math.random() * 2.5,
+        o:    0.0,
+        maxO: 0.08 + Math.random() * 0.25,
+        do:   0.004 + Math.random() * 0.008,
+        vx:   (Math.random() - 0.5) * 0.4,
+        vy:   -0.2 - Math.random() * 0.5, // drift upward
+        col:  `${r},${g},${b}`,
+        phase: Math.random() > 0.5 ? 1 : -1
+      };
+    }
+
+    resizeMist();
+    for (let i = 0; i < 180; i++) motes.push(makeMote());
+
+    function drawMist() {
+      ctx.clearRect(0, 0, W, H);
+      motes.forEach(m => {
+        m.x  += m.vx;
+        m.y  += m.vy;
+        m.o  += m.do * m.phase;
+        if (m.o >= m.maxO || m.o <= 0) m.phase *= -1;
+        // Wrap
+        if (m.y < -10) { m.y = H + 10; m.x = Math.random() * W; }
+        if (m.x < -10 || m.x > W + 10) m.x = Math.random() * W;
+
+        ctx.beginPath();
+        ctx.arc(m.x, m.y, m.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${m.col},${m.o})`;
+        ctx.fill();
+      });
+      rafId = requestAnimationFrame(drawMist);
+    }
+    drawMist();
+    window.addEventListener('resize', resizeMist, { passive: true });
+  }
+
+  // ── GSAP timeline — same phase timing as curtain ─────────
+  gsap.set('#reveal-text', { opacity: 1, y: 0 });
+  gsap.set('.reveal-loading-bar', { width: 0 });
 
   const tl = gsap.timeline({
     onComplete: () => {
-      overlay.style.display = 'none';
-      document.body.style.overflow = '';
-      document.dispatchEvent(new Event('eliteRevealDone'));
-      revealHeroContent();
+      // Add dissolve class — CSS handles bloom-out animation
+      overlay.classList.add('mist-dissolving');
+      // After CSS dissolve (1.4s), hide and fire done event
+      setTimeout(() => {
+        overlay.style.display = 'none';
+        document.body.style.overflow = '';
+        document.dispatchEvent(new Event('eliteRevealDone'));
+        revealHeroContent();
+      }, 1400);
     }
   });
 
-  // PHASE 1 — Text alone on black: loading bar fills for 2.8s
-  tl.fromTo('.reveal-ornament', { opacity:0 }, { opacity:1, duration:.6, ease:'power2.out' });
-  tl.to('.reveal-loading-bar', { width: '100%', duration: 2.8, ease: 'power1.inOut' }, '<+=0.2');
-  // Text fades out cleanly
-  tl.to('#reveal-text', { opacity: 0, y: -18, duration: 0.5, ease: 'power2.in' }, '+=0.15');
+  // PHASE 1 — ornament fades in, loading bar fills (2.8s)
+  tl.fromTo('.reveal-ornament', { opacity: 0 }, { opacity: 1, duration: .7, ease: 'power2.out' });
+  tl.to('.reveal-loading-bar',  { width: '100%', duration: 2.8, ease: 'power1.inOut' }, '<+=0.2');
 
-  // PHASE 2 — Curtains SLIDE IN from the sides (dramatic entrance)
-  tl.to('#reveal-curtain-left',  { x: '0%', duration: 0.85, ease: 'expo.out' }, '+=0.05');
-  tl.to('#reveal-curtain-right', { x: '0%', duration: 0.85, ease: 'expo.out' }, '<');
-  tl.to('.curtain-pelmet',       { y: '0%', duration: 0.65, ease: 'expo.out' }, '<+0.1');
-  // Tie ornament pops onto the closed curtain
-  tl.fromTo('.curtain-tie-centre', { opacity:0, scale:0.3, y:-20 }, { opacity:1, scale:1, y:0, duration:0.55, ease:'back.out(2.5)' }, '-=0.05');
+  // PHASE 2 — text floats up and fades (mist thickens via CSS)
+  tl.to('#reveal-text', { opacity: 0, y: -22, duration: 0.6, ease: 'power2.in' }, '+=0.2');
 
-  // PHASE 3 — Pause: full curtain scene visible
-  tl.to({}, { duration: 0.75 });
-
-  // PHASE 4 — Tie drops away, curtains SWEEP apart
-  tl.to('.curtain-tie-centre', { y: 80, scale: 0.1, opacity: 0, duration: 0.4, ease: 'power3.in' });
-  tl.to('#reveal-curtain-left',  { x: '-100%', duration: 1.4, ease: 'expo.inOut' }, '+=0.05');
-  tl.to('#reveal-curtain-right', { x:  '100%', duration: 1.4, ease: 'expo.inOut' }, '<');
-  tl.to('.curtain-pelmet',       { y: '-100%', duration:  0.8, ease: 'expo.in'   }, '<+0.5');
+  // Brief pause then onComplete fires dissolve
+  tl.to({}, { duration: 0.3 });
 }
 
 function revealHeroContent() {
