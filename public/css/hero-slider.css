@@ -1,0 +1,256 @@
+/* ══════════════════════════════════════════════════════════
+   HERO SLIDER — hero-slider.css
+   ══════════════════════════════════════════════════════════ */
+
+/* Import Swiper base */
+@import url('https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css');
+
+/* ── WRAPPER ── */
+.hero-slider-section {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ── SWIPER CORE ── */
+.hero-swiper {
+  width: 100%;
+  height: 100%;
+}
+
+.hero-swiper .swiper-slide {
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* ── SLIDE 1: FIREWORKS (canvas background) ── */
+
+/* Purple-black bg sits BEHIND the canvas layers */
+.swiper-slide:first-child {
+  background: radial-gradient(ellipse at 50% 60%, #1a0538 0%, #0d0220 40%, #050010 100%);
+}
+
+.hero-canvas-layer {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  pointer-events: none;
+}
+
+#starsCanvas    { z-index: 1; }
+#fireworksCanvas { z-index: 2; }
+
+.hero-clouds {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 220px;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.cloud {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(28px);
+  mix-blend-mode: screen;
+}
+
+/* Bottom fog layer — wide, dark purple */
+.cloud-1 {
+  width: 55%;  height: 120px; bottom: -20px; left: -5%;
+  background: radial-gradient(ellipse, rgba(60,20,120,.45) 0%, transparent 70%);
+  filter: blur(40px);
+}
+.cloud-2 {
+  width: 45%;  height: 100px; bottom: -10px; left: 30%;
+  background: radial-gradient(ellipse, rgba(40,10,90,.38) 0%, transparent 70%);
+  filter: blur(35px);
+}
+.cloud-3 {
+  width: 40%;  height: 90px;  bottom: -5px;  right: -5%;
+  background: radial-gradient(ellipse, rgba(70,20,140,.42) 0%, transparent 70%);
+  filter: blur(38px);
+}
+
+/* Mid wisps — lighter, misty */
+.cloud-4 {
+  width: 30%;  height: 70px; bottom: 60px; left: 10%;
+  background: radial-gradient(ellipse, rgba(100,60,180,.22) 0%, transparent 65%);
+  filter: blur(24px);
+  opacity: .7;
+}
+.cloud-5 {
+  width: 28%;  height: 60px; bottom: 80px; right: 12%;
+  background: radial-gradient(ellipse, rgba(80,40,160,.18) 0%, transparent 65%);
+  filter: blur(22px);
+  opacity: .65;
+}
+.cloud-6 {
+  width: 22%;  height: 55px; bottom: 100px; left: 42%;
+  background: radial-gradient(ellipse, rgba(120,80,200,.15) 0%, transparent 65%);
+  filter: blur(20px);
+  opacity: .5;
+}
+
+.hero-grad-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 0%, rgba(10,5,30,.25) 100%);
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* ── SLIDE 2–7: IMAGE BACKGROUNDS ── */
+.slide-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  transform: scale(1.12);
+  transition: transform 2.5s cubic-bezier(0.1, 0, 0.1, 1);
+  z-index: 0;
+  filter: url(#hero-motion-blur);
+}
+.swiper-slide-active .slide-bg {
+  transform: scale(1.0);
+}
+
+/* slide-overlay removed */
+
+/* ── SLIDE CONTENT ── */
+.slide-content {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  max-width: 860px;
+  padding: 0 24px;
+}
+
+.slide-eyebrow {
+  display: block;
+  font-family: 'Jost', sans-serif;
+  font-size: .65rem;
+  letter-spacing: .45em;
+  text-transform: uppercase;
+  color: rgba(197,160,89,.9);
+  margin-bottom: 1.1rem;
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity .8s ease .4s, transform .8s ease .4s;
+}
+
+.slide-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(2.8rem, 7vw, 7rem);
+  font-weight: 300;
+  font-style: italic;
+  line-height: .92;
+  color: #F0EDE8;
+  margin-bottom: 1.2rem;
+  opacity: 0;
+  transform: translateY(36px);
+  transition: opacity 1s cubic-bezier(.2,0,.2,1) .5s, transform 1s cubic-bezier(.2,0,.2,1) .5s;
+}
+
+.slide-sub {
+  font-family: 'Jost', sans-serif;
+  font-size: .9rem;
+  font-weight: 300;
+  line-height: 1.65;
+  color: rgba(240,237,232,.72);
+  max-width: 460px;
+  margin: 0 auto 2rem;
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity .8s ease .7s, transform .8s ease .7s;
+}
+
+.slide-cta {
+  display: inline-block;
+  padding: 13px 36px;
+  border: 1px solid rgba(197,160,89,.6);
+  color: rgba(197,160,89,.9);
+  text-decoration: none;
+  font-family: 'Jost', sans-serif;
+  font-size: .62rem;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+  opacity: 0;
+  transition: opacity .8s ease .9s, background .3s, border-color .3s, color .3s;
+}
+.slide-cta:hover {
+  background: rgba(197,160,89,.1);
+  border-color: #C5A059;
+  color: #E8C878;
+}
+
+/* Animate in when slide is active */
+.swiper-slide-active .slide-eyebrow,
+.swiper-slide-active .slide-title,
+.swiper-slide-active .slide-sub,
+.swiper-slide-active .slide-cta {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Slide 1 fireworks content — always visible, no transform needed */
+.slide-fireworks-content .slide-eyebrow,
+.slide-fireworks-content .slide-title,
+.slide-fireworks-content .slide-sub,
+.slide-fireworks-content .slide-cta {
+  transition-delay: .2s, .2s;
+}
+
+/* ── NAV ARROWS ── */
+.hero-slider-prev,
+.hero-slider-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 52px; height: 52px;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 50;
+  transition: background .35s, border-color .35s, transform .35s;
+  backdrop-filter: blur(10px);
+}
+.hero-slider-prev:hover,
+.hero-slider-next:hover {
+  background: rgba(197,160,89,.15);
+  border-color: rgba(197,160,89,.5);
+  transform: translateY(-50%) scale(1.08);
+}
+.hero-slider-prev { left: 28px; }
+.hero-slider-next { right: 28px; }
+.hero-slider-prev svg,
+.hero-slider-next svg {
+  width: 18px; height: 18px;
+  fill: none; stroke: #F0EDE8; stroke-width: 1.8;
+}
+
+/* ── PAGINATION DOTS ── */
+.hero-swiper .swiper-pagination {
+  bottom: 28px;
+}
+.hero-swiper .swiper-pagination-bullet {
+  width: 6px; height: 6px;
+  background: rgba(197,160,89,.4);
+  opacity: 1;
+  transition: background .3s, transform .3s;
+}
+.hero-swiper .swiper-pagination-bullet-active {
+  background: #C5A059;
+  transform: scale(1.4);
+}
+
+/* grain overlay removed */

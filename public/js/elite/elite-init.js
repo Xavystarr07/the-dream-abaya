@@ -2,8 +2,11 @@
 // Called from index.ejs: initElitePage()
 function initElitePage() {
   document.addEventListener('eliteRevealDone', () => {
-    initStarField();           // starfield.js
-    initFireworks();           // fireworks.js
+    // starfield + fireworks already inited by index.ejs inline script (need early sizing)
+    if (!window.__eliteCanvasReady) {
+      initStarField();
+      initFireworks();
+    }
     initSidebar();             // sidebar.js
     initSectionAnimations();   // section-animations.js
     initCrownsCanvas();        // crowns-canvas.js

@@ -28,6 +28,8 @@
 
   <link rel="stylesheet" href="/css/nav-fixes.css"/>
   <link rel="stylesheet" href="/css/hero-fixes.css"/>
+  <link rel="stylesheet" href="/css/hero-slider.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
 
   <link rel="icon" href="data:,">
   
@@ -40,52 +42,130 @@
 <%- include('reveal') %>
 <%- include('nav') %>
 
+<!-- Motion blur SVG filter (hidden) -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <defs>
+    <filter id="hero-motion-blur">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="0,0"/>
+    </filter>
+  </defs>
+</svg>
+
 <!-- ══════════════════════════════════════════════════════════
-     SECTION 1 — HERO  (space-black → deep purple, fireworks)
+     SECTION 1 — HERO SLIDER  (fireworks slide 1 + image slides)
      ══════════════════════════════════════════════════════════ -->
-<section class="elite-hero" id="hero">
-  <!-- Multi-layer canvas: stars + fireworks -->
-  <canvas id="starsCanvas" class="hero-canvas-layer" style="z-index:1"></canvas>
-  <canvas id="fireworksCanvas" class="hero-canvas-layer" style="z-index:2"></canvas>
+<section class="hero-slider-section" id="hero">
 
-  <!-- Ground cloud layer (Disney-style, hides firework launch area) -->
-  <div class="hero-clouds" id="heroClouds">
-    <div class="cloud cloud-1"></div>
-    <div class="cloud cloud-2"></div>
-    <div class="cloud cloud-3"></div>
-    <div class="cloud cloud-4"></div>
-    <div class="cloud cloud-5"></div>
-    <div class="cloud cloud-6"></div>
+  <!-- Arrow navigation -->
+  <div class="hero-slider-prev">
+    <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+  </div>
+  <div class="hero-slider-next">
+    <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
   </div>
 
-  <!-- Purple gradient overlays -->
-  <div class="hero-grad-overlay"></div>
+  <div class="hero-swiper swiper">
+    <div class="swiper-wrapper">
 
-  <!-- Content — appears AFTER firework show -->
-  <div class="hero-content" id="heroContent" style="opacity:0">
-    <div class="hero-eyebrow">
-      <span class="eyebrow-line"></span>
-      <span>New Arrivals 2026</span>
-      <span class="eyebrow-line"></span>
-    </div>
-    <h1 class="hero-title">
-      <span class="hero-word">Where</span>
-      <span class="hero-word">Modesty</span>
-      <br/>
-      <em class="hero-word-em">Meets Majesty</em>
-    </h1>
+      <!-- ── SLIDE 1: FIREWORKS CANVAS ── -->
+      <div class="swiper-slide">
+        <!-- Stars + fireworks canvases live here -->
+        <canvas id="starsCanvas" class="hero-canvas-layer" style="z-index:1"></canvas>
+        <canvas id="fireworksCanvas" class="hero-canvas-layer" style="z-index:2"></canvas>
+        <!-- Cloud layer -->
+        <div class="hero-clouds" id="heroClouds">
+          <div class="cloud cloud-1"></div>
+          <div class="cloud cloud-2"></div>
+          <div class="cloud cloud-3"></div>
+          <div class="cloud cloud-4"></div>
+          <div class="cloud cloud-5"></div>
+          <div class="cloud cloud-6"></div>
+        </div>
+        
+        <div class="slide-content slide-fireworks-content">
+          <span class="slide-eyebrow">New Arrivals 2026</span>
+          <h1 class="slide-title">Where Modesty<br/><em>Meets Majesty</em></h1>
+          <p class="slide-sub">Luxury modest fashion, crafted for the woman who leads with grace.</p>
+          <a href="/vault" class="slide-cta">Explore The Collection →</a>
+        </div>
+      </div>
 
-    <!-- Voyage Card Slider CTA -->
-    <div class="hero-question" id="heroQuestion">
-      <p class="hero-majesty-tagline">Where Modesty Meets Your Majesty</p>
-      
-    </div>
-  </div>
+      <!-- ── SLIDE 2: DREAM ABAYAS ── -->
+      <div class="swiper-slide">
+        <div class="slide-bg" style="background-image:url('https://images.unsplash.com/photo-1563170351-be32388e0c89?q=80&w=2000'); filter:url(#hero-motion-blur)"></div>
+        
+        <div class="slide-content">
+          <span class="slide-eyebrow">Absolute Princess</span>
+          <h1 class="slide-title">Couture<br/><em>Abayas</em></h1>
+          <p class="slide-sub">For women who refuse to be ordinary. Each piece is a statement of power and grace.</p>
+          <a href="/vault?category=dream" class="slide-cta">View All Dream Abayas →</a>
+        </div>
+      </div>
 
-  <div class="hero-scroll" id="heroScroll" style="opacity:0">
-    <span>Scroll to explore</span>
-    <div class="hero-scroll-line"></div>
-  </div>
+      <!-- ── SLIDE 3: MODEST ── -->
+      <div class="swiper-slide">
+        <div class="slide-bg" style="background-image:url('https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=2000'); filter:url(#hero-motion-blur)"></div>
+        
+        <div class="slide-content">
+          <span class="slide-eyebrow">Stylish & Budget-Friendly</span>
+          <h1 class="slide-title">Modest &<br/><em>Beautiful</em></h1>
+          <p class="slide-sub">Elegance shouldn't cost a fortune. Modesty for every day, every occasion.</p>
+          <a href="/vault?category=modest" class="slide-cta">View Modest Pieces →</a>
+        </div>
+      </div>
+
+      <!-- ── SLIDE 4: AESTHETIC ── -->
+      <div class="swiper-slide">
+        <div class="slide-bg" style="background-image:url('https://images.unsplash.com/photo-1596541243179-8488e0797371?q=80&w=2000'); filter:url(#hero-motion-blur)"></div>
+        
+        <div class="slide-content">
+          <span class="slide-eyebrow">Clean. Calm. Considered.</span>
+          <h1 class="slide-title">Simply<br/><em>Aesthetic</em></h1>
+          <p class="slide-sub">Minimal silhouettes in earthy, natural tones. Aesthetic without effort.</p>
+          <a href="/vault?category=aesthetic" class="slide-cta">View All Aesthetic →</a>
+        </div>
+      </div>
+
+      <!-- ── SLIDE 5: HIJABS ── -->
+      <div class="swiper-slide">
+        <div class="slide-bg" style="background-image:url('https://images.unsplash.com/photo-1601121141461-9d6647bca1ed?q=80&w=2000'); filter:url(#hero-motion-blur)"></div>
+        
+        <div class="slide-content">
+          <span class="slide-eyebrow">Crown Your Modesty</span>
+          <h1 class="slide-title">Hijabs &<br/><em>Niqabs</em></h1>
+          <p class="slide-sub">From everyday jerseys to embroidered occasion pieces. Your hijab, your crown.</p>
+          <a href="/vault?category=hijabs" class="slide-cta">View All Hijabs →</a>
+        </div>
+      </div>
+
+      <!-- ── SLIDE 6: PERFUMES ── -->
+      <div class="swiper-slide">
+        <div class="slide-bg" style="background-image:url('https://images.unsplash.com/photo-1594035910387-fea47794261f?q=80&w=2000'); filter:url(#hero-motion-blur)"></div>
+        
+        <div class="slide-content">
+          <span class="slide-eyebrow">Scent of Jannah</span>
+          <h1 class="slide-title">Pure<br/><em>Perfumes</em></h1>
+          <p class="slide-sub">Alcohol-free. Halal-certified. Wear the scent of paradise.</p>
+          <a href="/vault?category=perfumes" class="slide-cta">View All Perfumes →</a>
+        </div>
+      </div>
+
+      <!-- ── SLIDE 7: SEASONAL ── -->
+      <div class="swiper-slide">
+        <div class="slide-bg" style="background-image:url('https://images.unsplash.com/photo-1520006403909-838d6b92c22e?q=80&w=2000'); filter:url(#hero-motion-blur)"></div>
+        
+        <div class="slide-content">
+          <span class="slide-eyebrow">Dressed for Every Season</span>
+          <h1 class="slide-title">Seasonal<br/><em>Collections</em></h1>
+          <p class="slide-sub">As the earth turns, so does the language of modest fashion.</p>
+          <a href="/vault?section=seasonal" class="slide-cta">View Seasonal →</a>
+        </div>
+      </div>
+
+    </div><!-- /swiper-wrapper -->
+    <div class="swiper-pagination"></div>
+  </div><!-- /hero-swiper -->
+
 </section>
 
 <!-- ══════════════════════════════════════════════════════════
@@ -400,8 +480,12 @@
 <%- include('toast') %>
 <%- include('cart-drawer') %>
 
+<!-- ── SWIPER (hero slider) ── -->
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
 <!-- ── ELITE (index only) ── -->
 <script src="/js/elite/reveal.js"></script>
+<script src="/js/elite/hero-slider.js"></script>
 <script src="/js/elite/starfield.js"></script>
 <script src="/js/elite/fireworks.js"></script>
 <script src="/js/elite/crowns-canvas.js"></script>
@@ -414,7 +498,18 @@
 <script src="/js/elite/elite-init.js"></script>
 
 <script>
-  // Kick off the reveal curtain + all elite section animations
+  // Init slider first so slide 1 is sized
+  initHeroSlider();
+
+  // Delay elite canvas inits until slide is painted
+  // initStarField + initFireworks need the canvas to have real dimensions
+  window.__eliteCanvasReady = false;
+  setTimeout(() => {
+    window.__eliteCanvasReady = true;
+    initStarField();
+    initFireworks();
+  }, 300);
+
   initReveal();
   initElitePage();
 </script>
