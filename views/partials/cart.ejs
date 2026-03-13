@@ -7,18 +7,17 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="/css/tokens.css"/>
-<link rel="stylesheet" href="/css/nav.css"/>
-<link rel="stylesheet" href="/css/logo.css"/>
-<link rel="stylesheet" href="/css/footer.css"/>
-<link rel="stylesheet" href="/css/cart.css"/>
-<link rel="stylesheet" href="/css/utilities.css"/>
-<link rel="stylesheet" href="/css/auth.css"/>
+  <link rel="stylesheet" href="/css/nav.css"/>
+  <link rel="stylesheet" href="/css/logo.css"/>
+  <link rel="stylesheet" href="/css/footer.css"/>
+  <link rel="stylesheet" href="/css/cart.css"/>
+  <link rel="stylesheet" href="/css/utilities.css"/>
+  <link rel="stylesheet" href="/css/auth.css"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.4/gsap.min.js"></script>
- 
 </head>
 <body>
   <%- include('css-base') %>
-<%- include('nav') %>
+  <%- include('nav') %>
 
 <header class="vault-header cart-header-royal<% if (cart.length === 0) { %> cart-header-hidden<% } %>">
   <canvas id="cartHeaderCanvas" class="cart-header-canvas"></canvas>
@@ -39,9 +38,7 @@
 <main class="cart-main">
   <% if (cart.length > 0) { %>
     <div class="cart-layout">
-
       <div class="cart-left-col">
-
         <div class="checkout-block" id="checkoutBlock">
           <div class="checkout-block-header">
             <span class="checkout-step-num">1</span>
@@ -88,10 +85,7 @@
               <div class="cart-item" data-id="<%= item.id %>" data-size="<%= item.size || '' %>" data-max="<%= item.stock_qty || 99 %>">
                 <div class="cart-item-img">
                   <% if (item.image_url) { %>
-                    <img src="<%= item.image_url %>"
-                         alt="<%= item.name %>"
-                         loading="lazy"
-                         onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';"/>
+                    <img src="<%= item.image_url %>" alt="<%= item.name %>" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';"/>
                     <div class="cart-item-placeholder" style="display:none;">✦</div>
                   <% } else { %>
                     <div class="cart-item-placeholder">✦</div>
@@ -149,12 +143,10 @@
           Checkout
           <span class="button__icon-wrapper">
             <svg class="button__icon-svg" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="5" y1="12" x2="19" y2="12"/>
-              <polyline points="12 5 19 12 12 19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
             </svg>
             <svg class="button__icon-svg button__icon-svg--copy" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="5" y1="12" x2="19" y2="12"/>
-              <polyline points="12 5 19 12 12 19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
             </svg>
           </span>
         </button>
@@ -166,7 +158,6 @@
         </div>
       </div>
     </div>
-
   <% } else { %>
     <div class="cart-empty-royal">
       <canvas class="cart-empty-canvas" id="cartEmptyCanvas"></canvas>
@@ -195,14 +186,12 @@
 <%- include('footer') %>
 <%- include('toast') %>
 
-
-
 <script>
   function changeQty(id, size, delta) {
-    const item    = document.querySelector('.cart-item[data-id="' + id + '"][data-size="' + size + '"]');
+    const item = document.querySelector('.cart-item[data-id="' + id + '"][data-size="' + size + '"]');
     const display = item.querySelector('.qty-display');
-    const max     = parseInt(item.dataset.max) || 99;
-    const cur     = parseInt(display.textContent);
+    const max = parseInt(item.dataset.max) || 99;
+    const cur = parseInt(display.textContent);
     if (delta > 0 && cur >= max) { showToast('Only ' + max + ' left in stock', 'error'); return; }
     fetch('/cart/update', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -215,28 +204,31 @@
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ product_id: id, size })
     }).then(() => {
-      gsap.to(btn.closest('.cart-item'), {
-        opacity: 0, height: 0, marginBottom: 0, duration: 0.4,
-        onComplete: () => location.reload()
-      });
+      if (typeof gsap !== 'undefined') {
+        gsap.to(btn.closest('.cart-item'), {
+          opacity: 0, height: 0, marginBottom: 0, duration: 0.4,
+          onComplete: () => location.reload()
+        });
+      } else {
+        location.reload();
+      }
     });
   }
 
   function openCartPayment() {
-    const name    = document.getElementById('co_name')?.value.trim();
-    const phone   = document.getElementById('co_phone')?.value.trim();
-    const email   = document.getElementById('co_email')?.value.trim();
+    const name = document.getElementById('co_name')?.value.trim();
+    const phone = document.getElementById('co_phone')?.value.trim();
+    const email = document.getElementById('co_email')?.value.trim();
     const address = document.getElementById('co_address')?.value.trim();
-    const notes   = document.getElementById('co_notes')?.value.trim() || '';
+    const notes = document.getElementById('co_notes')?.value.trim() || '';
 
-    if (!name)    { showToast('Please enter your name', 'error');             document.getElementById('co_name').focus();   return; }
-    if (!phone)   { showToast('Please enter your phone number', 'error');     document.getElementById('co_phone').focus();   return; }
-    if (!email)   { showToast('Please enter your email', 'error');            document.getElementById('co_email').focus();   return; }
+    if (!name) { showToast('Please enter your name', 'error'); document.getElementById('co_name').focus(); return; }
+    if (!phone) { showToast('Please enter your phone number', 'error'); document.getElementById('co_phone').focus(); return; }
+    if (!email) { showToast('Please enter your email', 'error'); document.getElementById('co_email').focus(); return; }
     if (!address) { showToast('Please enter your delivery address', 'error'); document.getElementById('co_address').focus(); return; }
 
     const amountCents = <%= Math.round(total * 100) %>;
     
-    // UPDATED PART: Moved mapping to a variable to avoid EJS Syntax Errors 
     <% 
       const cleanCart = cart.map(function(i) { 
         return { id: i.id, name: i.name, qty: i.qty, size: i.size || '', color: i.color || '', price: i.price }; 
@@ -245,43 +237,52 @@
     const items = <%- JSON.stringify(cleanCart) %>; 
     
     const btn = document.getElementById('cartCheckoutBtn');
-    btn.innerHTML = 'Redirecting… <span class="button__icon-wrapper"><svg class="button__icon-svg" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg><svg class="button__icon-svg button__icon-svg--copy" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>';
+    btn.innerHTML = 'Redirecting… <span class="button__icon-wrapper"><svg class="button__icon-svg" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>';
     btn.disabled = true;
 
     fetch('/payment/cart-checkout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        amountCents:      amountCents,
-        items:            items,
-        customer_name:    name,
-        customer_email:   email,
-        customer_phone:   phone,
+        amountCents: amountCents,
+        items: items,
+        customer_name: name,
+        customer_email: email,
+        customer_phone: phone,
         delivery_address: address,
-        notes:            notes
+        notes: notes
       })
     })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
+    .then(r => r.json())
+    .then(data => {
       if (data.success && data.redirectUrl) {
         window.location.href = data.redirectUrl;
       } else {
-        showToast(data.message || 'Something went wrong. Please try again.', 'error');
-        btn.innerHTML = 'Checkout <span class="button__icon-wrapper"><svg class="button__icon-svg" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg><svg class="button__icon-svg button__icon-svg--copy" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>';
+        showToast(data.message || 'Something went wrong.', 'error');
         btn.disabled = false;
+        btn.innerHTML = 'Checkout';
       }
     })
-    .catch(function() {
-      showToast('Network error. Please try again.', 'error');
-      btn.innerHTML = 'Checkout <span class="button__icon-wrapper"><svg class="button__icon-svg" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg><svg class="button__icon-svg button__icon-svg--copy" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>';
+    .catch(() => {
+      showToast('Network error.', 'error');
       btn.disabled = false;
     });
   }
 
-  if (typeof gsap !== 'undefined') {
-    gsap.from('.cart-item',       { opacity: 0, y: 18, duration: 0.5, stagger: 0.07, ease: 'power3.out', delay: 0.25 });
-    gsap.from('.checkout-block',  { opacity: 0, y: 25, duration: 0.6, stagger: 0.12, ease: 'power3.out', delay: 0.15 });
-  }
+  // FIXED: GSAP Target validation to stop console errors
+  document.addEventListener('DOMContentLoaded', () => {
+    if (typeof gsap !== 'undefined') {
+      const items = document.querySelectorAll('.cart-item');
+      const blocks = document.querySelectorAll('.checkout-block');
+      
+      if (items.length > 0) {
+        gsap.from(items, { opacity: 0, y: 18, duration: 0.5, stagger: 0.07, ease: 'power3.out', delay: 0.25 });
+      }
+      if (blocks.length > 0) {
+        gsap.from(blocks, { opacity: 0, y: 25, duration: 0.6, stagger: 0.12, ease: 'power3.out', delay: 0.15 });
+      }
+    }
+  });
 </script>
 
 <script>
@@ -295,20 +296,20 @@
     function resize() {
       W = canvas.offsetWidth;
       H = canvas.offsetHeight;
-      canvas.width  = W;
+      canvas.width = W;
       canvas.height = H;
     }
     resize();
     window.addEventListener('resize', () => { resize(); init(); });
 
     function Particle() {
-      this.x    = Math.random() * W;
-      this.y    = Math.random() * H;
-      this.r    = Math.random() * 1.4 + 0.4;
-      this.vx   = (Math.random() - .5) * .18;
-      this.vy   = -(Math.random() * .25 + .08);
+      this.x = Math.random() * W;
+      this.y = Math.random() * H;
+      this.r = Math.random() * 1.4 + 0.4;
+      this.vx = (Math.random() - .5) * .18;
+      this.vy = -(Math.random() * .25 + .08);
       this.life = Math.random();
-      this.spd  = Math.random() * .004 + .002;
+      this.spd = Math.random() * .004 + .002;
     }
     Particle.prototype.update = function(){
       this.x += this.vx;

@@ -347,6 +347,7 @@
 }
 
 /* ── CHECKOUT BUTTON ─────────────────────────────────────── */
+
 #cartCheckoutBtn,
 .cart-summary .btn-royal {
   all: unset !important;
@@ -383,17 +384,20 @@
 }
 
 /* Light mode */
+
 [data-theme="light"] #cartCheckoutBtn,
 [data-theme="light"] .cart-summary .btn-royal {
   --clr: #7B4DB5;
   color: #fff !important;
 }
+
 [data-theme="light"] #cartCheckoutBtn:hover,
 [data-theme="light"] .cart-summary .btn-royal:hover {
   background-color: #fff !important;
   color: #3a1a6e !important;
   box-shadow: 0 2px 20px rgba(107,63,160,.25) !important;
 }
+
 [data-theme="light"] #cartCheckoutBtn:hover .button__icon-wrapper,
 [data-theme="light"] .cart-summary .btn-royal:hover .button__icon-wrapper {
   color: #fff !important;
@@ -425,15 +429,18 @@
   position: absolute !important;
   transform: translate(-150%, 150%) !important;
 }
+
 #cartCheckoutBtn:hover .button__icon-svg:first-child,
 .cart-summary .btn-royal:hover .button__icon-svg:first-child {
   transition: transform 0.3s ease-in-out !important;
   transform: translate(150%, -150%) !important;
 }
+
 #cartCheckoutBtn:hover .button__icon-svg--copy,
 .cart-summary .btn-royal:hover .button__icon-svg--copy {
   transition: transform 0.3s ease-in-out 0.1s !important;
   transform: translate(0) !important;
+
 }
 
 /* ── CONTINUE SHOPPING BUTTON ────────────────────────────── */
@@ -541,7 +548,6 @@ a.btn-ghost.full-width:hover:after,
 
 .royal-footer,
 footer.royal-footer {
-  background: #000000 !important;
   border-top: 1px solid rgba(197,160,89,.1) !important;
 }
 

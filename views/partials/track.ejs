@@ -11,22 +11,23 @@
 <%- include('css-base') %>
 <%- include('nav') %>
 
-<header class="vault-header">
+<header class="vault-header turquoise-luxury">
+  <div class="header-particles" id="headerParticles"></div>
   <div class="vault-header-inner">
     <div class="section-badge">📦</div>
     <h1 class="vault-title">Track Your Order</h1>
     <p class="vault-subtitle">Enter your Order ID for live status</p>
   </div>
+  <div class="header-glow-bottom"></div>
 </header>
 
 <main class="track-main">
 
   <% if (!user) { %>
-    <!-- Not logged in — show login prompt -->
     <div class="empty-state" style="padding:3rem 1rem">
       <span>🔐</span>
       <h3>Sign in to track your orders</h3>
-      <p>For your security, you must be signed in to track an order. Your order details are private to your account.</p>
+      <p>For your security, you must be signed in to track an order. [cite: 2, 3]</p>
       <div style="display:flex;gap:.8rem;flex-wrap:wrap;justify-content:center;margin-top:.5rem">
         <a href="/login?redirect=/track" class="btn-royal">Sign In</a>
         <a href="/register" class="btn-ghost">Create Account</a>
@@ -45,7 +46,7 @@
           />
           <button type="submit" class="btn-royal">Track</button>
         </div>
-        <p class="track-hint">Your Order ID was sent in your WhatsApp confirmation. It starts with ORD-</p>
+        <p class="track-hint">Your Order ID starts with ORD</p>
       </form>
     </div>
 
@@ -79,18 +80,11 @@
               <span class="detail-label">Order Date</span>
               <span><%= new Date(order.created_at).toLocaleDateString('en-ZA',{year:'numeric',month:'long',day:'numeric'}) %></span>
             </div>
-            <% if (order.delivery_address) { %>
-              <div class="order-detail-item">
-                <span class="detail-label">Delivery To</span>
-                <span><%= order.delivery_address %></span>
-              </div>
-            <% } %>
           </div>
 
-          <!-- Status timeline -->
           <%
             const statuses = ['Pending','Confirmed','In Production','Shipped','Delivered'];
-            const curIdx   = statuses.findIndex(s => s.toLowerCase() === order.status.toLowerCase());
+            const curIdx = statuses.findIndex(s => s.toLowerCase() === order.status.toLowerCase());
           %>
           <div class="status-timeline">
             <% statuses.forEach(function(s, i) { %>
@@ -105,17 +99,6 @@
           </div>
         </div>
       </div>
-
-    <% } else if (searchId) { %>
-      <div class="empty-state">
-        <span>🔍</span>
-        <h3>Order not found</h3>
-        <p>No order matching <strong><%= searchId %></strong> was found on your account.</p>
-        <p style="font-size:.76rem;color:var(--t3);margin-top:.3rem">Orders can only be viewed by the account that placed them.</p>
-        <a href="https://wa.me/27000000000" class="btn-ghost" target="_blank" rel="noopener" style="margin-top:.5rem">
-          💬 Contact Support
-        </a>
-      </div>
     <% } %>
 
   <% } %>
@@ -124,43 +107,39 @@
 <%- include('js-core') %>
 <%- include('footer') %>
 <%- include('toast') %>
-<!-- ── CORE (must load first) ── -->
-
-<script src="/js/core/toast.js"></script>
-<script src="/js/core/theme.js"></script>
-
-<!-- ── NAV ── -->
-<script src="/js/nav/dropdown.js"></script>
-<script src="/js/nav/nav.js"></script>
-
-
-
-<!-- ── CART ── -->
-<script src="/js/cart/cart-actions.js"></script>
-<script src="/js/cart/cart-drawer.js"></script>
-
-<!-- ── WISHLIST ── -->
-<script src="/js/wishlist/wishlist.js"></script>
-
-<!-- ── PROFILE ── -->
-<script src="/js/profile/profile.js"></script>
-
-<!-- ── UI ── -->
-<script src="/js/ui/lightbox.js"></script>
-<script src="/js/ui/search-suggestions.js"></script>
-<script src="/js/ui/forms.js"></script>
-
-<!-- ── BOOTSTRAPPER (must load last of core) ── -->
-<script src="/js/core/init.js"></script>
 
 <script>
+  // Particle Animation for Header
+  function initHeaderParticles() {
+    const container = document.getElementById('headerParticles');
+    if (!container) return;
+    
+    for (let i = 0; i < 50; i++) {
+      const p = document.createElement('div');
+      p.className = 'gold-particle';
+      const size = Math.random() * 2 + 1;
+      p.style.width = size + 'px';
+      p.style.height = size + 'px';
+      p.style.left = Math.random() * 100 + '%';
+      p.style.bottom = Math.random() * 20 + '%';
+      const dur = Math.random() * 3 + 2;
+      const del = Math.random() * 5;
+      p.style.animation = `floatParticle ${dur}s ease-in-out ${del}s infinite`;
+      container.appendChild(p);
+    }
+  }
+
+  // Animation for order results [cite: 16]
   const result = document.getElementById('orderResult');
   if (result && typeof gsap !== 'undefined') {
     gsap.from(result, { opacity:0, y:30, duration:0.8, ease:'power3.out', delay:0.2 });
   }
-  // Auto-uppercase order ID
+
+  // Auto-uppercase input [cite: 18]
   const inp = document.querySelector('.track-input');
   if (inp) inp.addEventListener('input', () => { inp.value = inp.value.toUpperCase(); });
+
+  window.addEventListener('DOMContentLoaded', initHeaderParticles);
 </script>
 </body>
 </html>
