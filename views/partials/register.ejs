@@ -250,7 +250,8 @@
 </main>
 
 <%- include('toast') %>
-<script src="/js/main.js"></script>
+<%- include('js-core') %>
+
 <script>
 // ─────────────────────────────────────────────
 // STATE
@@ -287,49 +288,6 @@ function validateName(val, hintId) {
   hint.className = 'field-hint good';
   hint.textContent = '✓ Looks good';
   return true;
-}
-
-// ─────────────────────────────────────────────
-// EMAIL — live domain hint
-// ─────────────────────────────────────────────
-const KNOWN_DOMAINS = ['gmail.com','yahoo.com','hotmail.com','outlook.com','icloud.com',
-  'live.com','me.com','proton.me','protonmail.com','ymail.com','mail.com'];
-
-function liveEmailHint(inp) {
-  const hint = document.getElementById('hint-email');
-  const val = inp.value.trim();
-  if (!val || !val.includes('@')) { hint.textContent = ''; hint.className = 'field-hint'; return; }
-  const parts = val.split('@');
-  const domain = parts[parts.length - 1].toLowerCase();
-  if (!domain || !domain.includes('.')) {
-    hint.className = 'field-hint info';
-    hint.textContent = '⚠ Enter a complete email address';
-    return;
-  }
-  const base = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(val);
-  if (!base) {
-    hint.className = 'field-hint bad';
-    hint.textContent = '✗ Invalid email format';
-    return;
-  }
-  // Suggest close domain matches
-  const close = KNOWN_DOMAINS.find(d => d !== domain && levenshtein(domain, d) <= 2);
-  if (close) {
-    hint.className = 'field-hint info';
-    hint.textContent = `Did you mean @${close}?`;
-    return;
-  }
-  hint.className = 'field-hint good';
-  hint.textContent = '✓ Email looks valid';
-}
-
-function levenshtein(a, b) {
-  const m = a.length, n = b.length;
-  const dp = Array.from({length: m+1}, (_, i) => Array.from({length: n+1}, (_, j) => i || j));
-  for (let i = 1; i <= m; i++)
-    for (let j = 1; j <= n; j++)
-      dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1] : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
-  return dp[m][n];
 }
 
 // ─────────────────────────────────────────────

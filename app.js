@@ -524,7 +524,20 @@ app.post('/order/place', requireAuth, async (req,res) => {
 });
 
 // Wishlist
-app.get('/wishlist', async (req,res) => { const ids=req.session.wishlist||[]; const products=await Promise.all(ids.map(id=>getProductById(id))); res.render('partials/wishlist',{title:'My Wishlist',products:products.filter(Boolean),page:'wishlist'}); });
+// Wishlist — now also fetches featured products as suggestions for empty state
+app.get('/wishlist', async (req,res) => {
+  const ids = req.session.wishlist || [];
+  const products = await Promise.all(ids.map(id => getProductById(id)));
+  // Fetch up to 4 featured/in-stock products as "you may like" suggestions
+  const allProducts = await getProducts({ featured: true });
+  const suggested = allProducts.filter(p => !ids.includes(p.id) && p.in_stock !== false).slice(0, 4);
+  res.render('partials/wishlist', {
+    title: 'My Wishlist',
+    products: products.filter(Boolean),
+    suggested, // passed to template for empty state
+    page: 'wishlist'
+  });
+});
 app.post('/wishlist/toggle',(req,res) => { const{product_id}=req.body; if(!req.session.wishlist)req.session.wishlist=[]; const idx=req.session.wishlist.indexOf(product_id); if(idx>-1){req.session.wishlist.splice(idx,1);res.json({success:true,action:'removed',count:req.session.wishlist.length});}else{req.session.wishlist.push(product_id);res.json({success:true,action:'added',count:req.session.wishlist.length});} });
 
 // Track order

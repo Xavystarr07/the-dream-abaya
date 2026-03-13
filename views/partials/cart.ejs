@@ -192,10 +192,39 @@
   <% } %>
 </main>
 
+<%- include('js-core') %>
 <%- include('footer') %>
 <%- include('toast') %>
 
-<script src="/js/main.js"></script>
+<!-- ── CORE (must load first) ── -->
+<script src="/js/core/utils.js"></script>
+<script src="/js/core/toast.js"></script>
+<script src="/js/core/theme.js"></script>
+
+<!-- ── NAV ── -->
+<script src="/js/nav/dropdown.js"></script>
+<script src="/js/nav/nav.js"></script>
+
+
+
+<!-- ── CART ── -->
+<script src="/js/cart/cart-actions.js"></script>
+<script src="/js/cart/cart-drawer.js"></script>
+
+<!-- ── WISHLIST ── -->
+<script src="/js/wishlist/wishlist.js"></script>
+
+<!-- ── PROFILE ── -->
+<script src="/js/profile/profile.js"></script>
+
+<!-- ── UI ── -->
+<script src="/js/ui/lightbox.js"></script>
+<script src="/js/ui/search-suggestions.js"></script>
+<script src="/js/ui/forms.js"></script>
+
+<!-- ── BOOTSTRAPPER (must load last of core) ── -->
+<script src="/js/core/init.js"></script>
+
 <script>
   function changeQty(id, size, delta) {
     const item    = document.querySelector('.cart-item[data-id="' + id + '"][data-size="' + size + '"]');
