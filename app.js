@@ -17,11 +17,11 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const multer = require('multer');
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 8 * 1024 * 1024 } });
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || ''); // Added Resend library
-const resend = new Resend(process.env.RESEND_API_KEY || 're_aRKTRD6u_38vQxeEDoF4no3x1WTCK96gJ'); // Initialize Resend
+const resend = new Resend(process.env.RESEND_API_KEY || ''); // Initialize Resend
 
 const supabase = createClient(
-  process.env.SUPABASE_URL      || 'https://wajbsykeuuitdinccuwd.supabase.co',
-  process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndhamJzeWtldXVpdGRpbmNjdXdkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4MzMzNjUsImV4cCI6MjA4ODQwOTM2NX0._cWYMWTGHUndAkow-MeI5zKGCyHB-Yroi3R_FXXAJUw'
+  process.env.SUPABASE_URL      || '',
+  process.env.SUPABASE_ANON_KEY || ''
 );
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -44,7 +44,7 @@ app.use((req, res, next) => {
   res.locals.isAdmin        = req.session.user?.is_admin || false;
   res.locals.cartCount      = (req.session.cart || []).length;
   res.locals.theme          = req.session.theme || 'dark';
-  res.locals.YOCO_PUBLIC_KEY = process.env.YOCO_PUBLIC_KEY || 'pk_test_ed3c54a6gOol69qa7f45';
+  res.locals.YOCO_PUBLIC_KEY = process.env.YOCO_PUBLIC_KEY || '';
   next();
 });
 
