@@ -132,6 +132,79 @@
    3. EMPTY STATE — shown when cart is empty
    ══════════════════════════════════════════════════════════ */
 
+/* ── EMPTY STATE WRAPPER ── */
+.cart-empty-royal {
+  position: fixed;          /* covers entire viewport */
+  inset: 0;
+  z-index: 10;              /* above everything except nav */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at 60% 40%, #2d1b69 0%, #1a0e3d 40%, #0d0820 100%);
+  overflow: hidden; /* full viewport minus nav */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at 60% 40%, #2d1b69 0%, #1a0e3d 40%, #0d0820 100%);
+  overflow: hidden;
+}
+
+.cart-empty-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.cart-empty-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 60px 24px;
+  max-width: 480px;
+}
+
+.cart-empty-logo {
+  width: 300px;
+  margin-bottom: 1.8rem;
+  opacity: 0;
+  animation: cartFadeUp .8s ease .1s forwards;
+}
+
+.cart-empty-heading {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 300;
+  color: var(--t1);
+  margin: 0 0 .6rem;
+  opacity: 0;
+  animation: cartFadeUp .7s ease .2s forwards;
+}
+
+.cart-empty-ornament-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 1.6rem;
+  opacity: 0;
+  animation: cartFadeUp .6s ease .05s forwards;
+}
+.cer-line {
+  height: 1px;
+  width: 48px;
+  background: linear-gradient(90deg, transparent, rgba(197,160,89,.4), transparent);
+}
+.cer-diamond {
+  width: 6px; height: 6px;
+  background: rgba(197,160,89,.6);
+  transform: rotate(45deg);
+}
+
 /* Empty state uses same shimmer title — slightly different timing */
 .cart-empty-title {
   font-family: 'Cormorant Garamond', serif;

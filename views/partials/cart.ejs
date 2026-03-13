@@ -19,7 +19,8 @@
   <%- include('css-base') %>
   <%- include('nav') %>
 
-<header class="vault-header cart-header-royal<% if (cart.length === 0) { %> cart-header-hidden<% } %>">
+<% if (cart.length > 0) { %>
+<header class="vault-header cart-header-royal">
   <canvas id="cartHeaderCanvas" class="cart-header-canvas"></canvas>
   <div class="vault-header-inner">
     <p class="cart-header-greeting">
@@ -34,8 +35,9 @@
     </div>
   </div>
 </header>
+<% } %>
 
-<main class="cart-main">
+<main class="cart-main<% if (cart.length === 0) { %> cart-main-empty<% } %>">
   <% if (cart.length > 0) { %>
     <div class="cart-layout">
       <div class="cart-left-col">
@@ -158,7 +160,9 @@
         </div>
       </div>
     </div>
-  <% } else { %>
+  <% } %>
+</main>
+<% if (cart.length === 0) { %>
     <div class="cart-empty-royal">
       <canvas class="cart-empty-canvas" id="cartEmptyCanvas"></canvas>
       <div class="cart-empty-inner">

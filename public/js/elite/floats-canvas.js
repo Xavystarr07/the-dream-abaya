@@ -1,4 +1,7 @@
 'use strict';
+// ── Aliases — safe whether utils.js globals landed or not ────
+var rand  = rand  || function(mn,mx){ return Math.random()*(mx-mn)+mn; };
+var irand = irand || function(mn,mx){ return Math.floor(rand(mn,mx+1)); };
 // ─────────────────────────────────────────────────────────────
 // SECTION 2 — DREAM FLOATS (soft clouds + golden petals)
 // ─────────────────────────────────────────────────────────────
