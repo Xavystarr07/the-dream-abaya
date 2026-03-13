@@ -8,7 +8,8 @@
     </a>
 
     <ul class="nav-links">
-      <li><a href="/" class="nav-link <%= page==='home'?'active':'' %>" id="homeNavLink">Home</a></li>
+      <li><a href="/" class="nav-link <%= page==='home'?'active':'' %>" id="homeNavLink"
+  onclick="if(window.location.pathname==='/'){event.preventDefault();window.scrollTo({top:0,behavior:'smooth'})}">Home</a></li>
 
       <!-- Collections: click-based, not hover-lost -->
       <li class="nav-dropdown" id="collectionsDropdown">

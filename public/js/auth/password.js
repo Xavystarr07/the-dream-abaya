@@ -2,10 +2,6 @@
 
 // ── PASSWORD SUGGESTIONS ──────────────────────────────────────
 // NOTE: STRONG_PASSWORDS declared here ONLY. Remove from main.js.
-const STRONG_PASSWORDS = [
-  'Gold@Palace2026!', 'Royal#Abaya7&', 'Modesty$Queen99',
-  'Dream@Abaya2026', 'Jannah#Stars22!', 'Musk&Oud2026@'
-];
 
 function initPasswordSuggestions() {
   const pwFields = document.querySelectorAll(

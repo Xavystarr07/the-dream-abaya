@@ -13,7 +13,6 @@
 <link rel="stylesheet" href="/css/cart.css"/>
 <link rel="stylesheet" href="/css/utilities.css"/>
 <link rel="stylesheet" href="/css/auth.css"/>
-<link rel="stylesheet" href="/css/cart-v3.css"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.4/gsap.min.js"></script>
  
 </head>
@@ -196,34 +195,7 @@
 <%- include('footer') %>
 <%- include('toast') %>
 
-<!-- ── CORE (must load first) ── -->
-<script src="/js/core/utils.js"></script>
-<script src="/js/core/toast.js"></script>
-<script src="/js/core/theme.js"></script>
 
-<!-- ── NAV ── -->
-<script src="/js/nav/dropdown.js"></script>
-<script src="/js/nav/nav.js"></script>
-
-
-
-<!-- ── CART ── -->
-<script src="/js/cart/cart-actions.js"></script>
-<script src="/js/cart/cart-drawer.js"></script>
-
-<!-- ── WISHLIST ── -->
-<script src="/js/wishlist/wishlist.js"></script>
-
-<!-- ── PROFILE ── -->
-<script src="/js/profile/profile.js"></script>
-
-<!-- ── UI ── -->
-<script src="/js/ui/lightbox.js"></script>
-<script src="/js/ui/search-suggestions.js"></script>
-<script src="/js/ui/forms.js"></script>
-
-<!-- ── BOOTSTRAPPER (must load last of core) ── -->
-<script src="/js/core/init.js"></script>
 
 <script>
   function changeQty(id, size, delta) {

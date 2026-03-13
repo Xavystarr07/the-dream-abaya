@@ -2,14 +2,6 @@
 'use strict';
 
 // ── EMAIL DOMAIN VALIDATION ───────────────────────────────────
-// NOTE: VALID_DOMAINS declared here ONLY. Remove from main.js.
-const VALID_DOMAINS = [
-  'gmail.com','yahoo.com','yahoo.co.za','outlook.com','hotmail.com',
-  'live.com','icloud.com','me.com','protonmail.com','proton.me',
-  'zoho.com','aol.com','mail.com','msn.com','ymail.com',
-  'co.za','org.za','gov.za','edu.za','ac.za',
-  'hotmail.co.uk','yahoo.co.uk','btinternet.com','sky.com'
-];
 
 function validateEmailDomain(email) {
   if (!email.includes('@')) return false;

@@ -1,4 +1,7 @@
 'use strict';
+// ── Aliases — works whether utils.js globals landed or not ──
+var rand  = rand  || function(mn,mx){ return Math.random()*(mx-mn)+mn; };
+var irand = irand || function(mn,mx){ return Math.floor(rand(mn,mx+1)); };
 
 // ─────────────────────────────────────────────────────────────
 // SECTION SCROLL ANIMATIONS  (GSAP ScrollTrigger)
@@ -7,7 +10,6 @@ function initSectionAnimations() {
   if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') return;
   gsap.registerPlugin(ScrollTrigger);
 
-  // Generic section content panels
   gsap.utils.toArray('.section-content-panel').forEach(el => {
     gsap.fromTo(el,
       { opacity:0, x:60 },
@@ -16,7 +18,6 @@ function initSectionAnimations() {
     );
   });
 
-  // Seasonal intro
   const sIntro = document.getElementById('seasonalIntro');
   if (sIntro) {
     gsap.fromTo(sIntro,
@@ -34,7 +35,6 @@ function initSectionAnimations() {
     );
   }
 
-  // Reveal blocks (story)
   gsap.utils.toArray('.reveal-block').forEach(el => {
     gsap.fromTo(el,
       { opacity:0, y:45 },
@@ -43,7 +43,6 @@ function initSectionAnimations() {
     );
   });
 
-  // Product cards
   gsap.utils.toArray('.product-card').forEach((el, i) => {
     gsap.fromTo(el,
       { opacity:0, y:30, scale:.96 },
@@ -54,12 +53,11 @@ function initSectionAnimations() {
 }
 
 // ─────────────────────────────────────────────────────────────
-// SCROLL SECTION TRACKER  (for active sidebar + section bg)
+// SCROLL SECTION TRACKER
 // ─────────────────────────────────────────────────────────────
 function initScrollSections() {
   // Passive scroll watcher
 }
-
 
 // ─────────────────────────────────────────────────────────────
 // SECTION 2 — DREAM FLOATS (soft clouds + golden petals)

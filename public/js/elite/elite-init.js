@@ -14,7 +14,7 @@ function initElitePage() {
     initModestFloatsCanvas();  // floats-canvas.js
     initHandbagsCanvas();      // floats-canvas.js
     initPerfumesFloatCanvas(); // perfume-canvas.js
-    initVoyageSlider();        // voyage-slider.js
+
   });
   setTimeout(() => document.dispatchEvent(new Event('eliteRevealDone')), 4500);
 }

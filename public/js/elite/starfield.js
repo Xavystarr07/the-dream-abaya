@@ -1,6 +1,10 @@
 /* THE DREAM ABAYA — starfield.js */
 'use strict';
 
+// ── Inline helpers — no dependency on global rand/irand ──────
+function _r(mn, mx)  { return Math.random() * (mx - mn) + mn; }
+function _ir(mn, mx) { return Math.floor(_r(mn, mx + 1)); }
+
 function initStarField() {
   const canvas = document.getElementById('starsCanvas');
   if (!canvas) return;
@@ -18,22 +22,22 @@ function initStarField() {
     for(let i=0;i<280;i++){
       const layer=Math.random();
       stars.push({
-        x:rand(0,W), y:rand(0,H*.85),
-        r:layer>.92?rand(1.5,2.8):layer>.7?rand(.8,1.5):rand(.2,.8),
-        o:rand(.05,layer>.85?.9:.5),
-        do:rand(.005,.025)*(Math.random()>.5?1:-1),
-        hue:Math.random()>.8?`rgba(${irand(200,255)},${irand(180,240)},${irand(220,255)},`:'rgba(255,255,255,'
+        x:_r(0,W), y:_r(0,H*.85),
+        r:layer>.92?_r(1.5,2.8):layer>.7?_r(.8,1.5):_r(.2,.8),
+        o:_r(.05,layer>.85?.9:.5),
+        do:_r(.005,.025)*(Math.random()>.5?1:-1),
+        hue:Math.random()>.8?`rgba(${_ir(200,255)},${_ir(180,240)},${_ir(220,255)},`:'rgba(255,255,255,'
       });
     }
     for(let i=0;i<60;i++){
-      stars.push({x:rand(0,W),y:rand(0,H*.7),r:rand(.3,1.2),o:rand(.05,.35),do:rand(.003,.015)*(Math.random()>.5?1:-1),hue:'rgba(160,120,255,'});
+      stars.push({x:_r(0,W),y:_r(0,H*.7),r:_r(.3,1.2),o:_r(.05,.35),do:_r(.003,.015)*(Math.random()>.5?1:-1),hue:'rgba(160,120,255,'});
     }
   }
 
   function launchShooter(){
-    shooters.push({x:rand(W*.1,W*.9),y:rand(0,H*.3),vx:rand(-6,-2),vy:rand(1.5,4),len:rand(80,200),life:1,decay:rand(.02,.04)});
+    shooters.push({x:_r(W*.1,W*.9),y:_r(0,H*.3),vx:_r(-6,-2),vy:_r(1.5,4),len:_r(80,200),life:1,decay:_r(.02,.04)});
   }
-  setInterval(()=>launchShooter(), rand(4000,9000));
+  setInterval(()=>launchShooter(), _r(4000,9000));
 
   function draw(){
     ctx.clearRect(0,0,W,H);

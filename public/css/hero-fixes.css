@@ -16,36 +16,5 @@
   margin-bottom: 1.2rem !important;
 }
 
-/* ── VOYAGE CARD CONTAINER — taller overall               */
-.voyage-app {
-  height: 520px !important;                         /* was 360px        */
-}
-@media (min-width: 700px) {
-  .voyage-app { height: 580px !important; }         /* was 420px        */
-}
 
-/* ── VOYAGE CARD SIZE — wider + taller cards              */
-:root {
-  --voyage-card-w: 220px !important;                /* was 180px        */
-  --voyage-card-h: 340px !important;                /* was 260px        */
-}
-@media (min-width: 700px) {
-  :root {
-    --voyage-card-w: 260px !important;              /* was 210px        */
-    --voyage-card-h: 390px !important;              /* was 310px        */
-  }
-}
-
-/* ── VOYAGE CARD LIST width tracks card size              */
-.voyage-cardList {
-  width: calc(3 * var(--voyage-card-w)) !important;
-  height: var(--voyage-card-h) !important;
-}
-
-/* ── VOYAGE CARD LABEL — slightly larger text             */
-.voyage-card__label {
-  font-size: .82rem !important;
-  padding: 36px 14px 18px !important;
-}
-.voyage-card__icon { font-size: 1.7rem !important; }
 

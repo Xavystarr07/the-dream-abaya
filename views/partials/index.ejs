@@ -29,6 +29,8 @@
   <link rel="stylesheet" href="/css/nav-fixes.css"/>
   <link rel="stylesheet" href="/css/hero-fixes.css"/>
 
+  <link rel="icon" href="data:,">
+  
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.4/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.4/ScrollTrigger.min.js"></script>
 </head>
@@ -76,69 +78,7 @@
     <!-- Voyage Card Slider CTA -->
     <div class="hero-question" id="heroQuestion">
       <p class="hero-majesty-tagline">Where Modesty Meets Your Majesty</p>
-      <p class="question-text">What are you searching for today?</p>
-
-      <div class="voyage-app" id="voyageSlider">
-        <!-- Blurred background (behind everything) -->
-        <div class="voyage-app__bg" id="voyageBg">
-          <div class="voyage-app__bg__image current--image"><img src="https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=900&q=70" alt=""/></div>
-          <div class="voyage-app__bg__image next--image"><img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=900&q=70" alt=""/></div>
-          <div class="voyage-app__bg__image previous--image"><img src="https://images.unsplash.com/photo-1541643600914-78b084683702?w=900&q=70" alt=""/></div>
-          <div class="voyage-app__bg__image extra--image"><img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=900&q=70" alt=""/></div>
-        </div>
-
-        <!-- Cards -->
-        <div class="voyage-cardList">
-          <button class="voyage-cardList__btn voyage-btn--left" id="voyagePrev" aria-label="Previous">
-            <svg viewBox="0 0 512 512" width="24" height="24"><polyline points="328 112 184 256 328 400" style="fill:none;stroke:#fff;stroke-linecap:round;stroke-linejoin:round;stroke-width:48px"/></svg>
-          </button>
-
-          <div class="voyage-cards__wrapper" id="voyageCards">
-            <div class="voyage-card current--card" data-href="#section-dream">
-              <div class="voyage-card__image"><img src="https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=400&q=80" alt="Abayas" loading="eager"/></div>
-              <div class="voyage-card__label"><span class="voyage-card__icon">👑</span><span>Abayas &amp; Dresses</span></div>
-            </div>
-            <div class="voyage-card next--card" data-href="#section-hijabs">
-              <div class="voyage-card__image"><img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&q=80" alt="Hijabs" loading="eager"/></div>
-              <div class="voyage-card__label"><span class="voyage-card__icon">🕌</span><span>Hijabs &amp; Niqabs</span></div>
-            </div>
-            <div class="voyage-card previous--card" data-href="#section-accessories">
-              <div class="voyage-card__image"><img src="https://images.unsplash.com/photo-1541643600914-78b084683702?w=400&q=80" alt="Accessories" loading="eager"/></div>
-              <div class="voyage-card__label"><span class="voyage-card__icon">💍</span><span>Accessories &amp; Perfumes</span></div>
-            </div>
-            <div class="voyage-card extra--card" data-href="/vault">
-              <div class="voyage-card__image"><img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80" alt="Collection" loading="eager"/></div>
-              <div class="voyage-card__label"><span class="voyage-card__icon">✦</span><span>Full Collection</span></div>
-            </div>
-          </div>
-
-          <button class="voyage-cardList__btn voyage-btn--right" id="voyageNext" aria-label="Next">
-            <svg viewBox="0 0 512 512" width="24" height="24"><polyline points="184 112 328 256 184 400" style="fill:none;stroke:#fff;stroke-linecap:round;stroke-linejoin:round;stroke-width:48px"/></svg>
-          </button>
-        </div>
-
-        <!-- Info text below cards -->
-        <div class="voyage-infoList" id="voyageInfoList">
-          <div class="voyage-info__wrapper">
-            <div class="voyage-info current--info">
-              <h3 class="voyage-text voyage-name">Dream Abayas</h3>
-              <p class="voyage-text voyage-desc">Couture for the modest princess</p>
-            </div>
-            <div class="voyage-info next--info">
-              <h3 class="voyage-text voyage-name">Hijabs &amp; Niqabs</h3>
-              <p class="voyage-text voyage-desc">Crown your modesty in style</p>
-            </div>
-            <div class="voyage-info previous--info">
-              <h3 class="voyage-text voyage-name">Accessories</h3>
-              <p class="voyage-text voyage-desc">The finishing touch of elegance</p>
-            </div>
-            <div class="voyage-info extra--info">
-              <h3 class="voyage-text voyage-name">Full Collection</h3>
-              <p class="voyage-text voyage-desc">Explore everything we offer</p>
-            </div>
-          </div>
-        </div>
-      </div><!-- /voyage-app -->
+      
     </div>
   </div>
 
@@ -460,35 +400,6 @@
 <%- include('toast') %>
 <%- include('cart-drawer') %>
 
-<!-- ── CORE (must load first) ── -->
-<script src="/js/core/utils.js"></script>
-<script src="/js/core/toast.js"></script>
-<script src="/js/core/theme.js"></script>
-
-<!-- ── NAV ── -->
-<script src="/js/nav/dropdown.js"></script>
-<script src="/js/nav/nav.js"></script>
-
-
-
-<!-- ── CART ── -->
-<script src="/js/cart/cart-actions.js"></script>
-<script src="/js/cart/cart-drawer.js"></script>
-
-<!-- ── WISHLIST ── -->
-<script src="/js/wishlist/wishlist.js"></script>
-
-<!-- ── PROFILE ── -->
-<script src="/js/profile/profile.js"></script>
-
-<!-- ── UI ── -->
-<script src="/js/ui/lightbox.js"></script>
-<script src="/js/ui/search-suggestions.js"></script>
-<script src="/js/ui/forms.js"></script>
-
-<!-- ── BOOTSTRAPPER (must load last of core) ── -->
-<script src="/js/core/init.js"></script>
-
 <!-- ── ELITE (index only) ── -->
 <script src="/js/elite/reveal.js"></script>
 <script src="/js/elite/starfield.js"></script>
@@ -497,7 +408,6 @@
 <script src="/js/elite/perfume-canvas.js"></script>
 <script src="/js/elite/seasonal-canvases.js"></script>
 <script src="/js/elite/floats-canvas.js"></script>
-<script src="/js/elite/voyage-slider.js"></script>
 <script src="/js/elite/sidebar.js"></script>
 <script src="/js/elite/section-animations.js"></script>
 <script src="/js/elite/season-picker.js"></script>

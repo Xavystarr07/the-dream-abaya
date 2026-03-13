@@ -153,9 +153,14 @@ async function sendEmail({ to, subject, html }) {
   }
 }
 // Theme
+// Theme — explicit session.save() so it persists across page navigations
 app.post('/theme', (req, res) => {
-  req.session.theme = req.body.theme || (req.session.theme==='dark'?'light':'dark');
-  res.json({ theme: req.session.theme });
+  const next = req.body.theme || (req.session.theme === 'dark' ? 'light' : 'dark');
+  req.session.theme = next;
+  req.session.save((err) => {           // ← force write before responding
+    if (err) console.error('Theme save error:', err);
+    res.json({ theme: next });
+  });
 });
 
 // Search API

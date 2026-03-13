@@ -1,6 +1,14 @@
 // ── NAV — mobile toggle + click-outside close ─────────────────
 function initNav() {
-  const nav    = document.querySelector('.site-nav');
+  const nav    = document.querySelector('.royal-nav');
+
+  // ── Scroll: add background when user scrolls down ──────
+  const royalNav = document.getElementById('royalNav');
+  if (royalNav) {
+    window.addEventListener('scroll', () => {
+      royalNav.classList.toggle('scrolled', window.scrollY > 40);
+    }, { passive: true });
+  } // was .site-nav — wrong class
   const toggle = document.getElementById('mobileToggle');
   const mMenu  = document.getElementById('mobileMenu');
   if (toggle && mMenu) {

@@ -1,9 +1,14 @@
 // ── SHARED MATH UTILITIES ─────────────────────────────────────
 // Used by: elite canvases, animations
-'use strict';
+// NOTE: No 'use strict' — rand/irand/lerp must be global for elite canvas scripts
 function rand(min, max)  { return Math.random() * (max - min) + min; }
 function irand(min, max) { return Math.floor(rand(min, max + 1)); }
 function lerp(a, b, t)   { return a + (b - a) * t; }
+
+// Guarantee globals survive any strict-mode script loaded after this
+window.rand  = rand;
+window.irand = irand;
+window.lerp  = lerp;
 
 // Used by: email-validate.js
 function levenshtein(a, b) {
