@@ -28,6 +28,7 @@
 }
 
 /* ── DARK ────────────────────────────────────────────────── */
+/* ── DARK ────────────────────────────────────────────────── */
 [data-theme="dark"] {
   --bg:         #0D1117;
   --bg2:        #161B22;
@@ -40,7 +41,7 @@
   --t2:         #A9A29A;
   --t3:         #6B6560;
   --nav-bg:     rgba(13,17,23,.96);
-  --hero-bg:    linear-gradient(145deg,#0D1117 0%,#141E2A 55%,#1C2D1A 100%);
+  --hero-bg:    linear-gradient(145deg,#021e3f 0%,#042d5a 55%,#053568 100%);
   --card-bg:    #1A2030;
   --badge-bg:   rgba(197,160,89,.1);
   --inp-bg:     rgba(255,255,255,.04);
@@ -48,7 +49,6 @@
   --shadow-c:   0 2px 20px rgba(0,0,0,.35);
   --shadow-g:   0 6px 30px rgba(197,160,89,.22);
   --overlay:    rgba(0,0,0,.75);
-  /* FIX: sort select colours in dark mode */
   --sel-bg:     #1A2030;
   --sel-fg:     #F0EDE8;
   --sel-opt-bg: #1A2030;
@@ -67,7 +67,7 @@
   --t2:         #5C5048;
   --t3:         #9A8C80;
   --nav-bg:     rgba(250,248,244,.96);
-  --hero-bg:    linear-gradient(145deg,#101820 0%,#1A2535 55%,#1F2E1C 100%);
+  --hero-bg:    linear-gradient(145deg,#021e3f 0%,#042d5a 55%,#053568 100%);
   --card-bg:    #FFFFFF;
   --badge-bg:   rgba(197,160,89,.09);
   --inp-bg:     rgba(0,0,0,.03);

@@ -12,6 +12,8 @@
   <link rel="stylesheet" href="/css/products.css"/>
   <link rel="stylesheet" href="/css/utilities.css"/>
   <link rel="stylesheet" href="/css/animations.css"/>
+  <link rel="stylesheet" href="/css/water-effects.css"/>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.4/gsap.min.js"></script>
   <style>
   /* Kill the green tint bleeding from --hero-bg on right side */
@@ -20,7 +22,13 @@
   .vault-header {
     background-color: #010d1f;
   }
+  
   .vault-header {
+    background-color: transparent !important;
+    position: relative; 
+    overflow: hidden !important; /* Changed to hidden to clip water ripples */
+    padding: clamp(100px,14vw,140px) 5% clamp(40px,5vw,60px);
+    text-align: center;
     background-image:
       radial-gradient(ellipse at 50% 110%, rgba(0,160,255,.25) 0%, transparent 55%),
       radial-gradient(ellipse at 10% 60%,  rgba(0,80,200,.30)  0%, transparent 50%),
@@ -29,17 +37,6 @@
       linear-gradient(180deg, #010d1f 0%, #021628 22%, #032238 50%, #021428 78%, #010c1c 100%);
   }
 
-
-    position: relative; overflow: hidden;
-    padding: clamp(100px,14vw,140px) 5% clamp(40px,5vw,60px);
-    text-align: center;
-    background:
-      radial-gradient(ellipse at 50% 110%, rgba(0,160,255,.25) 0%, transparent 55%),
-      radial-gradient(ellipse at 10% 60%,  rgba(0,80,200,.30)  0%, transparent 50%),
-      radial-gradient(ellipse at 90% 40%,  rgba(0,120,220,.22) 0%, transparent 48%),
-      radial-gradient(ellipse at 100% 100%, rgba(0,100,200,.20) 0%, transparent 40%),
-      linear-gradient(180deg, #010d1f 0%, #021628 22%, #032238 50%, #021428 78%, #010c1c 100%);
-  }
   .vault-header::before {
     content:''; position:absolute; inset:0; pointer-events:none;
     background:
@@ -91,7 +88,7 @@
     color:rgba(0,190,255,.6); margin-top:.4rem;
   }
 
-  /* ══ LAYOUT — grid with sidebar ════════════════════════ */
+  /* ══ LAYOUT ══════════════════════════════════════════ */
   .vault-layout {
     display:flex; align-items:flex-start; gap:0;
     max-width:1500px; margin:0 auto; padding:0;
@@ -113,7 +110,6 @@
   }
   .filter-sidebar.open { transform:translateX(0); }
 
-  /* Dim overlay behind sidebar */
   .filter-sidebar-overlay {
     display:none;
     position:fixed;
@@ -143,7 +139,6 @@
   }
   .sidebar-close:hover { color:rgba(0,200,255,.9); }
 
-  /* Filter group */
   .sf-group { margin-bottom:20px; border-bottom:1px solid rgba(0,100,180,.12); padding-bottom:16px; }
   .sf-group:last-child { border-bottom:none; }
   .sf-group-header {
@@ -187,11 +182,6 @@
     transition:border-color .2s;
   }
   .sf-price-inputs input:focus { border-color:rgba(0,180,255,.6); }
-  .sf-price-sep { color:rgba(0,160,220,.4); font-size:.8rem; }
-  input[type=range].sf-range {
-    width:100%; accent-color:#00aaff; cursor:pointer;
-    background:transparent; height:4px;
-  }
 
   /* Checkbox options */
   .sf-option {
@@ -201,13 +191,11 @@
   }
   .sf-option:hover { background:rgba(0,120,200,.12); }
   .sf-option-left { display:flex; align-items:center; gap:10px; }
-  .sf-option input[type=checkbox] { display:none; }
   .sf-checkbox {
     width:18px; height:18px; border:1.5px solid rgba(0,140,200,.4);
     border-radius:3px; display:flex; align-items:center; justify-content:center;
     flex-shrink:0; transition:all .2s; background:rgba(0,80,160,.1);
   }
-  .sf-option input:checked ~ .sf-option-left .sf-checkbox,
   .sf-option.checked .sf-checkbox {
     background:rgba(0,160,255,.25); border-color:rgba(0,200,255,.8);
     box-shadow:0 0 8px rgba(0,180,255,.3);
@@ -219,7 +207,6 @@
   }
   .sf-option.checked .sf-checkbox-tick { opacity:1; }
   .sf-option-label { font-size:.78rem; color:rgba(180,220,255,.75); }
-  .sf-option-count { font-size:.62rem; color:rgba(0,150,200,.45); }
 
   /* Toggle switch */
   .sf-toggle-row {
@@ -247,7 +234,6 @@
     box-shadow:0 0 6px rgba(0,200,255,.7);
   }
 
-  /* Sidebar apply/clear */
   .sf-actions { display:flex; gap:8px; margin-top:20px; }
   .sf-apply {
     flex:1; padding:10px; background:rgba(0,130,220,.35);
@@ -262,13 +248,10 @@
     font-size:.65rem; letter-spacing:.15em; text-transform:uppercase; cursor:pointer;
     transition:all .25s;
   }
-  .sf-clear:hover { border-color:rgba(0,160,220,.5); color:rgba(0,200,255,.7); }
 
-  /* ══ MAIN CONTENT ══════════════════════════════════════ */
+  /* ══ CONTENT ══════════════════════════════════════════ */
   .vault-content { flex:1; min-width:0; }
-  .vault-main { padding:40px 5% 100px; }
-
-  /* ══ ACTIVE FILTER TAGS ════════════════════════════════ */
+  
   .active-filters {
     display:flex; flex-wrap:wrap; gap:8px;
     padding:10px 5%; background:rgba(0,80,160,.06);
@@ -285,7 +268,6 @@
   .filter-tag:hover { background:rgba(0,160,255,.2); }
   .filter-tag-x { opacity:.6; font-size:.85rem; }
 
-  /* Advanced button */
   .filter-btn-adv {
     padding:7px 16px; background:transparent;
     border:1px solid rgba(0,180,255,.35); color:rgba(0,210,255,.8);
@@ -296,18 +278,32 @@
     background:rgba(0,180,255,.1); border-color:rgba(0,220,255,.6);
     box-shadow:0 0 14px rgba(0,180,255,.2);
   }
-  .filter-btn-adv svg { width:12px; height:12px; }
 
-  /* No results */
   .vault-no-results { display:none; text-align:center; padding:5rem 2rem; }
   .vault-no-results.show { display:block; }
+
+  #ripple-canvas {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    pointer-events: none !important;
+    z-index: -1 !important; 
+    mix-blend-mode: screen;
+    background: transparent !important;
+  }
+
+  #wave-canvas {
+    position: absolute !important; bottom: 0 !important; left: 0 !important;
+    width: 100% !important; height: 140px !important;
+    pointer-events: none !important; z-index: 4 !important;
+  }
   </style>
 </head>
 <body>
 <%- include('css-base') %>
 <%- include('nav') %>
 
-<!-- ══ OCEAN HEADER ════════════════════════════════════════ -->
 <header class="vault-header">
   <div class="vault-header-particles" id="vhParticles"></div>
   <div class="vault-header-glow"></div>
@@ -318,7 +314,6 @@
   </div>
 </header>
 
-<!-- ══ FILTER BAR ══════════════════════════════════════════ -->
 <div class="filter-bar" id="filterBar">
   <div class="filter-bar-inner">
     <div class="filter-pills">
@@ -357,22 +352,18 @@
         </select>
       </div>
       <button class="filter-btn-adv" id="advBtn" onclick="toggleSidebar()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/>
-          <line x1="11" y1="18" x2="13" y2="18"/>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px">
+          <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/>
         </svg>
         Filters
       </button>
     </div>
   </div>
-  <!-- Active tags -->
   <div class="active-filters" id="activeFilterTags"></div>
 </div>
 
-<!-- Sidebar dim overlay -->
 <div class="filter-sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
-<!-- ══ FILTER SIDEBAR (fixed overlay) ════════════════════ -->
 <div class="filter-sidebar" id="filterSidebar">
     <div class="sidebar-inner">
       <div class="sidebar-header">
@@ -380,7 +371,6 @@
         <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
       </div>
 
-      <!-- Price Range -->
       <div class="sf-group" id="sfg-price">
         <div class="sf-group-header" onclick="toggleGroup('sfg-price')">
           <span class="sf-group-label">Price Range</span>
@@ -393,14 +383,13 @@
             <div class="sf-price-thumb" id="thumbMax" onmousedown="startDrag(event,'max')"></div>
           </div>
           <div class="sf-price-inputs">
-            <input type="number" id="afPriceMin" value="0"   min="0" max="10000" oninput="syncFromInputs()"/>
+            <input type="number" id="afPriceMin" value="0" min="0" max="10000" oninput="syncFromInputs()"/>
             <span class="sf-price-sep">—</span>
             <input type="number" id="afPriceMax" value="6000" min="0" max="10000" oninput="syncFromInputs()"/>
           </div>
         </div>
       </div>
 
-      <!-- Size -->
       <div class="sf-group" id="sfg-size">
         <div class="sf-group-header" onclick="toggleGroup('sfg-size')">
           <span class="sf-group-label">Size</span>
@@ -418,7 +407,6 @@
         </div>
       </div>
 
-      <!-- Material -->
       <div class="sf-group" id="sfg-material">
         <div class="sf-group-header" onclick="toggleGroup('sfg-material')">
           <span class="sf-group-label">Material</span>
@@ -436,7 +424,6 @@
         </div>
       </div>
 
-      <!-- Colour -->
       <div class="sf-group" id="sfg-color">
         <div class="sf-group-header" onclick="toggleGroup('sfg-color')">
           <span class="sf-group-label">Colour</span>
@@ -459,7 +446,6 @@
         </div>
       </div>
 
-      <!-- Availability toggles -->
       <div class="sf-group" id="sfg-avail">
         <div class="sf-group-header" onclick="toggleGroup('sfg-avail')">
           <span class="sf-group-label">Availability</span>
@@ -481,63 +467,66 @@
         </div>
       </div>
 
-      <!-- Rating -->
-      <div class="sf-group" id="sfg-rating">
-        <div class="sf-group-header" onclick="toggleGroup('sfg-rating')">
-          <span class="sf-group-label">Rating</span>
-          <span class="sf-group-arrow">▾</span>
-        </div>
-        <div class="sf-group-body">
-          <div class="sf-option" data-group="rating" data-val="4" onclick="toggleOption(this)">
-            <div class="sf-option-left">
-              <div class="sf-checkbox"><div class="sf-checkbox-tick"></div></div>
-              <span class="sf-option-label">★★★★ 4 &amp; above</span>
-            </div>
-          </div>
-          <div class="sf-option" data-group="rating" data-val="3" onclick="toggleOption(this)">
-            <div class="sf-option-left">
-              <div class="sf-checkbox"><div class="sf-checkbox-tick"></div></div>
-              <span class="sf-option-label">★★★ 3 &amp; above</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <div class="sf-actions">
         <button class="sf-apply" onclick="applyFilters()">Apply Filters</button>
         <button class="sf-clear" onclick="clearFilters()">Clear</button>
       </div>
     </div>
-  </div>
+</div>
 
-  <!-- ══ PRODUCTS ════════════════════════════════════════ -->
-  <main class="vault-main">
-      <% if (products && products.length > 0) { %>
-        <div class="products-grid" id="productsGrid">
-          <% products.forEach(function(p){ %>
-            <%- include('product-card', { p }) %>
-          <% }); %>
-        </div>
-        <div class="vault-no-results" id="noResults">
-          <span style="font-size:2.5rem;opacity:.2">✦</span>
-          <h3 style="font-family:'Cormorant Garamond',serif;font-weight:300;color:var(--t2);margin:.8rem 0;font-size:1.5rem">No pieces match your filters</h3>
-          <p style="font-size:.82rem;color:var(--t3)"><a href="#" onclick="clearFilters();return false" style="color:rgba(0,200,255,.7)">Clear all filters →</a></p>
-        </div>
-      <% } else { %>
-        <div class="empty-state">
-          <span>✦</span><h3>No pieces found</h3>
-          <p><a href="/vault">Clear filters →</a></p>
-        </div>
-      <% } %>
-    </main>
+<main class="vault-main">
+  <% if (products && products.length > 0) { %>
+    <div class="products-grid" id="productsGrid">
+      <% products.forEach(function(p){ %>
+        <%- include('product-card', { p }) %>
+      <% }); %>
+    </div>
+    <div class="vault-no-results" id="noResults">
+      <span style="font-size:2.5rem;opacity:.2">✦</span>
+      <h3 style="font-family:'Cormorant Garamond',serif;font-weight:300;color:var(--t2);margin:.8rem 0;font-size:1.5rem">No pieces match your filters</h3>
+      <p style="font-size:.82rem;color:var(--t3)"><a href="#" onclick="clearFilters();return false" style="color:rgba(0,200,255,.7)">Clear all filters →</a></p>
+    </div>
+  <% } else { %>
+    <div class="empty-state">
+      <span>✦</span><h3>No pieces found</h3>
+      <p><a href="/vault">Clear filters →</a></p>
+    </div>
+  <% } %>
+</main>
 
 <%- include('js-core') %>
 <%- include('footer') %>
 <%- include('toast') %>
 <%- include('cart-drawer') %>
 
+<script src="/js/core/vault-ripple.js"></script>
+
 <script>
-// ── Ocean particles ─────────────────────────────────────
+// Gemini Fixed: Logic applied to .vault-header per your request
+$(document).ready(function() {
+    "use strict";
+    const $target = $('.vault-header');
+    
+    // Check if the plugin exists before calling it
+    if (typeof $target.ripples === 'function') {
+        $target.ripples({
+            resolution: 256, // Your requested resolution
+            dropRadius: 20, // Your requested radius
+            perturbance: 0.04, // Your requested perturbance
+            interactive: true 
+        });
+
+        // Automatic drops to keep the water moving
+        setInterval(function() {
+            var x = Math.random() * $target.outerWidth();
+            var y = Math.random() * $target.outerHeight();
+            $target.ripples('drop', x, y, 20, 0.04);
+        }, 4000);
+    } else {
+        console.warn('Ripples plugin not found. Please check if /js/core/vault-ripple.js is loading correctly.');
+    }
+});
+
 (function(){
   const c=document.getElementById('vhParticles'); if(!c) return;
   for(let i=0;i<24;i++){
@@ -549,40 +538,21 @@
   }
 })();
 
-// ── Sort ─────────────────────────────────────────────────
 function doSort(val){const u=new URL(window.location.href);u.searchParams.set('sort',val);window.location.href=u.toString();}
-
-// ── Sticky bar ───────────────────────────────────────────
-const bar=document.getElementById('filterBar');
-window.addEventListener('scroll',()=>bar.classList.toggle('stuck',window.scrollY>200),{passive:true});
-
-// ── Sidebar toggle ───────────────────────────────────────
 function toggleSidebar(){
-  const s=document.getElementById('filterSidebar');
-  const b=document.getElementById('advBtn');
-  const o=document.getElementById('sidebarOverlay');
-  s.classList.toggle('open');
-  b.classList.toggle('active');
-  o.classList.toggle('show');
+  document.getElementById('filterSidebar').classList.toggle('open');
+  document.getElementById('advBtn').classList.toggle('active');
+  document.getElementById('sidebarOverlay').classList.toggle('show');
 }
-
-// ── Collapsible groups ───────────────────────────────────
 function toggleGroup(id){document.getElementById(id).classList.toggle('collapsed');}
-
-// ── Checkbox options ─────────────────────────────────────
 function toggleOption(el){el.classList.toggle('checked');}
-
-// ── Toggle switches ──────────────────────────────────────
 function toggleSwitch(el){el.classList.toggle('on');}
 
-// ── Price range slider ───────────────────────────────────
-const PRICE_MAX=6000;
-let priceMin=0, priceMax=PRICE_MAX;
+const PRICE_MAX=10000;
+let priceMin=0, priceMax=6000;
 
 function updatePriceUI(){
-  const track=document.getElementById('priceTrack');
-  if(!track) return;
-  const w=track.offsetWidth;
+  const track=document.getElementById('priceTrack'); if(!track) return;
   const minPct=priceMin/PRICE_MAX*100;
   const maxPct=priceMax/PRICE_MAX*100;
   document.getElementById('priceFill').style.left=minPct+'%';
@@ -605,38 +575,23 @@ function startDrag(e,which){
   dragging=which; e.preventDefault();
   document.addEventListener('mousemove',onDrag);
   document.addEventListener('mouseup',stopDrag);
-  // Touch
-  document.addEventListener('touchmove',onDragTouch,{passive:false});
-  document.addEventListener('touchend',stopDrag);
-}
-function getDragPct(e){
-  const track=document.getElementById('priceTrack');
-  const rect=track.getBoundingClientRect();
-  return Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width));
 }
 function onDrag(e){
   if(!dragging) return;
-  const pct=getDragPct(e);
+  const track=document.getElementById('priceTrack');
+  const rect=track.getBoundingClientRect();
+  const pct=Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width));
   const val=Math.round(pct*PRICE_MAX/50)*50;
   if(dragging==='min'){priceMin=Math.min(val,priceMax-50);}
   else {priceMax=Math.max(val,priceMin+50);}
   updatePriceUI();
 }
-function onDragTouch(e){
-  if(!dragging||!e.touches[0]) return;
-  onDrag(e.touches[0]);
-}
 function stopDrag(){
   dragging=null;
   document.removeEventListener('mousemove',onDrag);
   document.removeEventListener('mouseup',stopDrag);
-  document.removeEventListener('touchmove',onDragTouch);
-  document.removeEventListener('touchend',stopDrag);
 }
-// Init price UI after layout
-window.addEventListener('load',updatePriceUI);
 
-// ── Apply filters ────────────────────────────────────────
 function applyFilters(){
   const cards=document.querySelectorAll('#productsGrid .product-card');
   const minP=priceMin, maxP=priceMax;
@@ -651,17 +606,15 @@ function applyFilters(){
   cards.forEach(card=>{
     const priceEl=card.querySelector('.product-card-price');
     const price=priceEl?parseFloat(priceEl.textContent.replace(/[^0-9.]/g,'')):0;
-    const name=(card.querySelector('.product-card-name')?.textContent||'').toLowerCase();
     const d=card.dataset;
     let show=true;
 
     if(price<minP||price>maxP) show=false;
     if(show&&sizes.length){const cs=(d.sizes||'').toLowerCase();if(!sizes.some(s=>cs.includes(s)))show=false;}
-    if(show&&mats.length){const cm=(d.material||name).toLowerCase();if(!mats.some(m=>cm.includes(m)))show=false;}
-    if(show&&cols.length){const cc=(d.colors||name).toLowerCase();if(!cols.some(c=>cc.includes(c)))show=false;}
+    if(show&&mats.length){const cm=(d.material||'').toLowerCase();if(!mats.some(m=>cm.includes(m)))show=false;}
+    if(show&&cols.length){const cc=(d.colors||'').toLowerCase();if(!cols.some(c=>cc.includes(c)))show=false;}
     if(show&&inStock&&card.querySelector('.sold-out-label'))show=false;
-    if(show&&featured&&!card.querySelector('[class*="featured"]'))show=false;
-    if(show&&onSale&&!card.querySelector('[class*="discount"],[class*="sale"]'))show=false;
+    if(show&&featured&&!card.dataset.featured)show=false;
 
     card.style.display=show?'':'none';
     if(show)visible++;
@@ -669,56 +622,19 @@ function applyFilters(){
 
   document.getElementById('vaultCount').textContent=`${visible} pieces curated for you`;
   document.getElementById('noResults').classList.toggle('show',visible===0);
-  buildTags({minP,maxP,sizes,mats,cols,inStock,featured,onSale});
+  toggleSidebar();
 }
 
-// ── Build active tags ────────────────────────────────────
-function buildTags({minP,maxP,sizes,mats,cols,inStock,featured,onSale}){
-  const ct=document.getElementById('activeFilterTags'); ct.innerHTML='';
-  const add=(label,fn)=>{
-    const t=document.createElement('span'); t.className='filter-tag';
-    t.innerHTML=`${label} <span class="filter-tag-x">✕</span>`; t.onclick=fn; ct.appendChild(t);
-  };
-  if(minP>0||maxP<PRICE_MAX) add(`R${minP}–R${maxP}`,()=>{priceMin=0;priceMax=PRICE_MAX;updatePriceUI();applyFilters();});
-  sizes.forEach(s=>add(`Size: ${s.toUpperCase()}`,()=>{
-    document.querySelectorAll('.sf-option[data-group=size]').forEach(o=>{
-      if(o.dataset.val.toLowerCase()===s.toLowerCase()) o.classList.remove('checked');
-    });
-    applyFilters();
-  }));
-  mats.forEach(m=>add(`Material: ${m}`,()=>{
-    document.querySelectorAll('.sf-option[data-group=material]').forEach(o=>{
-      if(o.dataset.val.toLowerCase()===m.toLowerCase()) o.classList.remove('checked');
-    });
-    applyFilters();
-  }));
-  cols.forEach(c=>add(`Colour: ${c}`,()=>{
-    // data-val is stored with original case, find case-insensitively
-    document.querySelectorAll('.sf-option[data-group=color]').forEach(o=>{
-      if(o.dataset.val.toLowerCase()===c.toLowerCase()) o.classList.remove('checked');
-    });
-    applyFilters();
-  }));
-  if(inStock) add('In Stock',()=>{document.getElementById('tog-instock').classList.remove('on');applyFilters();});
-  if(featured) add('Featured',()=>{document.getElementById('tog-featured').classList.remove('on');applyFilters();});
-  if(onSale)  add('On Sale',()=>{document.getElementById('tog-sale').classList.remove('on');applyFilters();});
-}
-
-// ── Clear all ────────────────────────────────────────────
 function clearFilters(){
   document.querySelectorAll('.sf-option.checked').forEach(o=>o.classList.remove('checked'));
   document.querySelectorAll('.sf-toggle.on').forEach(t=>t.classList.remove('on'));
-  priceMin=0; priceMax=PRICE_MAX; updatePriceUI();
+  priceMin=0; priceMax=6000; updatePriceUI();
   document.querySelectorAll('#productsGrid .product-card').forEach(c=>c.style.display='');
-  document.getElementById('activeFilterTags').innerHTML='';
   document.getElementById('noResults').classList.remove('show');
   document.getElementById('vaultCount').textContent='<%= products.length %> pieces curated for you';
 }
 
-// ── GSAP entrance ────────────────────────────────────────
-if(typeof gsap!=='undefined'){
-  gsap.from('.product-card',{opacity:0,y:28,duration:.55,stagger:.05,ease:'power3.out',delay:.2});
-}
+window.addEventListener('load',updatePriceUI);
 </script>
 </body>
 </html>
