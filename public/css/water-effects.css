@@ -1,67 +1,28 @@
-To remove the requirement for a specific image file while keeping your exact .vault-header structure, you can swap the background-image for a linear-gradient or a solid color and use a CSS Filter to generate the texture mathematically.
+/* ══════════════════════════════════════════════════════════
+   WATER-EFFECTS.CSS — Ripple Water Effect for Vault Header
+   ══════════════════════════════════════════════════════════ */
 
-If you want the "ripples" to look like water without an external JPG, we use an inline SVG as the source for the distortion.
+/* Canvas sits as absolute background behind all vault-header content */
+#vault-ripple-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;           /* Behind text (z-index: 2) */
+  pointer-events: none; /* Mouse events handled by JS on the header */
+  display: block;
+  opacity: 0.92;
+}
 
-The Full Updated Code
-HTML
-<svg style="display: none;">
-  <filter id="water-filter">
-    <feTurbulence type="fractalNoise" baseFrequency="0.015" numOctaves="3" result="noise">
-      <animate attributeName="baseFrequency" dur="10s" values="0.015;0.02;0.015" repeatCount="indefinite" />
-    </feTurbulence>
-    <feDisplacementMap in="SourceGraphic" in2="noise" scale="40" />
-  </filter>
-</svg>
-
-<header class="vault-header">
-    <div class="vault-header-inner">
-        <h1>THE VAULT</h1>
-        <p>Your content stays sharp while the background ripples.</p>
-    </div>
-</header>
-
-<style>
-/* Custom Water Effect Styles for the Header */
+/* Ensure vault-header stacks correctly */
 .vault-header {
-    position: relative; 
-    overflow: hidden; /* Keeps ripples inside the header bounds */
-    min-height: 500px; /* Gives enough space for the effect */
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    
-    /* UPDATED: Removed path/to/water-texture.jpg */
-    /* Using a gradient to simulate deep water depth */
-    background: linear-gradient(180deg, #010d1f 0%, #021b3d 100%); 
-    
-    /* UPDATED: This applies the distortion to the background itself */
-    filter: url(#water-filter);
+  cursor: crosshair; /* Visual cue that the surface is interactive */
 }
 
+/* All inner content must sit above the canvas */
+.vault-header-particles,
+.vault-header-glow,
 .vault-header-inner {
-    position: relative;
-    z-index: 2; /* Keeps text above the ripple distortion */
-    pointer-events: none; /* Allows clicks to pass through to the water if needed */
-    
-    /* Optional: If the parent filter makes text too blurry, 
-       you can add a slight contrast here or move the filter 
-       to a pseudo-element (::before) */
-    filter: none; 
-    color: white;
-    text-align: center;
-}
-
-/* IMPROVEMENT: Apply filter only to background via pseudo-element 
-   so your text stays 100% crisp */
-.vault-header::before {
-    content: "";
-    position: absolute;
-    top: -50px; /* Extra margin to prevent edges showing during distortion */
-    left: -50px;
-    right: -50px;
-    bottom: -50px;
-    background: linear-gradient(180deg, #010d1f 0%, #052a5c 100%);
-    filter: url(#water-filter);
-    z-index: 1;
+  position: relative;
+  z-index: 2; /* Above canvas */
 }

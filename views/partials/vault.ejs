@@ -304,7 +304,9 @@
 <%- include('css-base') %>
 <%- include('nav') %>
 
-<header class="vault-header">
+<header class="vault-header" id="vaultRippleHeader">
+  <!-- Ripple water canvas — sits behind all content -->
+  <canvas id="vault-ripple-canvas"></canvas>
   <div class="vault-header-particles" id="vhParticles"></div>
   <div class="vault-header-glow"></div>
   <div class="vault-header-inner">
@@ -635,6 +637,195 @@ function clearFilters(){
 }
 
 window.addEventListener('load',updatePriceUI);
+</script>
+<script>
+/* ══════════════════════════════════════════════════════════
+   VAULT RIPPLE WATER ENGINE
+   Physics-based 2D ripple simulation — matches CodePen effect
+   ══════════════════════════════════════════════════════════ */
+(function() {
+  const header  = document.getElementById('vaultRippleHeader');
+  const canvas  = document.getElementById('vault-ripple-canvas');
+  if (!header || !canvas) return;
+
+  const ctx     = canvas.getContext('2d');
+
+  /* ── CONFIG ─────────────────────────────────────────────── */
+  const DAMPING   = 0.985;  // How long ripples last (0.98=longer, 0.97=shorter)
+  const DISTURB_R = 5;      // Radius of each ripple drop (px at full res)
+  const SCALE     = 2;      // Simulation resolution divisor (2=half res, faster)
+
+  /* ── STATE ──────────────────────────────────────────────── */
+  let W, H, simW, simH;
+  let current, previous;    // Two ripple height buffers (ping-pong)
+  let imageData, pixels;    // Canvas pixel buffer
+
+  /* ── BACKGROUND COLOURS (deep water palette) ────────────── */
+  // These blend between shallow and deep water based on ripple height
+  // Matches the dark ocean blue of vault-header
+  const COLOUR_DEEP    = { r: 1,  g: 13, b: 31  }; // #010D1F deep navy
+  const COLOUR_SHALLOW = { r: 0,  g: 90, b: 180 }; // #005AB4 bright water crest
+  const COLOUR_CREST   = { r: 180, g: 220, b: 255 }; // #B4DCFF white crest sparkle
+
+  /* ── INIT ────────────────────────────────────────────────── */
+  function init() {
+    W    = header.offsetWidth;
+    H    = header.offsetHeight;
+    simW = Math.floor(W / SCALE);
+    simH = Math.floor(H / SCALE);
+
+    canvas.width  = W;
+    canvas.height = H;
+
+    /* Flat Float32 arrays for ripple physics — two buffers */
+    current  = new Float32Array(simW * simH);
+    previous = new Float32Array(simW * simH);
+
+    /* ImageData for direct pixel writes */
+    imageData = ctx.createImageData(W, H);
+    pixels    = imageData.data;
+
+    /* Fill alpha channel once (always 255) */
+    for (let i = 3; i < pixels.length; i += 4) pixels[i] = 255;
+  }
+
+  /* ── DISTURB: create a ripple at simulation coords ────────── */
+  function disturb(sx, sy, strength) {
+    // sx/sy are canvas px → convert to sim coords
+    const cx = Math.floor(sx / SCALE);
+    const cy = Math.floor(sy / SCALE);
+    const r  = Math.ceil(DISTURB_R);
+
+    for (let dy = -r; dy <= r; dy++) {
+      for (let dx = -r; dx <= r; dx++) {
+        if (dx * dx + dy * dy <= r * r) {
+          const nx = cx + dx;
+          const ny = cy + dy;
+          if (nx > 0 && nx < simW - 1 && ny > 0 && ny < simH - 1) {
+            // Height is negative (drops below surface) then springs up
+            previous[ny * simW + nx] = -strength;
+          }
+        }
+      }
+    }
+  }
+
+  /* ── PHYSICS STEP ────────────────────────────────────────── */
+  function step() {
+    for (let y = 1; y < simH - 1; y++) {
+      for (let x = 1; x < simW - 1; x++) {
+        const i = y * simW + x;
+
+        /* Wave equation: average of 4 neighbours × 2 − previous − dampen */
+        current[i] = (
+          previous[i - 1] +
+          previous[i + 1] +
+          previous[i - simW] +
+          previous[i + simW]
+        ) / 2 - current[i];
+
+        current[i] *= DAMPING;
+      }
+    }
+
+    /* Swap buffers */
+    const temp = previous;
+    previous   = current;
+    current    = temp;
+  }
+
+  /* ── RENDER: write pixels from height field ──────────────── */
+  function render() {
+    for (let y = 0; y < H; y++) {
+      const sy = Math.floor(y / SCALE);
+
+      for (let x = 0; x < W; x++) {
+        const sx = Math.floor(x / SCALE);
+        const h  = previous[sy * simW + sx]; // height value -255..255
+
+        /* Map height to colour */
+        // h < 0 = trough (dark), h > 0 = crest (bright)
+        let r, g, b;
+        const norm = Math.max(-1, Math.min(1, h / 120)); // Normalise
+
+        if (norm >= 0) {
+          /* Crest: deep → crest white */
+          r = COLOUR_DEEP.r + (COLOUR_CREST.r - COLOUR_DEEP.r) * norm;
+          g = COLOUR_DEEP.g + (COLOUR_CREST.g - COLOUR_DEEP.g) * norm;
+          b = COLOUR_DEEP.b + (COLOUR_CREST.b - COLOUR_DEEP.b) * norm;
+        } else {
+          /* Trough: deep → shallow blue */
+          const t = -norm;
+          r = COLOUR_DEEP.r + (COLOUR_SHALLOW.r - COLOUR_DEEP.r) * t * 0.4;
+          g = COLOUR_DEEP.g + (COLOUR_SHALLOW.g - COLOUR_DEEP.g) * t * 0.4;
+          b = COLOUR_DEEP.b + (COLOUR_SHALLOW.b - COLOUR_DEEP.b) * t * 0.4;
+        }
+
+        const pi = (y * W + x) * 4;
+        pixels[pi]     = r | 0;
+        pixels[pi + 1] = g | 0;
+        pixels[pi + 2] = b | 0;
+        /* alpha already set to 255 */
+      }
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+  }
+
+  /* ── MOUSE HANDLER ───────────────────────────────────────── */
+  let lastMx = -1, lastMy = -1;
+
+  header.addEventListener('mousemove', function(e) {
+    const rect = header.getBoundingClientRect();
+    const mx   = e.clientX - rect.left;
+    const my   = e.clientY - rect.top;
+
+    /* Only disturb if mouse moved enough (avoids micro-jitter floods) */
+    const dist = Math.hypot(mx - lastMx, my - lastMy);
+    if (dist > 4) {
+      disturb(mx, my, 200); /* Strength: 200 = strong, 100 = subtle */
+      lastMx = mx;
+      lastMy = my;
+    }
+  });
+
+  /* Touch support */
+  header.addEventListener('touchmove', function(e) {
+    e.preventDefault();
+    const rect  = header.getBoundingClientRect();
+    const touch = e.touches[0];
+    disturb(touch.clientX - rect.left, touch.clientY - rect.top, 200);
+  }, { passive: false });
+
+  /* ── AUTO DROPS: ambient ripples when idle ───────────────── */
+  function autoRipple() {
+    const x = Math.random() * W;
+    const y = Math.random() * H;
+    disturb(x, y, 80 + Math.random() * 120); /* Softer than mouse */
+    /* Schedule next drop: 800–2500ms */
+    setTimeout(autoRipple, 800 + Math.random() * 1700);
+  }
+
+  /* ── ANIMATION LOOP ──────────────────────────────────────── */
+  function loop() {
+    step();
+    render();
+    requestAnimationFrame(loop);
+  }
+
+  /* ── RESIZE ──────────────────────────────────────────────── */
+  let resizeTimer;
+  window.addEventListener('resize', function() {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(init, 250);
+  });
+
+  /* ── BOOT ────────────────────────────────────────────────── */
+  init();
+  autoRipple();      /* Start ambient drops */
+  loop();            /* Start physics+render loop */
+
+})();
 </script>
 </body>
 </html>
