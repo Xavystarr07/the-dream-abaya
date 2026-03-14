@@ -10,9 +10,151 @@ function initFireworks() {
   let rockets = [], bursts = [], glitters = [];
   let paused = false;
 
+  let stars = [];
+
+  let shooters = [];
+
+  function makeStars() {
+    stars = [];
+
+    // Layer 1 — distant faint (few, not many)
+    for (let i = 0; i < 120; i++) {
+      stars.push({
+        x: _r(0,W), y: _r(0,H),
+        r: _r(.15,.45),
+        o: _r(.06,.28), do: _r(.003,.008) * (Math.random()>.5?1:-1),
+        hue: 'rgba(200,210,255,',
+        twinkle: false, spike: false,
+      });
+    }
+
+    // Layer 2 — mid warm/cool stars
+    for (let i = 0; i < 70; i++) {
+      const warm = Math.random() > .6;
+      stars.push({
+        x: _r(0,W), y: _r(0,H*.9),
+        r: _r(.4,1.0),
+        o: _r(.2,.55), do: _r(.004,.013) * (Math.random()>.5?1:-1),
+        hue: warm ? 'rgba(255,230,180,' : 'rgba(220,230,255,',
+        twinkle: Math.random() > .55,
+        phase: _r(0,Math.PI*2), speed: _r(.02,.06),
+        spike: false,
+      });
+    }
+
+    // Layer 3 — bright with glow + diffraction spikes (only 12)
+    for (let i = 0; i < 12; i++) {
+      const col = ['rgba(255,245,210,','rgba(180,210,255,','rgba(255,200,160,'][_ir(0,2)];
+      stars.push({
+        x: _r(0,W), y: _r(0,H*.85),
+        r: _r(1.2,2.2),
+        o: _r(.55,.9), do: _r(.006,.016) * (Math.random()>.5?1:-1),
+        hue: col,
+        twinkle: true, phase: _r(0,Math.PI*2), speed: _r(.03,.07),
+        spike: true,
+      });
+    }
+
+    // Milky Way purple cluster (subtle)
+    for (let i = 0; i < 30; i++) {
+      stars.push({
+        x: _r(W*.2,W*.8), y: _r(0,H*.55),
+        r: _r(.2,.6),
+        o: _r(.04,.16), do: _r(.002,.006) * (Math.random()>.5?1:-1),
+        hue: 'rgba(180,150,255,',
+        twinkle: false, spike: false,
+      });
+    }
+  }
+
+  function scheduleShooter() {
+    if (!paused) {
+      const angle = _r(.18,.42), spd = _r(7,13);
+      shooters.push({
+        x: _r(W*.05,W*.85), y: _r(0,H*.4),
+        vx: -Math.cos(angle)*spd, vy: Math.sin(angle)*spd,
+        len: _r(100,240), life: 1,
+        decay: _r(.02,.038), width: _r(.6,1.3),
+      });
+    }
+    setTimeout(scheduleShooter, _r(5000,11000));
+  }
+  setTimeout(scheduleShooter, _r(2000,5000));
+
+  function drawStars() {
+    // Shooting stars
+    shooters = shooters.filter(s => {
+      s.life -= s.decay; if (s.life <= 0) return false;
+      const tx = s.x - s.vx*(s.len/14), ty = s.y - s.vy*(s.len/14);
+      const g = ctx.createLinearGradient(s.x,s.y,tx,ty);
+      g.addColorStop(0,`rgba(255,255,255,${s.life*.9})`);
+      g.addColorStop(.35,`rgba(197,160,89,${s.life*.5})`);
+      g.addColorStop(1,'rgba(255,255,255,0)');
+      ctx.beginPath(); ctx.moveTo(s.x,s.y); ctx.lineTo(tx,ty);
+      ctx.strokeStyle=g; ctx.lineWidth=s.width*(1+s.life*.4);
+      ctx.lineCap='round'; ctx.stroke();
+      s.x+=s.vx; s.y+=s.vy;
+      return s.x>-50 && s.y<H+50;
+    });
+
+    // Stars
+    stars.forEach(s => {
+      let o = s.o;
+      if (s.twinkle) {
+        s.phase += s.speed;
+        o = Math.max(.02, Math.min(1, s.o + Math.sin(s.phase)*s.o*.5));
+      } else {
+        s.o += s.do; if (s.o>.95||s.o<.01) s.do*=-1; o = s.o;
+      }
+      ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle = s.hue+o+')'; ctx.fill();
+
+      // Soft atmospheric glow — large diffuse halo
+      if (s.r > .9 && o > .3) {
+        const g = ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,s.r*5);
+        g.addColorStop(0,   s.hue+(o*.35)+')');
+        g.addColorStop(0.3, s.hue+(o*.12)+')');
+        g.addColorStop(1,   s.hue+'0)');
+        ctx.beginPath(); ctx.arc(s.x,s.y,s.r*5,0,Math.PI*2);
+        ctx.fillStyle=g; ctx.fill();
+      }
+
+      // Airy disc diffraction — 4 soft lens flare streaks, NOT hard lines
+      if (s.spike && o > .4) {
+        const len = s.r * 7 * o;
+        const w   = s.r * 0.9;          // streak width — soft, not 1px
+        ctx.save();
+        // Horizontal streak
+        const gH = ctx.createLinearGradient(s.x-len,s.y, s.x+len,s.y);
+        gH.addColorStop(0,   s.hue+'0)');
+        gH.addColorStop(0.4, s.hue+(o*.22)+')');
+        gH.addColorStop(0.5, s.hue+(o*.55)+')');
+        gH.addColorStop(0.6, s.hue+(o*.22)+')');
+        gH.addColorStop(1,   s.hue+'0)');
+        ctx.fillStyle = gH;
+        ctx.beginPath();
+        ctx.ellipse(s.x, s.y, len, w, 0, 0, Math.PI*2);
+        ctx.fill();
+        // Vertical streak
+        const gV = ctx.createLinearGradient(s.x,s.y-len, s.x,s.y+len);
+        gV.addColorStop(0,   s.hue+'0)');
+        gV.addColorStop(0.4, s.hue+(o*.18)+')');
+        gV.addColorStop(0.5, s.hue+(o*.45)+')');
+        gV.addColorStop(0.6, s.hue+(o*.18)+')');
+        gV.addColorStop(1,   s.hue+'0)');
+        ctx.fillStyle = gV;
+        ctx.beginPath();
+        ctx.ellipse(s.x, s.y, w, len, 0, 0, Math.PI*2);
+        ctx.fill();
+        ctx.restore();
+      }
+    });
+  }
+
   function resize() {
-    W = canvas.width  = canvas.offsetWidth  || window.innerWidth;
-    H = canvas.height = canvas.offsetHeight || window.innerHeight;
+    W = canvas.width  = canvas.offsetWidth  || canvas.width  || window.innerWidth;
+    H = canvas.height = canvas.offsetHeight || canvas.height || window.innerHeight;
+    makeStars();
   }
 
   // ── Realistic palette ───────────────────────────────────────
@@ -119,9 +261,12 @@ function initFireworks() {
     if (paused) { rafId = null; return; }
     rafId = requestAnimationFrame(draw);
 
-    // Soft fade trail
+    // Soft fade trail (dark purple bg)
     ctx.fillStyle = 'rgba(8,4,20,.22)';
     ctx.fillRect(0, 0, W, H);
+
+    // Stars drawn first — rockets + bursts appear on top
+    drawStars();
 
     // Rockets
     rockets = rockets.filter(r => {

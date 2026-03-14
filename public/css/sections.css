@@ -59,7 +59,22 @@
 
 /* ══ SECTION 2: DREAM ABAYA ════════════════════════════════ */
 .dream-section {
-  background: linear-gradient(135deg, #0D0520 0%, #1A0B3D 30%, #0F1A4A 65%, #060E2A 100%);
+  background: linear-gradient(180deg, #08031a 0%, #0f0628 18%, #1A0B3D 45%, #0F1A4A 75%, #060E2A 100%);
+}
+.dream-section::before {
+  content:''; position:absolute; top:-120px; left:0; right:0; height:220px;
+  background:linear-gradient(to bottom, #050010 0%, #08031a 100%);
+  pointer-events:none; z-index:2;
+}
+/* Seamless bleed from hero into dream section */
+.dream-section::before {
+  content: '';
+  position: absolute;
+  top: -120px; left: 0; right: 0;
+  height: 220px;
+  background: linear-gradient(to bottom, #050010 0%, #08031a 60%, transparent 100%);
+  pointer-events: none;
+  z-index: 2;
 }
 .section-bg-dream {
   position: absolute; inset: 0; pointer-events: none;
@@ -101,8 +116,13 @@
 
 /* ══ SECTION 3: MODEST — feather + flower ══════════════════ */
 .modest-section-elite {
-  background: linear-gradient(135deg, #060E2A 0%, #0A1A4A 35%, #0D2060 60%, #061535 100%);
+  background: linear-gradient(180deg, #090e35 0%, #0c1240 30%, #0e1a50 60%, #091230 100%);
   justify-content: flex-end;
+}
+.modest-section-elite::before {
+  content:''; position:absolute; top:-100px; left:0; right:0; height:200px;
+  background:linear-gradient(to bottom, #060E2A 0%, #090e35 100%);
+  pointer-events:none; z-index:2;
 }
 .section-bg-modest {
   position: absolute; inset: 0; pointer-events: none;
@@ -149,7 +169,12 @@
 
 /* ══ SECTION 4: AESTHETIC — hearts canvas ══════════════════ */
 .aesthetic-section-elite {
-  background: linear-gradient(135deg, #050E28 0%, #0A1540 35%, #0D1A55 65%, #060E30 100%);
+  background: linear-gradient(180deg, #0a1235 0%, #0c1845 30%, #0e1e58 60%, #08112e 100%);
+}
+.aesthetic-section-elite::before {
+  content:''; position:absolute; top:-100px; left:0; right:0; height:200px;
+  background:linear-gradient(to bottom, #091230 0%, #0a1235 100%);
+  pointer-events:none; z-index:2;
 }
 .section-bg-aesthetic {
   position: absolute; inset: 0; pointer-events: none;
@@ -158,7 +183,12 @@
 
 /* ══ SECTION 5: HIJABS — hijabi with crown ═════════════════ */
 .hijabs-section-elite {
-  background: linear-gradient(135deg, #0D0525 0%, #1A0840 30%, #0D1848 65%, #060A28 100%);
+  background: linear-gradient(180deg, #0c1540 0%, #0d1848 30%, #0e1c55 60%, #091330 100%);
+}
+.hijabs-section-elite::before {
+  content:''; position:absolute; top:-100px; left:0; right:0; height:200px;
+  background:linear-gradient(to bottom, #08112e 0%, #0c1540 100%);
+  pointer-events:none; z-index:2;
 }
 .section-bg-hijabs {
   position: absolute; inset: 0; pointer-events: none;
@@ -193,9 +223,15 @@
 
 /* ══ SECTION 6: ACCESSORIES — walking lady ═════════════════ */
 .accessories-section-elite {
-  background: linear-gradient(135deg, #0B0520 0%, #16093A 30%, #0F1848 65%, #080E2A 100%);
-  justify-content: flex-end;
+  background: linear-gradient(180deg, #0c1540 0%, #0a1245 30%, #091840 60%, #061528 100%);
+  position: relative;
 }
+.accessories-section-elite::before {
+  content:''; position:absolute; top:-100px; left:0; right:0; height:200px;
+  background:linear-gradient(to bottom, #091330 0%, #0c1540 100%);
+  pointer-events:none; z-index:2;
+}
+
 .section-bg-accessories {
   position: absolute; inset: 0; pointer-events: none;
   background: radial-gradient(ellipse at 85% 40%, rgba(124,58,237,.12) 0%, transparent 50%),
@@ -230,7 +266,12 @@
 
 /* ══ SECTION 7: PERFUMES ═══════════════════════════════════ */
 .perfumes-section-elite {
-  background: linear-gradient(135deg, #0D0530 0%, #1A0B48 30%, #100A3A 65%, #080520 100%);
+  background: linear-gradient(180deg, #091a45 0%, #0a1e50 30%, #0c2258 60%, #071530 100%);
+}
+.perfumes-section-elite::before {
+  content:''; position:absolute; top:-100px; left:0; right:0; height:200px;
+  background:linear-gradient(to bottom, #061528 0%, #091a45 100%);
+  pointer-events:none; z-index:2;
 }
 .section-bg-perfumes {
   position: absolute; inset: 0; pointer-events: none;

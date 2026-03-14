@@ -70,8 +70,7 @@
       <!-- ── SLIDE 1: FIREWORKS CANVAS ── -->
       <div class="swiper-slide">
         <!-- Stars + fireworks canvases live here -->
-        <canvas id="starsCanvas" class="hero-canvas-layer" style="z-index:1"></canvas>
-        <canvas id="fireworksCanvas" class="hero-canvas-layer" style="z-index:2"></canvas>
+        <canvas id="fireworksCanvas" class="hero-canvas-layer" style="position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none;"></canvas>
         <!-- Cloud layer -->
         <div class="hero-clouds" id="heroClouds">
           <div class="cloud cloud-1"></div>
@@ -498,18 +497,32 @@
 <script src="/js/elite/elite-init.js"></script>
 
 <script>
-  // Init slider first so slide 1 is sized
+  // Force canvas dimensions using window size BEFORE init
+  // (canvas.offsetWidth = 0 inside Swiper translate)
+  function primeCanvases() {
+    ['fireworksCanvas'].forEach(id => {
+      const c = document.getElementById(id);
+      if (c) {
+        c.width  = window.innerWidth;
+        c.height = window.innerHeight;
+        // Also fix CSS so it fills the slide
+        c.style.width  = '100%';
+        c.style.height = '100%';
+        c.style.position = 'absolute';
+        c.style.top = '0';
+        c.style.left = '0';
+      }
+    });
+  }
+
+  primeCanvases();               // set buffer size immediately
+  initStarField();               // now has real dimensions
+  initFireworks();               // same
+
+ window.__eliteCanvasReady = true;
+  initFireworks();
+
   initHeroSlider();
-
-  // Delay elite canvas inits until slide is painted
-  // initStarField + initFireworks need the canvas to have real dimensions
-  window.__eliteCanvasReady = false;
-  setTimeout(() => {
-    window.__eliteCanvasReady = true;
-    initStarField();
-    initFireworks();
-  }, 300);
-
   initReveal();
   initElitePage();
 </script>

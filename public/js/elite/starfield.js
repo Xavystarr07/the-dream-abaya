@@ -11,8 +11,9 @@ function initStarField() {
   let paused = false;
 
   function resize() {
-    W = canvas.width  = canvas.offsetWidth  || window.innerWidth;
-    H = canvas.height = canvas.offsetHeight || window.innerHeight;
+    // Use offsetWidth if available, else keep existing canvas.width (set by primeCanvases), else window
+    W = canvas.width  = canvas.offsetWidth  || canvas.width  || window.innerWidth;
+    H = canvas.height = canvas.offsetHeight || canvas.height || window.innerHeight;
     makeStars(); makeNebula();
   }
 

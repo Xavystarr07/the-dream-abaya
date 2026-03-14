@@ -1,11 +1,18 @@
 /* ══ SEASONAL SECTION ══════════════════════════════════════ */
 .seasonal-section {
   min-height: 100vh;
-  background: linear-gradient(135deg, #050E20 0%, #0A1830 35%, #0E1A3A 65%, #040A18 100%);
+  background: linear-gradient(180deg, #082040 0%, #0a2850 30%, #0c3060 60%, #072035 100%);
   flex-direction: column; align-items: center; justify-content: center;
   padding: 100px 5% 80px;
   position: relative; overflow: hidden;
 }
+
+.seasonal-section::before {
+  content:''; position:absolute; top:-100px; left:0; right:0; height:200px;
+  background:linear-gradient(to bottom, #071530 0%, #082040 100%);
+  pointer-events:none; z-index:2;
+}
+
 .section-bg-seasonal {
   position: absolute; inset: 0; pointer-events: none;
   background: radial-gradient(ellipse at 50% 50%, rgba(197,160,89,.05) 0%, transparent 60%);
@@ -24,7 +31,8 @@
 .seasonal-poem em { color: #C5A059; }
 .season-chooser {
   display: flex; gap: 20px; flex-wrap: wrap;
-  justify-content: center; position: relative; z-index: 10;
+  justify-content: center; align-items: flex-start;
+  position: relative; z-index: 10;
   max-width: 900px;
 }
 .season-card {
@@ -83,8 +91,18 @@
 
 /* ══ BRAND STORY ═══════════════════════════════════════════ */
 .elite-story {
-  background: linear-gradient(180deg, #060E20 0%, #0A1428 100%);
-  padding: 90px 5%; border-top: 1px solid rgba(197,160,89,.1);
+  background: linear-gradient(180deg, #082040 0%, #0a2850 40%, #0c3468 70%, #0a2845 100%);
+  padding: 90px 5%;
+  border-top: 1px solid rgba(0,200,220,.15);
+  position: relative; overflow: hidden;
+}
+/* Cyan ambient glow behind story content */
+.elite-story::before {
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(0,180,220,.08) 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 30%, rgba(0,220,200,.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(6,182,212,.05) 0%, transparent 45%);
 }
 /* ── SEASONAL SECTION ICONS ─────────────────────────────── */
 /* Canvas fills the card fully and animation is the visual */
