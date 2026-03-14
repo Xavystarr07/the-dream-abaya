@@ -11,16 +11,61 @@
 .section-content-panel {
   position: relative; z-index: 10;
   flex: 1; max-width: 1400px; margin: 0 auto; width: 100%;
-  padding-left: clamp(0px, 30%, 380px); /* space for left animation */
+  padding-left: clamp(0px, 28%, 360px);
 }
 .section-content-panel.section-content-left {
-  padding-left: 0; padding-right: clamp(0px, 30%, 380px);
+  padding-left: 0; padding-right: clamp(0px, 28%, 360px);
+}
+
+/* ── SECTION TYPOGRAPHY — large, visible ──────────────────── */
+.section-header-block {
+  margin-bottom: 2.5rem;
+}
+.section-heading {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(3rem, 6vw, 5.5rem);
+  font-weight: 300;
+  line-height: 1.05;
+  color: #F0EDE8;
+  margin-bottom: .5rem;
+}
+.section-heading em {
+  font-style: italic;
+  color: #C5A059;
 }
 .elite-heading {
   font-family: 'Cinzel', serif !important;
   font-weight: 500 !important;
   letter-spacing: .04em !important;
 }
+.section-subheading {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(1.05rem, 2.2vw, 1.35rem);
+  font-weight: 300;
+  line-height: 1.75;
+  color: rgba(240,237,232,.62);
+  max-width: 520px;
+  margin-top: .8rem;
+}
+
+/* ── SECTION BADGES ───────────────────────────────────────── */
+.dream-badge-elite, .modest-badge-elite, .aesthetic-badge-elite,
+.hijab-badge-elite, .accessories-badge-elite, .perfume-badge-elite,
+.seasonal-badge {
+  display: inline-block; padding: 7px 20px;
+  border: 1px solid; font-size: .68rem;
+  letter-spacing: .3em; text-transform: uppercase;
+  margin-bottom: 1.1rem;
+}
+.dream-badge-elite       { border-color: #7C3AED; color: #A78BFA; background: rgba(124,58,237,.1); }
+.modest-badge-elite      { border-color: #2563EB; color: #93C5FD; background: rgba(37,99,235,.1); }
+.aesthetic-badge-elite   { border-color: #3730A3; color: #A5B4FC; background: rgba(55,48,163,.1); }
+.hijab-badge-elite       { border-color: #7C3AED; color: #C4B5FD; background: rgba(124,58,237,.1); }
+.accessories-badge-elite { border-color: #C5A059; color: #C5A059; background: rgba(197,160,89,.1); }
+.perfume-badge-elite     { border-color: #6D28D9; color: #DDD6FE; background: rgba(109,40,217,.1); }
+.seasonal-badge          { border-color: #C5A059; color: #C5A059; background: rgba(197,160,89,.1); }
+
+/* ── PRODUCTS ROW ─────────────────────────────────────────── */
 .elite-products-row {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
@@ -33,6 +78,7 @@
   border: 1px solid #C5A059; color: #C5A059;
   font-size: .68rem; letter-spacing: .25em; text-transform: uppercase;
   cursor: pointer; transition: all .3s ease; text-decoration: none;
+  margin-top: 2rem;
 }
 .btn-royal-elite:hover {
   background: #C5A059; color: #000;
@@ -40,41 +86,15 @@
   transform: translateY(-2px);
 }
 
-/* Section badges per collection */
-.dream-badge-elite, .modest-badge-elite, .aesthetic-badge-elite,
-.hijab-badge-elite, .accessories-badge-elite, .perfume-badge-elite,
-.seasonal-badge {
-  display: inline-block; padding: 5px 16px;
-  border: 1px solid; font-size: .58rem;
-  letter-spacing: .28em; text-transform: uppercase;
-  margin-bottom: .9rem;
-}
-.dream-badge-elite       { border-color: #7C3AED; color: #A78BFA; background: rgba(124,58,237,.1); }
-.modest-badge-elite      { border-color: #2563EB; color: #93C5FD; background: rgba(37,99,235,.1); }
-.aesthetic-badge-elite   { border-color: #3730A3; color: #A5B4FC; background: rgba(55,48,163,.1); }
-.hijab-badge-elite       { border-color: #7C3AED; color: #C4B5FD; background: rgba(124,58,237,.1); }
-.accessories-badge-elite { border-color: #C5A059; color: #C5A059; background: rgba(197,160,89,.1); }
-.perfume-badge-elite     { border-color: #6D28D9; color: #DDD6FE; background: rgba(109,40,217,.1); }
-.seasonal-badge          { border-color: #C5A059; color: #C5A059; background: rgba(197,160,89,.1); }
-
 /* ══ SECTION 2: DREAM ABAYA ════════════════════════════════ */
 .dream-section {
   background: linear-gradient(180deg, #08031a 0%, #0f0628 18%, #1A0B3D 45%, #0F1A4A 75%, #060E2A 100%);
 }
 .dream-section::before {
-  content:''; position:absolute; top:-120px; left:0; right:0; height:220px;
-  background:linear-gradient(to bottom, #050010 0%, #08031a 100%);
-  pointer-events:none; z-index:2;
-}
-/* Seamless bleed from hero into dream section */
-.dream-section::before {
-  content: '';
-  position: absolute;
-  top: -120px; left: 0; right: 0;
-  height: 220px;
+  content: ''; position: absolute;
+  top: -120px; left: 0; right: 0; height: 220px;
   background: linear-gradient(to bottom, #050010 0%, #08031a 60%, transparent 100%);
-  pointer-events: none;
-  z-index: 2;
+  pointer-events: none; z-index: 2;
 }
 .section-bg-dream {
   position: absolute; inset: 0; pointer-events: none;
@@ -94,35 +114,32 @@
 .princess-dress { animation: dressWave 5s ease-in-out infinite; transform-origin: 100px 135px; }
 @keyframes dressWave {
   0%, 100% { d: path("M88 135 Q72 160 64 210 Q56 265 55 320 Q70 325 100 328 Q130 325 145 320 Q144 265 136 210 Q128 160 112 135 Z"); }
-  50% { d: path("M88 135 Q70 162 62 212 Q54 268 55 320 Q70 325 100 328 Q130 325 145 320 Q146 268 138 212 Q130 162 112 135 Z"); }
+  50%       { d: path("M88 135 Q70 162 62 212 Q54 268 55 320 Q70 325 100 328 Q130 325 145 320 Q146 268 138 212 Q130 162 112 135 Z"); }
 }
 .princess-sparkles { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
-.ps {
-  position: absolute; color: #C5A059; font-size: .9rem;
-  animation: sparkleFloat 3s ease-in-out infinite;
-  opacity: 0;
-}
-.ps-1 { top: 5%;  left: 10%;  animation-delay: 0s;   }
-.ps-2 { top: 15%; right: 5%;  animation-delay: .6s;  }
+.ps { position: absolute; color: #C5A059; font-size: .9rem; animation: sparkleFloat 3s ease-in-out infinite; opacity: 0; }
+.ps-1 { top: 5%;  left: 10%;  animation-delay: 0s; }
+.ps-2 { top: 15%; right: 5%;  animation-delay: .6s; }
 .ps-3 { top: 35%; left: -5%;  animation-delay: 1.2s; }
 .ps-4 { top: 55%; right: -8%; animation-delay: 1.8s; }
 .ps-5 { top: 75%; left: 20%;  animation-delay: 2.4s; }
 @keyframes sparkleFloat {
-  0% { opacity:0; transform: scale(.5) translateY(0); }
-  30% { opacity:1; }
-  70% { opacity:.6; }
+  0%   { opacity:0; transform: scale(.5) translateY(0); }
+  30%  { opacity:1; }
+  70%  { opacity:.6; }
   100% { opacity:0; transform: scale(1.2) translateY(-20px); }
 }
 
-/* ══ SECTION 3: MODEST — feather + flower ══════════════════ */
+/* ══ SECTION 3: MODEST ════════════════════════════════════ */
 .modest-section-elite {
-  background: linear-gradient(180deg, #090e35 0%, #0c1240 30%, #0e1a50 60%, #091230 100%);
+  background: linear-gradient(180deg, #0f0a2e 0%, #110835 25%, #0e1245 55%, #0a1038 100%);
   justify-content: flex-end;
 }
 .modest-section-elite::before {
-  content:''; position:absolute; top:-100px; left:0; right:0; height:200px;
-  background:linear-gradient(to bottom, #060E2A 0%, #090e35 100%);
-  pointer-events:none; z-index:2;
+  content: ''; position: absolute;
+  top: -100px; left: 0; right: 0; height: 200px;
+  background: linear-gradient(to bottom, #060E2A 0%, #0f0a2e 100%);
+  pointer-events: none; z-index: 2;
 }
 .section-bg-modest {
   position: absolute; inset: 0; pointer-events: none;
@@ -137,12 +154,11 @@
 }
 @keyframes featherDrift {
   0%, 100% { transform: rotate(-8deg) translateX(0); }
-  25% { transform: rotate(3deg) translateX(20px); }
-  50% { transform: rotate(-5deg) translateX(40px); }
-  75% { transform: rotate(5deg) translateX(20px); }
+  25%  { transform: rotate(3deg) translateX(20px); }
+  50%  { transform: rotate(-5deg) translateX(40px); }
+  75%  { transform: rotate(5deg) translateX(20px); }
 }
 .feather-svg { width: 100%; height: auto; filter: drop-shadow(0 0 8px rgba(191,219,254,.3)); }
-
 .flower-bloom {
   position: absolute; right: 2%; top: 50%; transform: translateY(-50%);
   z-index: 5; width: clamp(100px, 16vw, 200px);
@@ -153,125 +169,98 @@
   from { transform: translateY(-50%) rotate(0deg); }
   to   { transform: translateY(-50%) rotate(360deg); }
 }
-.f-petal {
-  transform-box: fill-box; transform-origin: center bottom;
-  animation: petalGrow 2s ease-out forwards;
-  transform-scale: 0;
-}
-.f-petal-inner {
-  transform-box: fill-box; transform-origin: center bottom;
-  animation: petalGrow 2s ease-out .3s forwards;
-}
+.f-petal { transform-box: fill-box; transform-origin: center bottom; animation: petalGrow 2s ease-out forwards; transform-scale: 0; }
+.f-petal-inner { transform-box: fill-box; transform-origin: center bottom; animation: petalGrow 2s ease-out .3s forwards; }
 @keyframes petalGrow {
   from { transform: scaleY(0); opacity: 0; }
   to   { transform: scaleY(1); opacity: 1; }
 }
 
-/* ══ SECTION 4: AESTHETIC — hearts canvas ══════════════════ */
+/* ══ SECTION 4: AESTHETIC ════════════════════════════════ */
 .aesthetic-section-elite {
-  background: linear-gradient(180deg, #0a1235 0%, #0c1845 30%, #0e1e58 60%, #08112e 100%);
+  background: linear-gradient(180deg, #0c1035 0%, #0d1445 25%, #0e1852 55%, #090e35 100%);
 }
 .aesthetic-section-elite::before {
-  content:''; position:absolute; top:-100px; left:0; right:0; height:200px;
-  background:linear-gradient(to bottom, #091230 0%, #0a1235 100%);
-  pointer-events:none; z-index:2;
+  content: ''; position: absolute;
+  top: -100px; left: 0; right: 0; height: 200px;
+  background: linear-gradient(to bottom, #0a1038 0%, #0c1035 100%);
+  pointer-events: none; z-index: 2;
 }
 .section-bg-aesthetic {
   position: absolute; inset: 0; pointer-events: none;
   background: radial-gradient(ellipse at 50% 50%, rgba(55,48,163,.12) 0%, transparent 55%);
 }
 
-/* ══ SECTION 5: HIJABS — hijabi with crown ═════════════════ */
+/* ══ SECTION 5: HIJABS ════════════════════════════════════ */
 .hijabs-section-elite {
-  background: linear-gradient(180deg, #0c1540 0%, #0d1848 30%, #0e1c55 60%, #091330 100%);
+  background: linear-gradient(180deg, #0d1245 0%, #0f1040 25%, #130d3a 55%, #0a0828 100%);
 }
 .hijabs-section-elite::before {
-  content:''; position:absolute; top:-100px; left:0; right:0; height:200px;
-  background:linear-gradient(to bottom, #08112e 0%, #0c1540 100%);
-  pointer-events:none; z-index:2;
+  content: ''; position: absolute;
+  top: -100px; left: 0; right: 0; height: 200px;
+  background: linear-gradient(to bottom, #090e35 0%, #0d1245 100%);
+  pointer-events: none; z-index: 2;
 }
 .section-bg-hijabs {
   position: absolute; inset: 0; pointer-events: none;
   background: radial-gradient(ellipse at 15% 50%, rgba(124,58,237,.15) 0%, transparent 55%),
               radial-gradient(ellipse at 80% 80%, rgba(29,78,216,.12) 0%, transparent 40%);
 }
-.hijabi-stage {
-  position: absolute; left: 3%; top: 50%; transform: translateY(-50%);
-  z-index: 5; width: clamp(120px, 20vw, 240px);
-}
+.hijabi-stage { position: absolute; left: 3%; top: 50%; transform: translateY(-50%); z-index: 5; width: clamp(120px, 20vw, 240px); }
 .hijabi-svg { width: 100%; height: auto; overflow: visible; }
 .hijabi-crown { animation: crownSettle 1.5s cubic-bezier(.34,1.56,.64,1) forwards; }
 @keyframes crownSettle {
-  0% { transform: translateY(-60px); opacity: 0; }
-  60% { transform: translateY(8px); opacity: 1; }
-  80% { transform: translateY(-4px); }
+  0%   { transform: translateY(-60px); opacity: 0; }
+  60%  { transform: translateY(8px); opacity: 1; }
+  80%  { transform: translateY(-4px); }
   100% { transform: translateY(0); opacity: 1; }
 }
 .crown-sparkles { position: absolute; top: 0; left: 0; width: 100%; height: 30%; pointer-events: none; }
-.cs {
-  position: absolute; color: #C5A059; font-size: .8rem;
-  animation: crownSparkle 2.5s ease-in-out infinite; opacity: 0;
-}
+.cs { position: absolute; color: #C5A059; font-size: .8rem; animation: crownSparkle 2.5s ease-in-out infinite; opacity: 0; }
 .cs-1 { top: 0;   left: 20%;  animation-delay: 0s; }
 .cs-2 { top: 10%; right: 15%; animation-delay: .5s; }
 .cs-3 { top: 20%; left: 40%;  animation-delay: 1s; }
 .cs-4 { top: 5%;  right: 40%; animation-delay: 1.5s; }
 @keyframes crownSparkle {
   0%,100% { opacity:0; transform: scale(.5) translateY(0); }
-  40% { opacity:1; transform: scale(1) translateY(-8px); }
+  40%     { opacity:1; transform: scale(1) translateY(-8px); }
 }
 
-/* ══ SECTION 6: ACCESSORIES — walking lady ═════════════════ */
+/* ══ SECTION 6: ACCESSORIES ══════════════════════════════ */
 .accessories-section-elite {
   background: linear-gradient(180deg, #0c1540 0%, #0a1245 30%, #091840 60%, #061528 100%);
   position: relative;
 }
 .accessories-section-elite::before {
-  content:''; position:absolute; top:-100px; left:0; right:0; height:200px;
-  background:linear-gradient(to bottom, #091330 0%, #0c1540 100%);
-  pointer-events:none; z-index:2;
+  content: ''; position: absolute;
+  top: -100px; left: 0; right: 0; height: 200px;
+  background: linear-gradient(to bottom, #091330 0%, #0c1540 100%);
+  pointer-events: none; z-index: 2;
 }
-
 .section-bg-accessories {
   position: absolute; inset: 0; pointer-events: none;
   background: radial-gradient(ellipse at 85% 40%, rgba(124,58,237,.12) 0%, transparent 50%),
               radial-gradient(ellipse at 15% 70%, rgba(37,99,235,.1) 0%, transparent 50%);
 }
-.walker-stage {
-  position: absolute; left: 2%; bottom: 10%; z-index: 5;
-  width: clamp(120px, 18vw, 220px);
-}
+.walker-stage { position: absolute; left: 2%; bottom: 10%; z-index: 5; width: clamp(120px, 18vw, 220px); }
 .walker-svg { width: 100%; height: auto; overflow: visible; }
-.walker-shadow {
-  width: 80%; height: 12px; margin: 0 auto;
-  background: radial-gradient(ellipse, rgba(0,0,0,.4) 0%, transparent 70%);
-  border-radius: 50%; transform: scaleX(.8);
-}
-/* Walking legs animation */
+.walker-shadow { width: 80%; height: 12px; margin: 0 auto; background: radial-gradient(ellipse, rgba(0,0,0,.4) 0%, transparent 70%); border-radius: 50%; transform: scaleX(.8); }
 .leg-l { animation: legWalkL 0.8s ease-in-out infinite alternate; transform-origin: 68px 305px; }
 .leg-r { animation: legWalkR 0.8s ease-in-out infinite alternate; transform-origin: 92px 305px; }
-@keyframes legWalkL {
-  0%  { transform: rotate(-20deg); }
-  100%{ transform: rotate(20deg); }
-}
-@keyframes legWalkR {
-  0%  { transform: rotate(20deg); }
-  100%{ transform: rotate(-20deg); }
-}
+@keyframes legWalkL { 0% { transform: rotate(-20deg); } 100% { transform: rotate(20deg); } }
+@keyframes legWalkR { 0% { transform: rotate(20deg); }  100% { transform: rotate(-20deg); } }
 .walker-skirt { animation: skirtSway 1.6s ease-in-out infinite; transform-origin: 80px 210px; }
-@keyframes skirtSway {
-  0%,100% { transform: skewX(-1deg); }
-  50%     { transform: skewX(2deg); }
-}
+@keyframes skirtSway { 0%,100% { transform: skewX(-1deg); } 50% { transform: skewX(2deg); } }
 
-/* ══ SECTION 7: PERFUMES ═══════════════════════════════════ */
+/* ══ SECTION 7: PERFUMES ══════════════════════════════════ */
 .perfumes-section-elite {
   background: linear-gradient(180deg, #091a45 0%, #0a1e50 30%, #0c2258 60%, #071530 100%);
 }
 .perfumes-section-elite::before {
-  content:''; position:absolute; top:-100px; left:0; right:0; height:200px;
-  background:linear-gradient(to bottom, #061528 0%, #091a45 100%);
-  pointer-events:none; z-index:2;
+  content: ''; position: absolute;
+  top: -100px; left: 0; right: 0; height: 200px;
+  background: linear-gradient(to bottom, #061528 0%, #091a45 100%);
+  pointer-events: none; z-index: 2;
 }
 .section-bg-perfumes {
   position: absolute; inset: 0; pointer-events: none;
@@ -293,86 +282,4 @@
   50%     { transform: translateY(-18px) rotate(2deg); }
 }
 
-/* ══ SEASONAL SECTION ══════════════════════════════════════ */
-.seasonal-section {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #050E20 0%, #0A1830 35%, #0E1A3A 65%, #040A18 100%);
-  flex-direction: column; align-items: center; justify-content: center;
-  padding: 100px 5% 80px;
-  position: relative; overflow: hidden;
-}
-.section-bg-seasonal {
-  position: absolute; inset: 0; pointer-events: none;
-  background: radial-gradient(ellipse at 50% 50%, rgba(197,160,89,.05) 0%, transparent 60%);
-}
-.seasonal-intro {
-  text-align: center; position: relative; z-index: 10;
-  max-width: 680px; margin: 0 auto 3rem;
-}
-.seasonal-poem {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: clamp(1rem, 2.5vw, 1.3rem);
-  font-weight: 300; font-style: italic;
-  color: rgba(240,237,232,.55); line-height: 1.8;
-  margin-top: 1rem;
-}
-.seasonal-poem em { color: #C5A059; }
-.season-chooser {
-  display: flex; gap: 20px; flex-wrap: wrap;
-  justify-content: center; position: relative; z-index: 10;
-  max-width: 900px;
-}
-.season-card {
-  position: relative; overflow: hidden;
-  width: clamp(160px, 22vw, 220px); height: clamp(200px, 26vw, 260px);
-  border: 1px solid rgba(197,160,89,.2);
-  background: rgba(255,255,255,.04);
-  cursor: pointer; display: flex; flex-direction: column;
-  align-items: center; justify-content: flex-end; gap: 10px;
-  transition: all .4s ease; padding: 20px 16px 22px;
-}
-.season-mini-canvas {
-  position: absolute; inset: 0; width: 100% !important; height: 100% !important;
-  pointer-events: none; opacity: .6;
-}
-.season-card > * { position: relative; z-index: 2; }
-.season-card:hover {
-  transform: translateY(-8px) scale(1.03);
-  border-color: #C5A059;
-  box-shadow: 0 20px 50px rgba(0,0,0,.4), 0 0 30px rgba(197,160,89,.2);
-}
-.season-icon { font-size: 2.6rem; line-height: 1; position: relative; z-index: 3; }
-.season-name {
-  font-family: 'Cinzel', serif; font-size: .85rem;
-  letter-spacing: .15em; color: #F0EDE8;
-}
-.season-desc { font-size: .65rem; color: rgba(240,237,232,.4); text-align: center; }
-.season-summer { background: rgba(251,191,36,.06); }
-.season-autumn  { background: rgba(217,119,6,.06); }
-.season-winter  { background: rgba(99,179,237,.06); }
-.season-spring  { background: rgba(167,139,250,.06); }
-
-/* Season display */
-.season-display {
-  width: 100%; max-width: 1200px; position: relative; z-index: 10;
-}
-.season-display-inner { padding: 2rem 0; }
-.season-back-btn {
-  background: none; border: 1px solid rgba(197,160,89,.3);
-  color: rgba(197,160,89,.7); font-size: .7rem; letter-spacing: .15em;
-  text-transform: uppercase; padding: 8px 18px; cursor: pointer;
-  transition: all .25s; margin-bottom: 2rem;
-}
-.season-back-btn:hover { border-color: #C5A059; color: #C5A059; }
-.season-display-header { text-align: center; margin-bottom: 2.5rem; }
-.season-display-icon { font-size: 3rem; display: block; margin-bottom: .8rem; }
-.season-display-title {
-  font-family: 'Cinzel', serif; font-size: clamp(1.8rem, 4vw, 3rem);
-  font-weight: 500; color: #F0EDE8; margin-bottom: .8rem;
-}
-.season-display-poem {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: clamp(.9rem, 2vw, 1.1rem); font-style: italic;
-  color: rgba(240,237,232,.5); line-height: 1.7;
-}
 /* ── END sections.css ── */

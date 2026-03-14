@@ -1,0 +1,48 @@
+/* ══════════════════════════════════════════════════════════
+   SCROLL SNAP — public/css/scroll-snap.css
+   ══════════════════════════════════════════════════════════ */
+
+/* ── SNAP CONTAINER ──────────────────────────────────────── */
+.elite-page {
+  scroll-snap-type: y mandatory;
+  overflow-y: scroll;
+  height: 100vh;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(197,160,89,.3) transparent;
+}
+.elite-page::-webkit-scrollbar { width: 4px; }
+.elite-page::-webkit-scrollbar-track { background: transparent; }
+.elite-page::-webkit-scrollbar-thumb {
+  background: rgba(197,160,89,.35);
+  border-radius: 2px;
+}
+
+/* ── SNAP TARGETS ────────────────────────────────────────── */
+.hero-slider-section,
+.elite-section,
+.seasonal-section,
+.elite-story {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+/* ── SECTION ENTRANCE PREP ───────────────────────────────── */
+/* GSAP will animate from these values */
+.elite-section,
+.seasonal-section,
+.elite-story {
+  will-change: opacity, transform;
+}
+
+/* ── FOOTER no snap ──────────────────────────────────────── */
+.royal-footer { scroll-snap-align: none; }
+
+/* ── MOBILE — disable snap ───────────────────────────────── */
+@media (max-width: 768px) {
+  .elite-page {
+    scroll-snap-type: none;
+    height: auto;
+    overflow-y: auto;
+  }
+}
