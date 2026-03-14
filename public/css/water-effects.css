@@ -11,12 +11,12 @@
   z-index: 1;           /* Behind text (z-index: 2) */
   pointer-events: none; /* Mouse events handled by JS on the header */
   display: block;
-  opacity: 0.92;
+  opacity: 0.2;
 }
 
 /* Ensure vault-header stacks correctly */
 .vault-header {
-  cursor: crosshair; /* Visual cue that the surface is interactive */
+  cursor: default;
 }
 
 /* All inner content must sit above the canvas */

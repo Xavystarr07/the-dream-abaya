@@ -20,7 +20,7 @@
   .vault-header::before,
   .vault-header::after,
   .vault-header {
-    background-color: #010d1f;
+    background-color: #011b1f;
   }
   
   .vault-header {
@@ -305,7 +305,7 @@
 <%- include('nav') %>
 
 <header class="vault-header" id="vaultRippleHeader">
-  <!-- Ripple water canvas — sits behind all content -->
+  <!-- ✅ Ripple canvas — must be first child, behind everything -->
   <canvas id="vault-ripple-canvas"></canvas>
   <div class="vault-header-particles" id="vhParticles"></div>
   <div class="vault-header-glow"></div>
@@ -501,33 +501,10 @@
 <%- include('toast') %>
 <%- include('cart-drawer') %>
 
-<script src="/js/core/vault-ripple.js"></script>
+
 
 <script>
-// Gemini Fixed: Logic applied to .vault-header per your request
-$(document).ready(function() {
-    "use strict";
-    const $target = $('.vault-header');
-    
-    // Check if the plugin exists before calling it
-    if (typeof $target.ripples === 'function') {
-        $target.ripples({
-            resolution: 256, // Your requested resolution
-            dropRadius: 20, // Your requested radius
-            perturbance: 0.04, // Your requested perturbance
-            interactive: true 
-        });
 
-        // Automatic drops to keep the water moving
-        setInterval(function() {
-            var x = Math.random() * $target.outerWidth();
-            var y = Math.random() * $target.outerHeight();
-            $target.ripples('drop', x, y, 20, 0.04);
-        }, 4000);
-    } else {
-        console.warn('Ripples plugin not found. Please check if /js/core/vault-ripple.js is loading correctly.');
-    }
-});
 
 (function(){
   const c=document.getElementById('vhParticles'); if(!c) return;
@@ -663,9 +640,9 @@ window.addEventListener('load',updatePriceUI);
   /* ── BACKGROUND COLOURS (deep water palette) ────────────── */
   // These blend between shallow and deep water based on ripple height
   // Matches the dark ocean blue of vault-header
-  const COLOUR_DEEP    = { r: 1,  g: 13, b: 31  }; // #010D1F deep navy
-  const COLOUR_SHALLOW = { r: 0,  g: 90, b: 180 }; // #005AB4 bright water crest
-  const COLOUR_CREST   = { r: 180, g: 220, b: 255 }; // #B4DCFF white crest sparkle
+const COLOUR_DEEP    = { r: 8,  g: 20, b: 45  };   // slightly lighter navy base
+const COLOUR_SHALLOW = { r: 160, g: 210, b: 255 };  // #A0D2FF — soft periwinkle-blue (not cyan)
+const COLOUR_CREST   = { r: 230, g: 245, b: 255 };  // #E6F5FF — near-white ice crest
 
   /* ── INIT ────────────────────────────────────────────────── */
   function init() {
@@ -775,7 +752,7 @@ window.addEventListener('load',updatePriceUI);
   /* ── MOUSE HANDLER ───────────────────────────────────────── */
   let lastMx = -1, lastMy = -1;
 
-  header.addEventListener('mousemove', function(e) {
+header.addEventListener('mousemove', function(e) {
     const rect = header.getBoundingClientRect();
     const mx   = e.clientX - rect.left;
     const my   = e.clientY - rect.top;
@@ -783,7 +760,8 @@ window.addEventListener('load',updatePriceUI);
     /* Only disturb if mouse moved enough (avoids micro-jitter floods) */
     const dist = Math.hypot(mx - lastMx, my - lastMy);
     if (dist > 4) {
-      disturb(mx, my, 200); /* Strength: 200 = strong, 100 = subtle */
+      // Added by Gemini: Call the disturb function to actually create the ripple
+      disturb(mx, my, 150); 
       lastMx = mx;
       lastMy = my;
     }
@@ -801,7 +779,7 @@ window.addEventListener('load',updatePriceUI);
   function autoRipple() {
     const x = Math.random() * W;
     const y = Math.random() * H;
-    disturb(x, y, 80 + Math.random() * 120); /* Softer than mouse */
+    disturb(x, y, 30 + Math.random() * 50); /* Gentle ambient drops */
     /* Schedule next drop: 800–2500ms */
     setTimeout(autoRipple, 800 + Math.random() * 1700);
   }
