@@ -4,37 +4,52 @@
             <img src="/images/reveal/princess.png" alt="Princess" class="princess-drawing">
         </div>
         
-        <div class="reveal-tagline">Awaken the Princess Within</div>
-        
-        <div class="reveal-loading-area">
-            <div class="reveal-loading-container">
-                <div class="reveal-loading-bar" id="revealBar">
-                    <div class="bar-glow"></div> </div>
+        <div id="brandName" class="reveal-brand">The Dream Abaya</div>
+
+        <div id="fadeGroupFirst" class="first-fade-group">
+            <div class="reveal-tagline">Awaken the Princess Within</div>
+            <div class="reveal-loading-area">
+                <div class="reveal-loading-container">
+                    <div id="revealBar" class="reveal-loading-bar"></div>
+                </div>
             </div>
-            <div class="reveal-brand">The Dream Abaya</div>
         </div>
     </div>
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
+    (function() {
         const bar = document.getElementById('revealBar');
         const overlay = document.getElementById('reveal-overlay');
-        let width = 0;
+        const fadeGroupFirst = document.getElementById('fadeGroupFirst');
+        let progress = 0;
 
-        const loadingInterval = setInterval(() => {
-            if (width >= 100) {
-                clearInterval(loadingInterval);
+        const interval = setInterval(() => {
+            // Your preferred speed (80ms interval)
+            progress += Math.random() * 8 + 4; 
+
+            if (progress >= 100) {
+                progress = 100;
+                bar.style.width = '100%';
+                clearInterval(interval);
+                
+                // STAGE 1: Tagline and Loading Bar disappear quickly (1.2s)
                 setTimeout(() => {
-                    overlay.classList.add('hidden-overlay');
-                    setTimeout(() => { overlay.style.display = 'none'; }, 1000);
-                }, 600);
+                    fadeGroupFirst.classList.add('element-hidden');
+                    
+                    // STAGE 2: THE MAGICAL DISSOLVE
+                    // Princess and Brand stay alone for 1.2s then fade beautifully
+                    setTimeout(() => {
+                        overlay.classList.add('magical-fade-out');
+                        
+                        setTimeout(() => {
+                            overlay.style.display = 'none';
+                        }, 4000); // Matches the 4s cinematic fade
+                    }, 1200); 
+                }, 500);
             } else {
-                // Slower, more deliberate "premium" loading speed
-                width += Math.random() * 0.8; 
-                if (width > 100) width = 100;
-                bar.style.width = width + '%';
+                bar.style.width = progress + '%';
             }
-        }, 15); // Smoother update frequency
-    });
+        }, 80); 
+    })();
 </script>

@@ -1,93 +1,111 @@
 /* ============================================================
-   reveal.css — Centering Fix
+   reveal.css — Fixed Width & Magical Dissolve
    ============================================================ */
 
 #reveal-overlay {
-  position: fixed; inset: 0; z-index: 9999;
+  position: fixed; 
+  inset: 0; 
+  z-index: 999999;
   background: #05040a; 
-  display: flex; align-items: center; justify-content: center;
-  transition: opacity 1.2s ease-in-out;
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+  opacity: 1;
+  /* THE MAGIC: 4s duration + Blur + Zoom */
+  transition: 
+    opacity 4s cubic-bezier(0.33, 1, 0.68, 1),
+    filter 4s cubic-bezier(0.33, 1, 0.68, 1),
+    transform 4s cubic-bezier(0.33, 1, 0.68, 1);
+  will-change: opacity, filter;
 }
 
 #reveal-text {
-  position: relative; z-index: 10;
-  display: flex; flex-direction: column;
+  display: flex; 
+  flex-direction: column;
   align-items: center; 
   text-align: center;
+  width: 100%; /* Ensure container doesn't squash children */
 }
 
 .reveal-animation-container {
   width: 140px; 
-  height: 140px;
+  height: 160px;
   display: flex; 
   align-items: center; 
   justify-content: center;
-  /* Adjusting the X-axis because the image itself is weighted to the left */
-  transform: translateX(8px); 
+  transform: translateX(12px); /* Centering Fix for your specific image */
   margin-bottom: 10px;
 }
 
 .princess-drawing {
   width: 100%; 
-  height: 100%;
-  /* This forces the browser to focus on the center of the image file */
-  object-fit: contain;
-  object-position: center;
+  height: auto;
   mix-blend-mode: screen; 
   opacity: 0.95;
   animation: princessFloat 4s ease-in-out infinite;
 }
 
-.reveal-tagline {
+.reveal-brand {
   font-family: 'Cinzel', serif;
-  font-size: clamp(1rem, 3.5vw, 2rem);
-  letter-spacing: 0.4em;
+  font-size: 0.85rem;
+  letter-spacing: 0.45em;
   color: #C5A059;
   text-transform: uppercase;
+  margin-top: 5px;
+  transition: opacity 1.2s ease-in-out;
+}
+
+.first-fade-group {
+  transition: opacity 1.2s ease-in-out;
+  opacity: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.reveal-tagline {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(1rem, 3.5vw, 1.8rem);
+  letter-spacing: 0.45em;
+  color: #C5A059;
+  text-transform: uppercase;
+  margin-top: 15px;
   background: linear-gradient(90deg, #C5A059 0%, #FFF8E7 40%, #E8C878 55%, #C5A059 100%);
   background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: shimmerSweep 4s linear infinite;
-  margin-top: 10px;
 }
 
+/* ── LOADING BAR FIX ── */
 .reveal-loading-area {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 15px;
   margin-top: 25px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
 .reveal-loading-container {
-  width: 300px; /* Long cinematic bar */
+  width: 320px; /* Restored to full cinematic length */
+  min-width: 320px;
   height: 2px;
-  background: rgba(197, 160, 89, 0.05);
-  border-radius: 4px;
+  background: rgba(197, 160, 89, 0.1);
   position: relative;
+  overflow: hidden;
 }
 
 .reveal-loading-bar {
-  height: 100%;
+  height: 100%; 
   width: 0%;
-  background: linear-gradient(90deg, #8a6d3b, #C5A059, #FFF8E7);
-  box-shadow: 0 0 15px rgba(197, 160, 89, 0.4);
-  transition: width 0.2s ease-out;
-}
-
-.reveal-brand {
-  font-family: 'Cinzel', serif;
-  font-size: 0.6rem;
-  letter-spacing: 0.3em;
-  color: rgba(197, 160, 89, 0.3);
-  text-transform: uppercase;
+  background: #C5A059;
+  box-shadow: 0 0 10px rgba(197, 160, 89, 0.5);
 }
 
 /* ── ANIMATIONS ── */
 @keyframes princessFloat {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  50% { transform: translateY(-12px); }
 }
 
 @keyframes shimmerSweep {
@@ -95,7 +113,15 @@
   100% { background-position: -200% center; }
 }
 
-.hidden-overlay {
-  opacity: 0;
+/* STAGE 1 TRIGGER */
+.element-hidden {
+  opacity: 0 !important;
+}
+
+/* STAGE 2 TRIGGER (MAGICAL) */
+.magical-fade-out {
+  opacity: 0 !important;
+  filter: blur(25px); /* Dissolves into mist */
+  transform: scale(1.08); /* Gentle zoom into the site */
   pointer-events: none;
 }
