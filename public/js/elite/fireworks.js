@@ -262,7 +262,7 @@ function initFireworks() {
     rafId = requestAnimationFrame(draw);
 
     // Soft fade trail (dark purple bg)
-    ctx.fillStyle = 'rgba(8,4,20,.22)';
+  ctx.fillStyle = 'rgba(10, 5, 20, .22)';      // this controls the main page first slider css entirely
     ctx.fillRect(0, 0, W, H);
 
     // Stars drawn first — rockets + bursts appear on top

@@ -144,10 +144,22 @@
   transition: opacity .8s ease .4s, transform .8s ease .4s;
 }
 
+.slide-title-main {
+  
+  font-size: clamp(2.1rem, 4vw, 7rem);
+  font-weight: 200;
+  font-style: italic;
+  line-height: .92;
+  color: #F0EDE8;
+  margin-bottom: 5rem;
+  transform: translateY(36px);
+  transition: opacity 1s cubic-bezier(.2,0,.2,1) .5s, transform 1s cubic-bezier(.2,0,.2,1) .5s;
+}
+
 .slide-title {
-  font-family: 'Cormorant Garamond', serif;
+  
   font-size: clamp(2.8rem, 7vw, 7rem);
-  font-weight: 300;
+  font-weight: 200;
   font-style: italic;
   line-height: .92;
   color: #F0EDE8;

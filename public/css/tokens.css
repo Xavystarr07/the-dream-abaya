@@ -30,7 +30,8 @@
 /* ── DARK ────────────────────────────────────────────────── */
 
 [data-theme="dark"] {
-  --bg:         #0D1117;
+  --nav-bg: var(--bg);
+  --bg:          linear-gradient(154deg, #07090a 0%, #0f1318 60%, #1f2731 100%);
   --bg2:        #161B22;
   --bg3:        #1C2430;
   --surf:       #21272E;
@@ -40,7 +41,7 @@
   --t1:         #F0EDE8;
   --t2:         #A9A29A;
   --t3:         #6B6560;
-  --nav-bg:     rgba(13,17,23,.96);
+  --nav-bg:     linear-gradient(154deg, #07090a 0%, #0f1318 60%, #1f2731 100%);
   --hero-bg:    linear-gradient(145deg,#061c9c 0%,#5f9fff 55%,#00dcff  100%);
   --card-bg:    #1A2030;
   --badge-bg:   rgba(197,160,89,.1);
@@ -83,7 +84,9 @@
 /* ── RESET ───────────────────────────────────────────────── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;font-size:16px;-webkit-text-size-adjust:100%}
-body{font-family:var(--font-body);background: var(--nav-bg);color:var(--t1);-webkit-font-smoothing:antialiased;}
+body{font-family:var(--font-body);background: var(--bg);
+    background-attachment: fixed; /* This keeps the gradient from "restarting" in every section */
+    color: var(--t1);-webkit-font-smoothing:antialiased;}
 img{display:block;max-width:100%;height:auto}
 a{text-decoration:none;color:inherit}
 ul{list-style:none}
