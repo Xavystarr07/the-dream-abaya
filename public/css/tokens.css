@@ -15,7 +15,7 @@
 }
 /* ── TOKENS ─────────────────────────────────────────────── */
 :root {
-  --gold:       #C5A059;
+  --gold:       #ffffff;
   --gold-light: #D4BA7E;
   --gold-dark:  #A08040;
   --gold-glow:  rgba(197,160,89,.22);
@@ -28,7 +28,7 @@
 }
 
 /* ── DARK ────────────────────────────────────────────────── */
-/* ── DARK ────────────────────────────────────────────────── */
+
 [data-theme="dark"] {
   --bg:         #0D1117;
   --bg2:        #161B22;
@@ -41,7 +41,7 @@
   --t2:         #A9A29A;
   --t3:         #6B6560;
   --nav-bg:     rgba(13,17,23,.96);
-  --hero-bg:    linear-gradient(145deg,#061c9c 0%,#0066ff 55%,#00e1ff 100%);
+  --hero-bg:    linear-gradient(145deg,#061c9c 0%,#5f9fff 55%,#00dcff  100%);
   --card-bg:    #1A2030;
   --badge-bg:   rgba(197,160,89,.1);
   --inp-bg:     rgba(255,255,255,.04);
@@ -67,7 +67,7 @@
   --t2:         #5C5048;
   --t3:         #9A8C80;
   --nav-bg:     rgba(250,248,244,.96);
-  --hero-bg:    linear-gradient(145deg,#021e3f 0%,#042d5a 55%,#053568 100%);
+  --hero-bg:    linear-gradient(145deg,#061c9c 0%,#0066ff 55%,#00dcff  100%);
   --card-bg:    #FFFFFF;
   --badge-bg:   rgba(197,160,89,.09);
   --inp-bg:     rgba(0,0,0,.03);
@@ -83,7 +83,7 @@
 /* ── RESET ───────────────────────────────────────────────── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;font-size:16px;-webkit-text-size-adjust:100%}
-body{font-family:var(--font-body);background:var(--bg);color:var(--t1);overflow-x:hidden;-webkit-font-smoothing:antialiased;transition:background var(--ts) var(--ease),color var(--ts) var(--ease)}
+body{font-family:var(--font-body);background: var(--nav-bg);color:var(--t1);-webkit-font-smoothing:antialiased;}
 img{display:block;max-width:100%;height:auto}
 a{text-decoration:none;color:inherit}
 ul{list-style:none}

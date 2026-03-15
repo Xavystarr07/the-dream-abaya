@@ -83,8 +83,62 @@
 .mobile-logout{color:var(--t3)}
 
 /* ── BUTTONS ─────────────────────────────────────────────── */
-.btn-royal{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 30px;background:var(--gold);color:#0D1117;font-family:var(--font-body);font-size:.68rem;font-weight:500;letter-spacing:.22em;text-transform:uppercase;border:1px solid var(--gold);cursor:pointer;transition:background var(--t),color var(--t),transform var(--t),box-shadow var(--t);-webkit-tap-highlight-color:transparent}
-.btn-royal:hover{background:transparent;color:var(--gold);transform:translateY(-2px);box-shadow:var(--shadow-g)}
+.btn-royal {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 30px;
+  background: #0D1117; /* Dark base to match your theme */
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: .68rem;
+  font-weight: 500;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  border: none; /* Border is handled by the gradient layer */
+  border-radius: 8px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform var(--t), box-shadow var(--t);
+  z-index: 1;
+}
+
+/* The Spinning Gradient Layer */
+.btn-royal::before {
+  content: '';
+  position: absolute;
+  inset: -1000%;
+  background: conic-gradient(from 90deg at 50% 50%, #e7029a 0%, #f472b6 50%, #bd5fff 100%);
+  animation: spin 2s linear infinite;
+  z-index: -2;
+}
+
+/* The Inner Cover (keeps the center dark) */
+.btn-royal::after {
+  content: '';
+  position: absolute;
+  inset: 1px; /* This defines the border thickness */
+  background: #0D1117;
+  border-radius: 7px;
+  z-index: -1;
+  transition: background var(--t);
+}
+
+.btn-royal:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 20px rgba(244, 114, 182, 0.4);
+}
+
+.btn-royal:hover::after {
+  background: #141e2a; /* Lightens slightly on hover */
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
 .btn-royal:active{transform:translateY(0)}
 .btn-royal.full-width{width:100%}
 .btn-royal:disabled{opacity:.5;cursor:not-allowed;pointer-events:none}

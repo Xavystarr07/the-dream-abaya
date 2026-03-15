@@ -35,7 +35,7 @@
 .empty-state h3{font-family:var(--font-display);font-size:1.4rem;font-weight:300;color:var(--t2)}
 .empty-state p{font-size:.82rem;color:var(--t3)}
 .empty-state a:not(.btn-royal):not(.btn-ghost){color:var(--gold)}
-.empty-state .btn-royal{color:#0D1117}
+.empty-state .btn-royal{color:#ffffff}
 .empty-state .btn-ghost{color:var(--t2)}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--surf);border:1px solid var(--bdr);color:var(--t1);padding:12px 24px;font-size:.78rem;letter-spacing:.04em;z-index:9999;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:all .32s ease;white-space:nowrap;max-width:calc(100vw - 40px);text-align:center}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
