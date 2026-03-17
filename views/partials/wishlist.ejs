@@ -22,12 +22,12 @@
 
   <% if (products && products.length > 0) { %>
 
-    <header class="vault-header wishlist-header-royal">
+    <header class="wishlist-header">
       <canvas class="wishlist-header-canvas" id="wishlistCanvas"></canvas>
 
       <div class="vault-header-inner">
         <p class="wishlist-header-greeting">
-          <%= user ? user.name.split(' ')[0] + "'s" : "Your" %> Collection
+          <br><%= user ? user.name.split(' ')[0] + "'s" : "Your" %> Collection
         </p>
 
         <h1 class="vault-title wishlist-shimmer-title">My Wishlist</h1>
@@ -79,7 +79,7 @@
           <%- include('logo-svg') %>
         </div>
 
-        <% /* REMOVED: Heart cluster block to create vertical space */ %>
+        <%  %>
 
         <h1 class="wl-empty-title">Every Wish Deserves<br>To Come True</h1>
         <p class="wl-empty-sub">One breathtaking piece at a time.</p>

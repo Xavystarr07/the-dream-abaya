@@ -70,3 +70,56 @@
 .track-input:focus{border-color:var(--gold)}
 .order-card{background:var(--surf); border:1px solid var(--bdr); padding:2.5rem}
 .status-timeline{display:flex; align-items:center; padding:2rem 0; border-top:1px solid var(--bdr); overflow-x:auto}
+
+/* ── BUTTONS ─────────────────────────────────────────────── */
+.track-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 30px;
+  background: #0D1117; /* Dark base to match your theme */
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: .68rem;
+  font-weight: 500;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  border: none; /* Border is handled by the gradient layer */
+  border-radius: 8px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform var(--t), box-shadow var(--t);
+  z-index: 1;
+}
+
+/* The Spinning Gradient Layer */
+.track-btn::before {
+  content: '';
+  position: absolute;
+  inset: -1000%;
+  background: conic-gradient(from 90deg at 50% 50%, #026e2b 0%, #2afa01 50%, #b1fc03 100%);
+  animation: spin 2s linear infinite;
+  z-index: -2;
+}
+
+/* The Inner Cover (keeps the center dark) */
+.track-btn::after {
+  content: '';
+  position: absolute;
+  inset: 1px; /* This defines the border thickness */
+  background: #0D1117;
+  border-radius: 7px;
+  z-index: -1;
+  transition: background var(--t);
+}
+
+.track-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 20px rgba(244, 114, 182, 0.4);
+}
+
+.track-btn:hover::after {
+  background: #141e2a; /* Lightens slightly on hover */
+}
