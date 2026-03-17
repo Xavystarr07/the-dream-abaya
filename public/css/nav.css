@@ -17,7 +17,7 @@
 
 /* Desktop nav */
 .nav-links{display:flex;gap:1.8rem;align-items:center}
-.nav-link{font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:var(--t2);position:relative;padding-bottom:3px;transition:color var(--t);white-space:nowrap;background:none;border:none}
+.nav-link{font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:var(--t2);position:relative;padding-bottom:3px;transition:color #ffffff;white-space:nowrap;background:none;border:none}
 .nav-link::after{content:'';position:absolute;bottom:0;left:0;width:0;height:1px;background:var(--gold);transition:width var(--t)}
 .nav-link:hover,.nav-link.active{color:var(--gold)}
 .nav-link:hover::after,.nav-link.active::after{width:100%}
@@ -25,7 +25,7 @@
 
 /* Click-based dropdown */
 .nav-dropdown{position:relative}
-.nav-link-drop{cursor:pointer;display:flex;align-items:center;gap:4px}
+.nav-link-drop{display:inline-flex !important;cursor:pointer;align-items:center;gap:4px}
 .nav-dropdown-menu{position:absolute;top:calc(100% + 14px);left:-16px;background:var(--surf);border:1px solid var(--bdr);box-shadow:var(--shadow);min-width:210px;opacity:0;pointer-events:none;transform:translateY(-8px);transition:opacity var(--t),transform var(--t);z-index:300}
 .nav-dropdown.open .nav-dropdown-menu{opacity:1;pointer-events:all;transform:translateY(0)}
 .nav-dropdown.open .dropdown-arrow{transform:rotate(180deg)}
@@ -34,10 +34,10 @@
 .nav-dropdown-menu a:hover{color:var(--gold);padding-left:24px;background:var(--badge-bg)}
 
 /* Nav actions */
-.nav-actions{display:flex;align-items:center;gap:1.1rem}
-.nav-icon-btn{position:relative;background:none;border:none;cursor:pointer;color:var(--t2);padding:6px;transition:color var(--t);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.nav-actions{display:flex;align-items:center; padding:6px; gap:1.1rem}
+.nav-icon-btn{position:relative;background:none;border:none;cursor:pointer;color:var(--t2);padding:6px;transition:color var(--t);align-items:center;justify-content:center;flex-shrink:0}
 .nav-icon-btn:hover{color:var(--gold)}
-.cart-badge{position:absolute;top:-2px;right:-4px;background:var(--gold);color:#000;border-radius:50%;font-size:.56rem;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-weight:700}
+
 
 /* Theme toggle */
 .theme-toggle{font-size:1rem}

@@ -39,7 +39,7 @@
   --bdr:        rgba(197,160,89,.15);
   --bdr-s:      rgba(255,255,255,.06);
   --t1:         #F0EDE8;
-  --t2:         #A9A29A;
+  --t2:         #ffffff;
   --t3:         #6B6560;
   --nav-bg:     linear-gradient(154deg, #07090a 0%, #0f1318 60%, #1f2731 100%);
   --hero-bg:    linear-gradient(145deg,#061c9c 0%,#5f9fff 55%,#00dcff  100%);
@@ -64,8 +64,8 @@
   --surf2:      #F5F2EC;
   --bdr:        rgba(197,160,89,.22);
   --bdr-s:      rgba(0,0,0,.07);
-  --t1:         #1A1410;
-  --t2:         #5C5048;
+  --t1:         #000000;
+  --t2:         #000000;
   --t3:         #9A8C80;
   --nav-bg:     rgba(250,248,244,.96);
   --hero-bg:    linear-gradient(145deg,#061c9c 0%,#0066ff 55%,#00dcff  100%);

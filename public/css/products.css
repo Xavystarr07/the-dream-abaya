@@ -41,7 +41,7 @@
 .filter-pills::-webkit-scrollbar{display:none}
 .filter-pill{white-space:nowrap;padding:6px 14px;font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--t2);border:1px solid var(--bdr-s);background:none;transition:all var(--t);flex-shrink:0;-webkit-tap-highlight-color:transparent;cursor:pointer}
 .filter-pill:hover{color:var(--t1);border-color:var(--bdr)}
-.filter-pill.active{color:var(--gold);border-color:var(--gold);background:var(--badge-bg)}
+.filter-pill.active{color:var(--t);border-color:var(--gold);background:var(--badge-bg)}
 .filter-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 
 /* Search with suggestions */
