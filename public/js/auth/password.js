@@ -1,7 +1,23 @@
 'use strict';
 
 // ── PASSWORD SUGGESTIONS ──────────────────────────────────────
-// NOTE: STRONG_PASSWORDS declared here ONLY. Remove from main.js.
+const STRONG_PASSWORDS = [
+  'RoyalDream2025!',
+  'GoldenAbaya@24',
+  'VelvetPalace#25',
+  'SilkElegance$24',
+  'PearlLustre%25',
+  'CrystalNoble^24',
+  'LunarGrace&25',
+  'MysticCharm*24',
+  'AmberRadiance+25',
+  'IvorySophistry=24',
+  'AzureRegency-25',
+  'SacredJewels_24',
+  'DivineThread!25',
+  'NobleWeave@24',
+  'PalaceSecret#25'
+];
 
 function initPasswordSuggestions() {
   const pwFields = document.querySelectorAll(
@@ -52,4 +68,42 @@ function togglePw(id, btn) {
   inp.type = inp.type === 'password' ? 'text' : 'password';
   btn.textContent = inp.type === 'password' ? '👁' : '🙈';
   btn.setAttribute('aria-label', inp.type === 'password' ? 'Show password' : 'Hide password');
+}
+
+// ── PASSWORD STRENGTH SCORING ───────────────────────────────────
+function scorePassword(password, bar, label) {
+  if (!password) {
+    bar.style.width = '0%';
+    bar.style.background = '#e74c3c';
+    label.textContent = '';
+    return;
+  }
+  
+  let score = 0;
+  const checks = [
+    { test: password.length >= 8, weight: 1 },
+    { test: password.length >= 12, weight: 1 },
+    { test: /[a-z]/.test(password), weight: 1 },
+    { test: /[A-Z]/.test(password), weight: 1 },
+    { test: /[0-9]/.test(password), weight: 1 },
+    { test: /[^a-zA-Z0-9]/.test(password), weight: 2 }
+  ];
+  
+  checks.forEach(check => {
+    if (check.test) score += check.weight;
+  });
+  
+  const percentage = Math.min((score / 7) * 100, 100);
+  const colors = [
+    { threshold: 0, color: '#e74c3c', label: '' },
+    { threshold: 20, color: '#e67e22', label: 'Weak' },
+    { threshold: 40, color: '#f1c40f', label: 'Fair' },
+    { threshold: 60, color: '#3498db', label: 'Good' },
+    { threshold: 80, color: '#2ecc71', label: 'Strong' }
+  ];
+  
+  const current = colors.reverse().find(c => percentage >= c.threshold);
+  bar.style.width = percentage + '%';
+  bar.style.background = current.color;
+  label.textContent = current.label;
 }

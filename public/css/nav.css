@@ -48,8 +48,7 @@
   position: relative; white-space: nowrap;
   background: none; border: none; cursor: pointer;
   line-height: 1 !important;
-  padding: 0 0 3px 0 !important;
-  vertical-align: middle !important;
+  
   transition: color var(--t);
 }
 .nav-link::after {
