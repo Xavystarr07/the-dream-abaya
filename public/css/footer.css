@@ -6,8 +6,13 @@
 .footer-tagline{font-size:.73rem;color:var(--t3);line-height:1.6;margin-bottom:1.2rem}
 .footer-links-col{display:flex;flex-direction:column;gap:9px}
 .footer-links-col h4{font-size:.62rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-bottom:.4rem}
-.footer-links-col a{font-size:.76rem;color:var(--t3);transition:color var(--t)}
-.footer-links-col a:hover{color:var(--gold)}
+.footer-links-col a{font-size:.76rem;color:var(--t2);transition:color var(--t)}
+.footer-links-col a:hover{color:#C5A059}
+[data-theme="light"] .footer-links-col a{color:#3a3a3a}
+[data-theme="light"] .footer-links-col h4{color:#C5A059}
+[data-theme="light"] .royal-footer{background:#f0ece4;border-top:1px solid rgba(197,160,89,.2)}
+[data-theme="light"] .footer-bottom{color:#555}
+[data-theme="light"] .footer-tagline{color:#555}
 .footer-bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;border-top:1px solid var(--bdr);padding-top:1.3rem;font-size:.66rem;color:var(--t3)}
 
 /* ── SOCIAL ICONS — neon hover ───────────────────────────── */

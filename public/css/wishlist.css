@@ -6,19 +6,44 @@
 
 .wishlist-header{
   position: relative;
-
   width: 100%;
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
-  justify-content: center !important; /* Forces everything to center */
-  padding: 40px 2rem !important;
+  justify-content: center !important;
+  padding: clamp(120px, 18vw, 180px) 2rem clamp(60px, 8vw, 90px) !important;
   background: linear-gradient(-45deg, #530115, #920318, #ac0909, #79000e);
   background-size: 400% 400%;
-  min-height: 43vh;
+  min-height: 55vh;           /* taller so it feels like a proper hero */
   animation: gradientBG 12s ease infinite;
   overflow: hidden;
 }
+
+/* Header text always white — red bg in both themes */
+.wishlist-header .vault-title,
+.wishlist-header .wishlist-shimmer-title,
+.wishlist-header .wishlist-header-greeting,
+.wishlist-header .wishlist-header-tagline,
+.wishlist-header .cart-header-ornament,
+[data-theme="light"] .wishlist-header .vault-title,
+[data-theme="light"] .wishlist-header .wishlist-shimmer-title,
+[data-theme="light"] .wishlist-header .wishlist-header-greeting,
+[data-theme="light"] .wishlist-header .wishlist-header-tagline {
+  color: rgba(255,255,255,.9) !important;
+  -webkit-text-fill-color: unset !important; /* let shimmer override below */
+}
+
+/* Re-apply shimmer in light mode */
+[data-theme="light"] .wishlist-shimmer-title {
+  background: linear-gradient(90deg,
+    #b4aeae 0%, #c0b7b2 20%, #ffffff 45%, #ccbcbc 62%, #e2d1d4 80%, #dadada 100%);
+  background-size: 280% auto;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  animation: wishTitleShimmer 6s linear infinite !important;
+}
+
 .wishlist-header-royal {
   position: relative;
   padding: clamp(110px, 16vw, 160px) 5% clamp(48px, 7vw, 70px);
@@ -111,6 +136,18 @@
   margin: 0 auto;
 }
 
+/* Seal dark bg under product grid in light mode */
+[data-theme="light"] body:has(.wishlist-main),
+[data-theme="light"] .wishlist-grid .product-card {
+  background: var(--card-bg);
+}
+
+/* Toolbar text visible in light mode */
+[data-theme="light"] .wishlist-toolbar-count,
+[data-theme="light"] .wishlist-toolbar-browse {
+  color: var(--t2) !important;
+}
+
 .wishlist-toolbar {
   display: flex;
   align-items: center;
@@ -172,14 +209,12 @@
 
 .wl-empty-royal {
   position: relative;
-  min-height: 100vh;
-  width: 100%;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: center !important; /* Forces everything to center */
-  padding: 40px 2rem !important;
-  background: linear-gradient(-45deg, #120105, #4A040E, #880808, #250307);
+  min-height: 100vh;          /* full viewport height */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(-45deg, #120105, #960218, #880808, #250307);
   background-size: 400% 400%;
   animation: gradientBG 12s ease infinite;
   overflow: hidden;
@@ -239,8 +274,9 @@
 
 /* ── Ornament lines ─────────────────────────────────────── */
 .wl-empty-ornament-top {
-  position: absolute; /* Kept fixed relative to the wl-empty-royal */
-  top: clamp(100px, 14vh, 150px);
+  position: relative;
+  margin-bottom: 1.5rem;
+  top: auto;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -250,13 +286,14 @@
   width: min(240px, 60vw);
 }
 .wl-empty-ornament-bottom {
-  position: relative; /* CHANGE 3: Changed to relative to flow after the button */
-  margin-top: 3rem;
+  position: relative;
+  margin-top: 2rem;
   z-index: 2;
   width: min(320px, 75vw);
   display: flex;
   align-items: center;
   justify-content: center;
+  opacity: 0.4;
 }
 .wl-orn-line {
   flex: 1;
@@ -290,9 +327,8 @@
 /* ── Logo ──────────────────── */
 /* ── Logo ──────────────────── */
 .wl-empty-logo {
-  /* This container defines the 'center' point */
-  width: clamp(140px, 20vw, 200px);
-  margin-bottom: 0.8rem;
+  width: clamp(80px, 10vw, 120px);   /* smaller so everything fits in one screen */
+  margin-bottom: 0.6rem;
   filter: drop-shadow(0 0 25px rgba(220,20,60,.55)) drop-shadow(0 0 10px rgba(197,160,89,.25));
   animation: wlLogoPulse 4s ease-in-out infinite;
   
@@ -402,11 +438,13 @@
 .wl-suggested {
   position: relative;
   z-index: 5;
-  /* Natural scroll flow — no 100vh push */
-  margin-top: 0; 
-  background: linear-gradient(180deg, #0A0002 0%, #0E0829 40%, #140D3A 100%);
-  padding: 100px 5% 120px;
-  border-top: 1px solid rgba(220,20,60,.25);
+  margin-top: 0;
+  /* Exact same animated red as the empty state above */
+  background: linear-gradient(-45deg, #120105, #4A040E, #880808, #250307);
+  background-size: 400% 400%;
+  animation: gradientBG 12s ease infinite;
+  padding: 80px 5% 120px;
+  border-top: 1px solid rgba(255,255,255,.06);
   display: block !important;
 }
 .wl-suggested-inner {

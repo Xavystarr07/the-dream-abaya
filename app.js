@@ -19,6 +19,69 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 8 *
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || ''); // Added Resend library
 const resend = new Resend(process.env.RESEND_API_KEY || ''); // Initialize Resend
 
+// ── CSRF Protection ────────────────────────────────────────
+const crypto = require('crypto');
+
+function generateCSRFToken() {
+  return crypto.randomBytes(32).toString('hex');
+}
+
+function csrfProtection(req, res, next) {
+  if (req.method === 'GET') {
+    // Generate token for GET requests (forms will include it)
+    const token = generateCSRFToken();
+    req.session.csrfToken = token;
+    res.locals.csrfToken = token;
+    return next();
+  }
+  
+  // For POST/PUT/DELETE requests, verify token
+  const token = req.session.csrfToken;
+  const submittedToken = req.body._csrf || req.headers['x-csrf-token'];
+  
+  if (!token || !submittedToken || token !== submittedToken) {
+    return res.status(403).send('Invalid CSRF token');
+  }
+  
+  // Generate new token after successful verification
+  req.session.csrfToken = generateCSRFToken();
+  next();
+}
+
+// ── Rate Limiting ───────────────────────────────────────────
+const rateLimitStore = new Map();
+
+function rateLimit(options = {}) {
+  const {
+    windowMs = 15 * 60 * 1000, // 15 minutes
+    max = 5, // max requests
+    message = 'Too many requests, please try again later.'
+  } = options;
+  
+  return (req, res, next) => {
+    const key = req.ip + ':' + req.path;
+    const now = Date.now();
+    const windowStart = now - windowMs;
+    
+    if (!rateLimitStore.has(key)) {
+      rateLimitStore.set(key, []);
+    }
+    
+    const requests = rateLimitStore.get(key);
+    // Remove old requests outside window
+    const validRequests = requests.filter(timestamp => timestamp > windowStart);
+    rateLimitStore.set(key, validRequests);
+    
+    if (validRequests.length >= max) {
+      return res.status(429).json({ error: message });
+    }
+    
+    // Add current request
+    validRequests.push(now);
+    next();
+  };
+}
+
 const supabase = createClient(
   process.env.SUPABASE_URL      || '',
   process.env.SUPABASE_ANON_KEY || ''
@@ -45,35 +108,29 @@ app.use((req, res, next) => {
   res.locals.cartCount      = (req.session.cart || []).length;
   res.locals.theme          = req.session.theme || 'dark';
   res.locals.YOCO_PUBLIC_KEY = process.env.YOCO_PUBLIC_KEY || '';
+  // Generate CSRF token for all requests
+  if (!req.session.csrfToken) {
+    req.session.csrfToken = generateCSRFToken();
+  }
+  res.locals.csrfToken = req.session.csrfToken;
+  
+  // Content Security Policy headers
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self'; " +
+    "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://js.yoco.com https://checkout.yoco.com; " +
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+    "font-src 'self' https://fonts.gstatic.com; " +
+    "img-src 'self' data: https:; " +
+    "connect-src 'self' https://api.yoco.com https://checkout.yoco.com https://generativelanguage.googleapis.com; " +
+    "frame-src 'none'; " +
+    "object-src 'none'; " +
+    "base-uri 'self'; " +
+    "form-action 'self';"
+  );
+  
   next();
 });
-
-const MOCK_PRODUCTS = [
-  {id:'mock-1', name:'Rania Couture Abaya',price:3200,category:'dream',section:'The Dream Abaya',material:'Japanese Crepe + Hand-Embroidered Silk',sizes:['XS','S','M','L','XL','XXL'],style:'Flared A-Line',colors:['Midnight Black','Champagne Gold'],is_featured:true,in_stock:true,stock_qty:8,description:'An heirloom-worthy masterpiece. Gold threadwork cascades along the hem.',image_url:'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=600&q=80'},
-  {id:'mock-2', name:'Sultana Embroidered Abaya',price:2850,category:'dream',section:'The Dream Abaya',material:'Premium Nida with Satin Lining',sizes:['S','M','L','XL'],style:'Balloon Sleeves',colors:['Ivory White','Dusty Rose'],is_featured:true,in_stock:true,stock_qty:5,description:'Balloon sleeves with intricate floral embroidery.',image_url:'https://images.unsplash.com/photo-1594938298603-c8148c4b4ae8?w=600&q=80'},
-  {id:'mock-3', name:'Laylat Al Qadr Abaya',price:4100,category:'dream',section:'The Dream Abaya',material:'100% Pure Silk Chiffon',sizes:['XS','S','M','L','XL'],style:'Layered Cape-Over',colors:['Midnight Navy','Forest Emerald'],is_featured:true,in_stock:true,stock_qty:3,description:'Pure silk chiffon abaya flows like liquid light.',image_url:'https://images.unsplash.com/photo-1617375407633-acd17b655a9b?w=600&q=80'},
-  {id:'mock-4', name:'Qamar Bridal Abaya',price:5500,category:'dream',section:'The Dream Abaya',material:'French Lace over Duchess Satin',sizes:['XS','S','M','L','XL','XXL'],style:'Ballgown Cathedral Train',colors:['Antique White','Blush Ivory'],is_featured:false,in_stock:true,stock_qty:2,description:'For the bride who chooses grace.',image_url:'https://images.unsplash.com/photo-1591130901921-b5f1d2ab11c1?w=600&q=80'},
-  {id:'mock-5', name:'Zahra Everyday Abaya',price:480,category:'modest',section:'Modest & Beautiful',material:'Scuba Crepe',sizes:['S','M','L','XL','XXL'],style:'Classic Straight Cut',colors:['Black','Navy','Dusty Pink','Sage'],is_featured:true,in_stock:true,stock_qty:20,description:'The abaya every woman needs.',image_url:'https://images.unsplash.com/photo-1592334873219-42e6b9c99d2e?w=600&q=80'},
-  {id:'mock-6', name:'Hana Casual Abaya',price:360,category:'modest',section:'Modest & Beautiful',material:'Nida Fabric',sizes:['XS','S','M','L','XL'],style:'Open-Front Kimono',colors:['Black','Caramel','Olive'],is_featured:false,in_stock:true,stock_qty:15,description:'Open-front kimono style for every occasion.',image_url:'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=600&q=80'},
-  {id:'mock-7', name:'Noor Wrap Abaya',price:420,category:'modest',section:'Modest & Beautiful',material:'Jersey Knit',sizes:['S','M','L','XL','XXL'],style:'Wrap Front with Belt',colors:['Charcoal','Plum','Forest Green'],is_featured:false,in_stock:true,stock_qty:12,description:'Jersey knit that moves with you.',image_url:'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=600&q=80'},
-  {id:'mock-8', name:'Safi Minimal Abaya',price:750,category:'aesthetic',section:'Simply Aesthetic',material:'Linen Blend',sizes:['XS','S','M','L','XL'],style:'Oversized Minimalist',colors:['Ecru','Sand','Chalk White'],is_featured:true,in_stock:true,stock_qty:9,description:'Unlined linen blend in earthy tones.',image_url:'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=600&q=80'},
-  {id:'mock-9', name:'Baida Linen Co-Ord Set',price:890,category:'aesthetic',section:'Simply Aesthetic',material:'Pure Linen',sizes:['S','M','L','XL'],style:'Wide-Leg + Longline Top',colors:['Oatmeal','Terracotta','French Blue'],is_featured:false,in_stock:true,stock_qty:7,description:'Two-piece pure linen set.',image_url:'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&q=80'},
-  {id:'mock-10', name:'Silk Satin Hijab',price:220,category:'hijabs',section:'Hijabs & Niqabs',material:'100% Silk Satin',sizes:['Standard (180x75cm)'],style:'Square Scarf',colors:['Black','Ivory','Champagne','Rose'],is_featured:true,in_stock:true,stock_qty:30,description:'The hijab that photographs beautifully.',image_url:'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=600&q=80'},
-  {id:'mock-11', name:'Jersey Instant Hijab',price:95,category:'hijabs',section:'Hijabs & Niqabs',material:'Premium Jersey',sizes:['One Size'],style:'Slip-On Instant',colors:['Black','White','Navy','Blush','Grey'],is_featured:false,in_stock:true,stock_qty:50,description:'On in seconds. Premium jersey.',image_url:'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=600&q=80'},
-  {id:'mock-12', name:'Chiffon Niqab',price:150,category:'hijabs',section:'Hijabs & Niqabs',material:'Lightweight Chiffon',sizes:['Standard','Extended'],style:'Half-Face with Elastic',colors:['Black','Charcoal','Navy'],is_featured:false,in_stock:true,stock_qty:18,description:'Feather-light chiffon niqab.',image_url:'https://images.unsplash.com/photo-1530026186672-2cd00ffc50fe?w=600&q=80'},
-  {id:'mock-13', name:'Embroidered Hijab Cap Set',price:310,category:'hijabs',section:'Hijabs & Niqabs',material:'Cotton Lawn + Embroidered Organza',sizes:['One Size'],style:'Bonnet + Overlay Scarf',colors:['White/Gold','Black/Silver'],is_featured:false,in_stock:true,stock_qty:11,description:'Matching bonnet cap and organza overlay.',image_url:'https://images.unsplash.com/photo-1485893226355-3cf62cf5a976?w=600&q=80'},
-  {id:'mock-14', name:'Gold Hijab Pins Set',price:85,category:'accessories',section:'Accessories',material:'Gold-Plated Alloy',sizes:['Set of 6'],style:'Gemstone Head Pins',colors:['Gold/Pearl','Gold/Emerald'],is_featured:false,in_stock:true,stock_qty:40,description:'Six jewelled hijab pins.',image_url:'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=600&q=80'},
-  {id:'mock-15', name:'Structured Modesty Belt',price:195,category:'accessories',section:'Accessories',material:'Vegan Leather + Gold Hardware',sizes:['XS-S','M-L','XL-XXL'],style:'Wide Obi Belt',colors:['Black/Gold','Tan/Gold','White/Silver'],is_featured:true,in_stock:true,stock_qty:14,description:'Define your silhouette.',image_url:'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&q=80'},
-  {id:'mock-16', name:'Prayer Beads — Oud Wood',price:145,category:'accessories',section:'Accessories',material:'Genuine Oud Wood + Sterling Silver',sizes:['33 Beads','99 Beads'],style:'Tasbih',colors:['Natural Oud','Dark Mahogany'],is_featured:false,in_stock:true,stock_qty:22,description:'Handturned oud wood prayer beads.',image_url:'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600&q=80'},
-  {id:'mock-17', name:'Modest Clutch Bag',price:380,category:'accessories',section:'Accessories',material:'Satin + Beaded Closure',sizes:['One Size'],style:'Evening Clutch',colors:['Gold','Black','Champagne','Emerald'],is_featured:false,in_stock:true,stock_qty:8,description:'The clutch that turns heads.',image_url:'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600&q=80'},
-  {id:'mock-18', name:'Oud Al Layl Perfume Oil',price:420,category:'perfumes',section:'Perfumes',material:'Alcohol-Free Perfume Oil',sizes:['3ml','6ml','12ml'],style:'Oriental Oud',colors:['N/A'],is_featured:true,in_stock:true,stock_qty:25,description:'Oud, amber, and a whisper of rose.',image_url:'https://images.unsplash.com/photo-1543169117-f8b7c8a8c5cb?w=600&q=80'},
-  {id:'mock-19', name:'Musk Al Abaya Body Mist',price:185,category:'perfumes',section:'Perfumes',material:'Alcohol-Free Body Mist',sizes:['100ml','200ml'],style:'White Musk',colors:['N/A'],is_featured:false,in_stock:true,stock_qty:30,description:'White musk with sandalwood.',image_url:'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=600&q=80'},
-  {id:'mock-20', name:'Bakhoor Gift Set',price:550,category:'perfumes',section:'Perfumes',material:'Oud Chips + Ceramic Burner',sizes:['50g + Burner'],style:'Bakhoor Incense',colors:['N/A'],is_featured:false,in_stock:true,stock_qty:10,description:'Traditional bakhoor in a modern gift set.',image_url:'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600&q=80'},
-  {id:'mock-21', name:'Rose & Saffron Attar',price:295,category:'perfumes',section:'Perfumes',material:'Pure Attar / Perfume Oil',sizes:['2ml','5ml','10ml'],style:'Floral Oriental',colors:['N/A'],is_featured:false,in_stock:true,stock_qty:17,description:'Persian rose and Kashmir saffron.',image_url:'https://images.unsplash.com/photo-1590156562745-5d3a7a28e2e0?w=600&q=80'},
-  {id:'mock-22', name:'Noor Al Sabah Perfume',price:365,category:'perfumes',section:'Perfumes',material:'Eau de Parfum — Alcohol-Free',sizes:['30ml','50ml'],style:'Fresh Floral Musk',colors:['N/A'],is_featured:false,in_stock:true,stock_qty:13,description:'Morning light in a bottle.',image_url:'https://images.unsplash.com/photo-1541643600914-78b084683702?w=600&q=80'},
-  {id:'mock-23', name:'Amber Oud Eau de Parfum',price:490,category:'perfumes',section:'Perfumes',material:'Eau de Parfum — Alcohol-Free',sizes:['30ml','50ml','100ml'],style:'Warm Oriental',colors:['N/A'],is_featured:true,in_stock:true,stock_qty:8,description:'Deep amber resin and smoky oud.',image_url:'https://images.unsplash.com/photo-1587034782782-c32eea6e4b7a?w=600&q=80'},
-  {id:'mock-24', name:'Travel Perfume Discovery Set',price:320,category:'perfumes',section:'Perfumes',material:'6 x 2ml Vials',sizes:['Set of 6'],style:'Discovery Set',colors:['N/A'],is_featured:false,in_stock:true,stock_qty:16,description:'6 x 2ml vials of bestselling scents.',image_url:'https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=600&q=80'},
-];
 
 async function getProducts(filters={}) {
   try {
@@ -83,20 +140,12 @@ async function getProducts(filters={}) {
     if (filters.search)   q = q.ilike('name', '%'+filters.search+'%');
     q = q.order('created_at', { ascending: false });
     const { data, error } = await q;
-    if (error || !data || !data.length) {
-      let mock = [...MOCK_PRODUCTS];
-      if (filters.category) mock = mock.filter(p=>p.category===filters.category);
-      if (filters.featured)  mock = mock.filter(p=>p.is_featured);
-      if (filters.search)    mock = mock.filter(p=>p.name.toLowerCase().includes(filters.search.toLowerCase()));
-      return mock;
-    }
-    return data;
-  } catch { return MOCK_PRODUCTS; }
+    if (error) { console.error('getProducts error:', error.message); return []; }
+    return data || [];
+  } catch(e) { console.error('getProducts exception:', e.message); return []; }
 }
 
 async function getProductById(id) {
-  const mock = MOCK_PRODUCTS.find(p=>p.id===id);
-  if (mock) return { ...mock, discounts: [], variantStock: {} };
   try {
     const { data } = await supabase.from('products').select('*').eq('id', id).single();
     if (!data) return null;
@@ -154,7 +203,7 @@ async function sendEmail({ to, subject, html }) {
 }
 // Theme
 // Theme — explicit session.save() so it persists across page navigations
-app.post('/theme', (req, res) => {
+app.post('/theme', csrfProtection, (req, res) => {
   const next = req.body.theme || (req.session.theme === 'dark' ? 'light' : 'dark');
   req.session.theme = next;
   req.session.save((err) => {           // ← force write before responding
@@ -325,7 +374,7 @@ app.get('/register', (req, res) => {
   res.render('partials/register', { title: 'Join The Palace', error: null, page: 'auth' });
 });
 
-app.post('/register', async (req, res) => {
+app.post('/register', rateLimit({ windowMs: 60 * 60 * 1000, max: 3 }), csrfProtection, async (req, res) => {
   const { name, email, password, phone } = req.body;
   const re = (error) => res.render('partials/register', { title: 'Join The Palace', error, page: 'auth' });
   if (!name||!email||!password) return re('All fields are required.');
@@ -363,7 +412,7 @@ app.get('/verify-otp', (req, res) => {
   res.render('verify-otp', { title: 'Verify Your Account', error: null, email: req.session.pendingEmail, page: 'auth' });
 });
 
-app.post('/verify-otp', async (req, res) => {
+app.post('/verify-otp', rateLimit({ windowMs: 15 * 60 * 1000, max: 10 }), csrfProtection, async (req, res) => {
   const { otp } = req.body;
   const userId = req.session.pendingUserId;
   if (!userId) return res.redirect('/register');
@@ -397,7 +446,7 @@ app.get('/login', (req, res) => {
   res.render('partials/login', { title: 'Enter The Palace', error: null, success: resetMsg, redirect: req.query.redirect||'/', page: 'auth' });
 });
 
-app.post('/login', async (req, res) => {
+app.post('/login', rateLimit({ windowMs: 15 * 60 * 1000, max: 5 }), csrfProtection, async (req, res) => {
   const { email, password, redirect } = req.body;
   try {
     const { data: user } = await supabase.from('users').select('*').eq('email',email.toLowerCase()).single();
@@ -432,7 +481,7 @@ app.post('/logout', (req, res) => { req.session.destroy(()=>res.redirect('/?bye=
 // ── FORGOT / RESET PASSWORD ────────────────────────────────
 app.get('/forgot-password', (req, res) => res.render('forgot-password', { title:'Reset Password', error:null, success:null, page:'auth' }));
 
-app.post('/forgot-password', async (req, res) => {
+app.post('/forgot-password', rateLimit({ windowMs: 60 * 60 * 1000, max: 3 }), csrfProtection, async (req, res) => {
   const { email } = req.body;
   const re = (error,success) => res.render('forgot-password',{title:'Reset Password',error,success,page:'auth'});
   if (!email) return re('Please enter your email address.', null);
@@ -458,7 +507,7 @@ app.get('/reset-password', async (req, res) => {
   res.render('reset-password', { title:'Set New Password', error:null, token, uid, page:'auth' });
 });
 
-app.post('/reset-password', async (req, res) => {
+app.post('/reset-password', rateLimit({ windowMs: 60 * 60 * 1000, max: 3 }), csrfProtection, async (req, res) => {
   const { token, uid, password, confirm_password } = req.body;
   const re = (error) => res.render('reset-password',{title:'Set New Password',error,token,uid,page:'auth'});
   if (!password||password.length<8) return re('Password must be at least 8 characters.');
@@ -474,7 +523,7 @@ app.post('/reset-password', async (req, res) => {
 });
 
 // Profile update
-app.post('/profile/update', requireAuth, async (req, res) => {
+app.post('/profile/update', requireAuth, csrfProtection, async (req, res) => {
   const { name, current_password, new_password } = req.body;
   try {
     if (name&&name.trim()) { await supabase.from('users').update({name:name.trim()}).eq('id',req.session.user.id); req.session.user.name=name.trim(); }
@@ -606,7 +655,7 @@ Password: ${adminPassword}
 
 // ── AI: describe product from image ──────────────────────────────
 // Accepts either: multipart file upload OR JSON with imageUrl
-app.post('/admin/ai-describe', requireAdmin, upload.single('imageFile'), async (req, res) => {
+app.post('/admin/ai-describe', requireAdmin, csrfProtection, upload.single('imageFile'), async (req, res) => {
   if (!process.env.GEMINI_API_KEY) {
     return res.json({ name: '', description: 'Set GEMINI_API_KEY in your .env file to enable AI descriptions.' });
   }
@@ -716,7 +765,7 @@ app.get('/admin/product-variants/:id', requireAdmin, async (req, res) => {
   } catch(e) { res.json({ success: false, variants: [], product: {} }); }
 });
 // ── Discounts tab: save (create or update) ───────────────────────
-app.post('/admin/discounts/save', requireAdmin, async (req, res) => {
+app.post('/admin/discounts/save', requireAdmin, csrfProtection, async (req, res) => {
   const { product_id, size, color, percent_off, starts_at, ends_at, discount_id } = req.body;
   if (!product_id || !percent_off || !ends_at)
     return res.json({ success: false, message: 'Product, % off and end date are required.' });
@@ -738,7 +787,7 @@ app.post('/admin/discounts/save', requireAdmin, async (req, res) => {
   } catch(e) { res.json({ success: false, message: e.message }); }
 });
 // ── Discounts tab: delete ────────────────────────────────────────
-app.post('/admin/discounts/delete/:id', requireAdmin, async (req, res) => {
+app.post('/admin/discounts/delete/:id', requireAdmin, csrfProtection, async (req, res) => {
   try {
     await supabase.from('discounts').delete().eq('id', req.params.id);
     res.json({ success: true });
@@ -751,7 +800,7 @@ app.get('/admin', requireAdmin, async (req,res) => {
   const {data:users}=await supabase.from('users').select('id,name,email,created_at,is_admin,status,phone').order('created_at',{ascending:false}).limit(50);
   res.render('admin/dashboard',{title:'Admin Command Center',products,orders:orders||[],users:users||[],page:'admin',query:req.query});
 });
-app.post('/admin/products/create', requireAdmin, async (req,res) => {
+app.post('/admin/products/create', requireAdmin, csrfProtection, async (req,res) => {
   const { name, description, price, category, image_url, image_base64, material, sizes, style, colors, is_featured, in_stock, variants_json } = req.body;
   const toArr = v => Array.isArray(v) ? v.filter(Boolean) : (v ? String(v).split(',').map(s=>s.trim()).filter(Boolean) : []);
   const sizesArr  = toArr(sizes);
@@ -770,7 +819,7 @@ app.post('/admin/products/create', requireAdmin, async (req,res) => {
   await saveDiscounts(prod.id, req.body);
   res.redirect('/admin?success=Product+created&tab=products');
 });
-app.post('/admin/products/update/:id', requireAdmin, async (req,res) => {
+app.post('/admin/products/update/:id', requireAdmin, csrfProtection, async (req,res) => {
   const id = req.params.id;
   const { name, description, price, category, image_url, image_base64, material, sizes, style, colors, is_featured, in_stock, variants_json } = req.body;
   const toArr = v => Array.isArray(v) ? v.filter(Boolean) : (v ? String(v).split(',').map(s=>s.trim()).filter(Boolean) : []);
@@ -783,8 +832,8 @@ app.post('/admin/products/update/:id', requireAdmin, async (req,res) => {
   await saveDiscounts(id, req.body);
   res.redirect('/admin?success=Product+updated&tab=products');
 });
-app.post('/admin/products/delete/:id', requireAdmin, async (req,res) => { await supabase.from('products').delete().eq('id',req.params.id); res.redirect('/admin?success=Product+deleted&tab=products'); });
-app.post('/admin/orders/update/:id', requireAdmin, async (req,res) => {
+app.post('/admin/products/delete/:id', requireAdmin, csrfProtection, async (req,res) => { await supabase.from('products').delete().eq('id',req.params.id); res.redirect('/admin?success=Product+deleted&tab=products'); });
+app.post('/admin/orders/update/:id', requireAdmin, csrfProtection, async (req,res) => {
   const{status}=req.body;
   const{data:order}=await supabase.from('orders').select('*').eq('id',req.params.id).single();
   await supabase.from('orders').update({status}).eq('id',req.params.id);
@@ -792,9 +841,9 @@ app.post('/admin/orders/update/:id', requireAdmin, async (req,res) => {
   if (order&&order.customer_email&&msgs[status]) await sendEmail({to:order.customer_email,subject:'✦ Order Update — '+req.params.id,html:`<div style="font-family:Georgia,serif;background:#0D1117;color:#F0EDE8;padding:40px;border:1px solid rgba(197,160,89,.3)"><h2 style="color:#C5A059">Order Update</h2><p style="color:#A9A29A">Order: <strong style="color:#F0EDE8">${req.params.id}</strong></p><div style="background:rgba(197,160,89,.08);border-left:3px solid #C5A059;padding:16px;margin:20px 0"><p style="color:#F0EDE8;margin:0">${msgs[status]}</p></div></div>`});
   res.redirect('/admin?success=Order+updated&tab=orders');
 });
-app.post('/admin/orders/update-status', requireAdmin, async (req,res) => { const{order_id,status}=req.body; await supabase.from('orders').update({status}).eq('id',order_id); res.json({success:true}); });
+app.post('/admin/orders/update-status', requireAdmin, csrfProtection, async (req,res) => { const{order_id,status}=req.body; await supabase.from('orders').update({status}).eq('id',order_id); res.json({success:true}); });
 app.get('/admin/create-staff', requireAdmin, (req,res) => res.render('admin/create-staff',{title:'Create Staff Account',error:null,success:null,page:'admin'}));
-app.post('/admin/create-staff', requireAdmin, async (req,res) => {
+app.post('/admin/create-staff', requireAdmin, csrfProtection, async (req,res) => {
   const{name,email,password,phone,role}=req.body;
   const re=(error,success)=>res.render('admin/create-staff',{title:'Create Staff Account',error,success,page:'admin'});
   if (!name||!email||!password) return re('All fields required.',null);
@@ -808,7 +857,7 @@ app.post('/admin/create-staff', requireAdmin, async (req,res) => {
     re(null,`Staff account for ${name} created successfully.`);
   } catch { re('Failed to create account.',null); }
 });
-app.post('/admin/orders/resend-receipt/:id', requireAdmin, async (req,res) => {
+app.post('/admin/orders/resend-receipt/:id', requireAdmin, csrfProtection, async (req,res) => {
   const{data:order}=await supabase.from('orders').select('*').eq('id',req.params.id).single();
   if (!order) return res.json({success:false});
   await sendEmail({to:order.customer_email,subject:'✦ Receipt — '+order.id,html:`<div style="font-family:Georgia,serif;background:#0D1117;color:#F0EDE8;padding:40px;border:1px solid rgba(197,160,89,.3)"><h2 style="color:#C5A059">Order Receipt</h2><p>Order ID: ${order.id}</p><p>Total: R${Number(order.total_price).toLocaleString('en-ZA')}</p><p>Status: ${order.status}</p></div>`});

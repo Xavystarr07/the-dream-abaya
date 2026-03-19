@@ -192,31 +192,91 @@
 
 <script>
   function changeQty(id, size, delta) {
-    const item = document.querySelector('.cart-item[data-id="' + id + '"][data-size="' + size + '"]');
+    const item    = document.querySelector('.cart-item[data-id="' + id + '"][data-size="' + size + '"]');
     const display = item.querySelector('.qty-display');
-    const max = parseInt(item.dataset.max) || 99;
-    const cur = parseInt(display.textContent);
+    const max     = parseInt(item.dataset.max) || 99;
+    const cur     = parseInt(display.textContent);
+    const newQty  = Math.max(1, Math.min(cur + delta, max));
+
+    // Block if already at max
     if (delta > 0 && cur >= max) { showToast('Only ' + max + ' left in stock', 'error'); return; }
+
     fetch('/cart/update', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ product_id: id, size, qty: Math.max(1, Math.min(cur + delta, max)) })
-    }).then(() => location.reload());
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ product_id: id, size, qty: newQty })
+    })
+    .then(r => r.json())
+    .then(() => {
+      // Update qty display in-place
+      display.textContent = newQty;
+
+      // Update subtotal for this item
+      const priceText = item.querySelector('.cart-item-price')?.textContent || '';
+      const unitPrice = parseFloat(priceText.replace(/[^0-9.]/g, '')) || 0;
+      const subtotalEl = item.querySelector('.cart-item-subtotal');
+      if (subtotalEl) subtotalEl.textContent = 'R' + (unitPrice * newQty).toLocaleString('en-ZA');
+
+      // Recalculate summary totals
+      recalcSummary();
+    });
   }
 
   function removeItem(id, size, btn) {
+    const item = btn.closest('.cart-item');
+
     fetch('/cart/remove', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ product_id: id, size })
-    }).then(() => {
+    })
+    .then(r => r.json())
+    .then(() => {
+      // Animate out then remove from DOM
       if (typeof gsap !== 'undefined') {
-        gsap.to(btn.closest('.cart-item'), {
-          opacity: 0, height: 0, marginBottom: 0, duration: 0.4,
-          onComplete: () => location.reload()
+        gsap.to(item, {
+          opacity: 0, height: 0, marginBottom: 0, paddingTop: 0, paddingBottom: 0,
+          duration: 0.35, ease: 'power2.in',
+          onComplete: () => { item.remove(); recalcSummary(); }
         });
       } else {
-        location.reload();
+        item.remove();
+        recalcSummary();
       }
     });
+  }
+
+  function recalcSummary() {
+    // Sum all visible cart items
+    let total = 0;
+    document.querySelectorAll('.cart-item').forEach(item => {
+      const priceText = item.querySelector('.cart-item-price')?.textContent || '';
+      const qty       = parseInt(item.querySelector('.qty-display')?.textContent) || 0;
+      const unitPrice = parseFloat(priceText.replace(/[^0-9.]/g, '')) || 0;
+      total += unitPrice * qty;
+    });
+
+    const fmt = v => 'R' + v.toLocaleString('en-ZA');
+
+    // Update summary panel
+    document.querySelectorAll('.cart-summary-total span:last-child').forEach(el => { el.textContent = fmt(total); });
+    document.querySelectorAll('.cart-summary-line').forEach(line => {
+      const label = line.querySelector('span:first-child')?.textContent?.toLowerCase() || '';
+      if (label === 'subtotal') line.querySelector('span:last-child').textContent = fmt(total);
+    });
+
+    // Update checkout button text
+    const payBtn = document.getElementById('cartCheckoutBtn');
+    if (payBtn) {
+      const btnText = payBtn.querySelector('.cta-text') || payBtn.firstChild;
+      if (btnText && btnText.nodeType === 3) {
+        // text node — update inline
+      }
+      // Re-set the amountCents global for the payment fetch
+      window.__cartTotal = total;
+    }
+
+    showToast('Cart updated ✦', 'success');
   }
 
   function openCartPayment() {
@@ -231,7 +291,7 @@
     if (!email) { showToast('Please enter your email', 'error'); document.getElementById('co_email').focus(); return; }
     if (!address) { showToast('Please enter your delivery address', 'error'); document.getElementById('co_address').focus(); return; }
 
-    const amountCents = <%= Math.round(total * 100) %>;
+    const amountCents = Math.round((window.__cartTotal || <%= Math.round(total * 100) %> / 100) * 100);
     
     <% 
       const cleanCart = cart.map(function(i) { 

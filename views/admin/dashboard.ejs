@@ -277,7 +277,11 @@ function colorToHex(colorName) {
 
   function closeEdit() {
     document.getElementById('editModal').classList.remove('open');
-    document.getElementById('editFormFields').innerHTML = '';
+    // Clear content safely without innerHTML
+    const container = document.getElementById('editFormFields');
+    while (container.firstChild) {
+      container.removeChild(container.firstChild);
+    }
   }
 
 
@@ -289,36 +293,92 @@ function colorToHex(colorName) {
       const res  = await fetch('/admin/discounts-data', { credentials: 'same-origin' });
       const data = await res.json();
       const tbody = document.getElementById('disc-tbody');
+      
+      // Clear table safely
+      while (tbody.firstChild) {
+        tbody.removeChild(tbody.firstChild);
+      }
+      
       if (!data.discounts || !data.discounts.length) {
-        tbody.innerHTML = '<tr><td colspan="8" class="admin-empty">No discounts yet. Click + New Discount to add one.</td></tr>';
+        const row = tbody.insertRow();
+        const cell = row.insertCell();
+        cell.colSpan = 8;
+        cell.className = 'admin-empty';
+        cell.textContent = 'No discounts yet. Click + New Discount to add one.';
         return;
       }
+      
       const now = new Date();
-      tbody.innerHTML = data.discounts.map(d => {
+      data.discounts.forEach(d => {
         const start  = new Date(d.starts_at);
         const end    = new Date(d.ends_at);
         const active = start <= now && end >= now;
         const ended  = end < now;
-        const badge  = ended
+        
+        const row = tbody.insertRow();
+        
+        // Product name
+        const nameCell = row.insertCell();
+        nameCell.className = 'admin-product-name';
+        nameCell.textContent = d.products?.name || '—';
+        
+        // Size
+        const sizeCell = row.insertCell();
+        if (d.size) {
+          sizeCell.textContent = d.size;
+        } else {
+          sizeCell.innerHTML = '<span style="color:rgba(232,229,224,.35)">All</span>';
+        }
+        
+        // Color
+        const colorCell = row.insertCell();
+        if (d.color) {
+          colorCell.textContent = d.color;
+        } else {
+          colorCell.innerHTML = '<span style="color:rgba(232,229,224,.35)">All</span>';
+        }
+        
+        // Percent
+        const percentCell = row.insertCell();
+        percentCell.innerHTML = `<strong style="color:#C5A059">${d.percent_off}%</strong>`;
+        
+        // Start date
+        const startCell = row.insertCell();
+        startCell.style.fontSize = '.74rem';
+        startCell.textContent = new Date(d.starts_at).toLocaleDateString('en-ZA');
+        
+        // End date
+        const endCell = row.insertCell();
+        endCell.style.fontSize = '.74rem';
+        endCell.textContent = new Date(d.ends_at).toLocaleDateString('en-ZA');
+        
+        // Badge
+        const badgeCell = row.insertCell();
+        const badge = ended
           ? '<span class="admin-badge" style="color:rgba(232,229,224,.3)">Expired</span>'
           : active
             ? '<span class="admin-badge status-shipped">Active</span>'
             : '<span class="admin-badge">Scheduled</span>';
-        return `<tr>
-          <td class="admin-product-name">${d.products?.name || '—'}</td>
-          <td>${d.size  || '<span style="color:rgba(232,229,224,.35)">All</span>'}</td>
-          <td>${d.color || '<span style="color:rgba(232,229,224,.35)">All</span>'}</td>
-          <td><strong style="color:#C5A059">${d.percent_off}%</strong></td>
-          <td style="font-size:.74rem">${new Date(d.starts_at).toLocaleDateString('en-ZA')}</td>
-          <td style="font-size:.74rem">${new Date(d.ends_at).toLocaleDateString('en-ZA')}</td>
-          <td>${badge}</td>
-          <td class="admin-actions">
-            <button class="admin-btn-edit" onclick='discEdit(${JSON.stringify(d)})'>Edit</button>
-            <button class="admin-btn-del"  onclick="discDelete('${d.id}')">Delete</button>
-          </td>
-        </tr>`;
-      }).join('');
-    } catch(e) { console.error('discLoadTable:', e); }
+        badgeCell.innerHTML = badge;
+        
+        // Actions
+        const actionsCell = row.insertCell();
+        actionsCell.className = 'admin-actions';
+        
+        const editBtn = document.createElement('button');
+        editBtn.className = 'admin-btn-edit';
+        editBtn.textContent = 'Edit';
+        editBtn.onclick = () => discEdit(d);
+        
+        const delBtn = document.createElement('button');
+        delBtn.className = 'admin-btn-del';
+        delBtn.textContent = 'Delete';
+        delBtn.onclick = () => discDelete(d.id);
+        
+        actionsCell.appendChild(editBtn);
+        actionsCell.appendChild(delBtn);
+      });
+    } catch(e) { console.error('discLoadTable error:', e); }
   }
 
   async function discLoadVariants() {
@@ -326,8 +386,22 @@ function colorToHex(colorName) {
     const productId = sel.value;
     const sizeEl  = document.getElementById('disc-size');
     const colorEl = document.getElementById('disc-color');
-    sizeEl.innerHTML  = '<option value="">All Sizes</option>';
-    colorEl.innerHTML = '<option value="">All Colors</option>';
+    
+    // Clear options safely
+    while (sizeEl.firstChild) sizeEl.removeChild(sizeEl.firstChild);
+    while (colorEl.firstChild) colorEl.removeChild(colorEl.firstChild);
+    
+    // Add default options
+    const defaultSizeOpt = document.createElement('option');
+    defaultSizeOpt.value = '';
+    defaultSizeOpt.textContent = 'All Sizes';
+    sizeEl.appendChild(defaultSizeOpt);
+    
+    const defaultColorOpt = document.createElement('option');
+    defaultColorOpt.value = '';
+    defaultColorOpt.textContent = 'All Colors';
+    colorEl.appendChild(defaultColorOpt);
+    
     document.getElementById('disc-stock-preview').style.display = 'none';
     if (!productId) return;
 
@@ -350,8 +424,21 @@ function colorToHex(colorName) {
         arr.forEach(c => { if(c.trim()) colors.push(c.trim()); });
       }
 
-      sizes.forEach(s  => sizeEl.innerHTML  += `<option value="${s}">${s}</option>`);
-      colors.forEach(c => colorEl.innerHTML += `<option value="${c}">${c}</option>`);
+      // Add size options safely
+      sizes.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s;
+        opt.textContent = s;
+        sizeEl.appendChild(opt);
+      });
+      
+      // Add color options safely
+      colors.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        colorEl.appendChild(opt);
+      });
     } catch(e) { console.error('discLoadVariants:', e); }
   }
 

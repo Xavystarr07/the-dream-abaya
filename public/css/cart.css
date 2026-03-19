@@ -641,4 +641,56 @@ footer.royal-footer {
   .cart-main { padding: 40px 4% 70px; }
 }
 
+/* ── CART: lock dark theme in both light + dark mode ─────── */
+[data-theme="light"] .cart-main,
+[data-theme="light"] body:has(.cart-main) {
+  background: var(--bg) !important;
+}
+
+/* Cart header stays dark/navy regardless of theme */
+[data-theme="light"] .vault-header.cart-header-royal {
+  background:
+    radial-gradient(ellipse 70% 55% at 30% 80%, rgba(138,90,200,.12) 0%, transparent 65%),
+    radial-gradient(ellipse 60% 45% at 75% 20%, rgba(197,160,89,.08) 0%, transparent 60%),
+    linear-gradient(158deg, #07041A 0%, #0E0829 30%, #140D3A 55%, #0A0E2E 80%, #050415 100%) !important;
+}
+
+/* Cart blocks: keep dark surface in light mode */
+[data-theme="light"] .checkout-block {
+  background: #1a1f2e !important;
+  border-color: rgba(197,160,89,.2) !important;
+}
+[data-theme="light"] .checkout-block-header h3,
+[data-theme="light"] .checkout-block-header p,
+[data-theme="light"] .cart-item-name,
+[data-theme="light"] .cart-item-price,
+[data-theme="light"] .cart-item-size,
+[data-theme="light"] .qty-display {
+  color: #F0EDE8 !important;
+}
+[data-theme="light"] .checkout-field label {
+  color: rgba(240,237,232,.5) !important;
+}
+[data-theme="light"] .auth-input {
+  background: rgba(255,255,255,.06) !important;
+  border-color: rgba(197,160,89,.25) !important;
+  color: #F0EDE8 !important;
+}
+[data-theme="light"] .auth-input::placeholder {
+  color: rgba(240,237,232,.35) !important;
+}
+
+/* Cart summary: keep dark */
+[data-theme="light"] .cart-summary {
+  background: #141824 !important;
+  border-color: rgba(197,160,89,.2) !important;
+}
+[data-theme="light"] .cart-summary h3,
+[data-theme="light"] .cart-summary-line,
+[data-theme="light"] .cart-summary-total {
+  color: #F0EDE8 !important;
+}
+[data-theme="light"] .cart-trust span {
+  color: rgba(240,237,232,.45) !important;
+}
 /* ── END cart.css ── */

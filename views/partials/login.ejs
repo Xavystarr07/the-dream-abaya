@@ -50,6 +50,7 @@
 
         <form action="/login" method="POST" novalidate>
           <input type="hidden" name="redirect" value="<%= redirect %>"/>
+          <%- include('csrf-token') %>
 
           <div class="auth-field">
             <label for="loginEmail">Email Address</label>
@@ -122,7 +123,7 @@
     btn.textContent = inp.type === 'password' ? '👁' : '🙈';
     btn.setAttribute('aria-label', inp.type === 'password' ? 'Show password' : 'Hide password');
   }
-  gsap.from('#authFormWrap', { opacity:0, y:35, duration:0.8, ease:'power3.out', delay:0.2 });
+  
 
   const panel = document.getElementById('particles');
   if (panel) {
