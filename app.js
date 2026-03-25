@@ -19,9 +19,6 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 8 *
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || ''); // Added Resend library
 const resend = new Resend(process.env.RESEND_API_KEY || ''); // Initialize Resend
 
-// ── CSRF Protection ────────────────────────────────────────
-const crypto = require('crypto');
-
 function generateCSRFToken() {
   return crypto.randomBytes(32).toString('hex');
 }
@@ -119,10 +116,10 @@ app.use((req, res, next) => {
     'Content-Security-Policy',
     "default-src 'self'; " +
     "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://js.yoco.com https://checkout.yoco.com; " +
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-    "font-src 'self' https://fonts.gstatic.com; " +
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
+    "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
     "img-src 'self' data: https:; " +
-    "connect-src 'self' https://api.yoco.com https://checkout.yoco.com https://generativelanguage.googleapis.com; " +
+    "connect-src 'self' https://api.yoco.com https://checkout.yoco.com https://generativelanguage.googleapis.com https://cdn.jsdelivr.net; " +
     "frame-src 'none'; " +
     "object-src 'none'; " +
     "base-uri 'self'; " +
@@ -203,7 +200,7 @@ async function sendEmail({ to, subject, html }) {
 }
 // Theme
 // Theme — explicit session.save() so it persists across page navigations
-app.post('/theme', csrfProtection, (req, res) => {
+app.post('/theme', (req, res) => {
   const next = req.body.theme || (req.session.theme === 'dark' ? 'light' : 'dark');
   req.session.theme = next;
   req.session.save((err) => {           // ← force write before responding
@@ -592,7 +589,7 @@ app.get('/wishlist', async (req,res) => {
     page: 'wishlist'
   });
 });
-app.post('/wishlist/toggle',(req,res) => { const{product_id}=req.body; if(!req.session.wishlist)req.session.wishlist=[]; const idx=req.session.wishlist.indexOf(product_id); if(idx>-1){req.session.wishlist.splice(idx,1);res.json({success:true,action:'removed',count:req.session.wishlist.length});}else{req.session.wishlist.push(product_id);res.json({success:true,action:'added',count:req.session.wishlist.length});} });
+app.post('/wishlist/toggle', (req,res) => { const{product_id}=req.body; if(!req.session.wishlist)req.session.wishlist=[]; const idx=req.session.wishlist.indexOf(product_id); if(idx>-1){req.session.wishlist.splice(idx,1);res.json({success:true,action:'removed',count:req.session.wishlist.length});}else{req.session.wishlist.push(product_id);res.json({success:true,action:'added',count:req.session.wishlist.length});} });
 
 // Track order
 app.get('/track',(req,res)=>res.render('partials/track',{title:'Track Order',order:null,searchId:'',error:null,page:'track',user:req.session.user}));
