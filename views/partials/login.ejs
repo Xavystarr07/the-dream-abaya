@@ -3,137 +3,703 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-  <meta name="description" content="Sign in to The Dream Abaya"/>
-  <meta http-equiv="X-Content-Type-Options" content="nosniff"/>
   <title><%= title %></title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Cinzel:wght@400;500&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Cinzel:wght@400;500&family=Jost:wght@200;300;400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="/css/tokens.css"/>
-<link rel="stylesheet" href="/css/nav.css"/>
-<link rel="stylesheet" href="/css/logo.css"/>
-<link rel="stylesheet" href="/css/auth.css"/>
-<link rel="stylesheet" href="/css/utilities.css"/>
+  <link rel="stylesheet" href="/css/nav.css"/>
+  <link rel="stylesheet" href="/css/logo.css"/>
+  <link rel="stylesheet" href="/css/utilities.css"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.4/gsap.min.js"></script>
+
+  <style>
+    /* ── Strip auth.css forced pink bg ──────────────────────── */
+    .auth-body,[data-theme="dark"] .auth-body,[data-theme="light"] .auth-body{background:none!important;}
+
+    /* ── OUTER PAGE — full screen, nav-bg gradient ───────────── */
+    /* UPDATED: Page shell is the nav-bg color, nav floats above it untouched */
+    .login-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;           /* UPDATED: vertically center the inner split */
+      justify-content: center;
+      padding: 88px 2rem 2rem;       /* UPDATED: 88px top clears fixed nav cleanly */
+      gap: 2rem;                     /* UPDATED: gap between left card and right form */
+      box-sizing: border-box;
+    }
+    [data-theme="dark"] .login-page,
+    :root:not([data-theme="light"]) .login-page {
+      background: linear-gradient(154deg,#07090a 0%,#0f1318 60%,#1f2731 100%); /* UPDATED: exact --nav-bg */
+    }
+    [data-theme="light"] .login-page {
+      background: linear-gradient(154deg,#f5f2ec 0%,#eee9e0 60%,#e5e0d6 100%);
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       LEFT — FLOATING CARD (like pic 2 — contained, rounded,
+       gap all around so nav is completely unaffected above it)
+    ══════════════════════════════════════════════════════════ */
+    .login-left {
+      /* UPDATED: Floating card — NOT full height, NOT touching edges */
+      flex: 0 0 420px;
+      max-width: 420px;
+      height: calc(100vh - 88px - 4rem); /* UPDATED: fits inside viewport below nav */
+      max-height: 680px;
+      border-radius: 16px;             /* UPDATED: rounded corners like pic 2 */
+      overflow: hidden;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    /* Slider fills the card */
+    .login-slider {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      /* UPDATED: No transition here — GSAP handles it */
+    }
+
+    /* Each slide */
+    .login-slide {
+      min-width: 100%;
+      height: 100%;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;        /* UPDATED: Vertically centered content */
+      padding: 2.5rem;
+      overflow: hidden;
+    }
+
+    .login-slide-1 {
+      background: linear-gradient(160deg,#3a0020 0%,#8a0050 40%,#c2006e 70%,#e8007a 100%);
+    }
+    .login-slide-2 {
+      background: linear-gradient(160deg,#0a0520 0%,#1a0a40 40%,#2d1060 70%,#3d1580 100%);
+    }
+    .login-slide-3 {
+      background: linear-gradient(160deg,#0d1520 0%,#1a2535 50%,#0d1520 100%);
+    }
+
+    /* Slide 3 hijabi image */
+    .login-slide-3-bg {
+      position: absolute; inset: 0;
+      background-image: url('https://images.unsplash.com/photo-1585938389612-a552a28d6914?w=800&q=80');
+      background-size: cover;
+      background-position: center top;
+      opacity: 0.4;
+    }
+
+    /* Dark gradient overlay — bottom to top for text readability */
+    .login-slide::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.1) 60%, transparent 100%);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* Decorative orb — adds depth */
+    .login-slide-orb {
+      position: absolute; border-radius: 50%; filter: blur(70px);
+      pointer-events: none; z-index: 0;
+      animation: orbPulse 7s ease-in-out infinite;
+    }
+    .login-slide-1 .login-slide-orb {
+      width: 260px; height: 260px;
+      background: rgba(255,100,180,0.28);
+      top: -40px; right: -40px;
+    }
+    .login-slide-2 .login-slide-orb {
+      width: 220px; height: 220px;
+      background: rgba(120,60,255,0.22);
+      bottom: -30px; left: -30px;
+      animation-direction: reverse;
+    }
+    @keyframes orbPulse {
+      0%,100%{transform:scale(1);opacity:.7;}
+      50%{transform:scale(1.1);opacity:1;}
+    }
+
+    /* Slide content — centered */
+    .login-slide-content {
+      position: relative;
+      z-index: 2;
+      text-align: center;            /* UPDATED: All content centered on left card */
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .login-slide-eyebrow {
+      font-family: 'Jost', sans-serif;
+      font-size: .55rem;
+      letter-spacing: .5em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 1rem;
+    }
+    .login-slide-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(1.9rem,3vw,2.6rem);
+      font-weight: 400;
+      color: #fff;
+      line-height: 1.1;
+      margin-bottom: .7rem;
+      text-align: center;
+    }
+    .login-slide-title em { font-style: italic; color: rgba(255,200,230,0.9); }
+    .login-slide-subtitle {
+      font-family: 'Jost', sans-serif;
+      font-size: .8rem;
+      font-weight: 300;
+      color: rgba(255,255,255,0.58);
+      line-height: 1.7;
+      max-width: 280px;
+      text-align: center;
+    }
+
+    /* Slide 2 features — centered */
+    .login-slide-features {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      width: 100%;
+      max-width: 300px;
+    }
+    .login-slide-feature {
+      display: flex;
+      align-items: center;           /* UPDATED: Center-align feature rows */
+      gap: 12px;
+      text-align: left;
+    }
+    .login-feature-icon {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.18);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .login-feature-icon svg { stroke: rgba(255,255,255,0.85); }
+    .login-feature-text h4 {
+      font-family: 'Cinzel', serif;
+      font-size: .65rem;
+      letter-spacing: .1em;
+      color: #fff;
+      margin-bottom: 2px;
+    }
+    .login-feature-text p {
+      font-family: 'Jost', sans-serif;
+      font-size: .72rem;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.4;
+    }
+
+    /* Slide 3 quote — centered */
+    .login-slide-quote {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(1.4rem,2.5vw,1.9rem);
+      font-style: italic;
+      color: #fff;
+      line-height: 1.35;
+      margin-bottom: .8rem;
+      text-align: center;
+    }
+    .login-slide-quote-attr {
+      font-family: 'Jost', sans-serif;
+      font-size: .6rem;
+      letter-spacing: .35em;
+      text-transform: uppercase;
+      color: rgba(255,200,230,0.65);
+      text-align: center;
+    }
+
+    /* Slider dots — inside card, bottom-center */
+    .login-slider-dots {
+      position: absolute;
+      bottom: 1.2rem;
+      left: 0; right: 0;
+      display: flex;
+      justify-content: center;
+      gap: 7px;
+      z-index: 10;
+    }
+    .login-dot {
+      height: 3px;
+      border-radius: 2px;
+      background: rgba(255,255,255,0.3);
+      cursor: pointer;
+      transition: all 0.4s ease;
+    }
+    .login-dot.active { background: #fff; width: 26px !important; }  /* UPDATED: wider active dot */
+    .login-dot:not(.active) { width: 7px; }
+
+    /* ══════════════════════════════════════════════════════════
+       RIGHT — FORM PANEL
+    ══════════════════════════════════════════════════════════ */
+    .login-right {
+      flex: 1;
+      max-width: 440px;              /* UPDATED: constrained so it doesn't stretch */
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      padding: 0;                    /* UPDATED: no extra padding, page handles spacing */
+    }
+
+    .login-form-wrap { width: 100%; position: relative; z-index: 1; }
+
+    /* Form heading */
+    .login-heading {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(1.9rem,3vw,2.7rem);
+      font-weight: 400;
+      line-height: 1.12;
+      margin-bottom: .3rem;
+    }
+    [data-theme="dark"] .login-heading,
+    :root:not([data-theme="light"]) .login-heading { color: #F0EDE8; }
+    [data-theme="light"] .login-heading { color: #1a1410; }
+    .login-heading em { font-style: italic; color: #c2006e; }
+
+    .login-sub {
+      font-family: 'Jost', sans-serif;
+      font-size: .79rem;
+      font-weight: 300;
+      margin-bottom: 1.8rem;
+    }
+    [data-theme="dark"] .login-sub,
+    :root:not([data-theme="light"]) .login-sub { color: rgba(240,237,232,0.4); }
+    [data-theme="light"] .login-sub { color: rgba(30,24,16,0.42); }
+
+    /* Icon header row */
+    .login-form-header {
+      display: flex;
+      align-items: center;
+      gap: .9rem;
+      margin-bottom: 1.6rem;
+    }
+    .login-form-icon {
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    [data-theme="dark"] .login-form-icon,
+    :root:not([data-theme="light"]) .login-form-icon {
+      background: rgba(194,0,110,0.08);
+      border: 1px solid rgba(194,0,110,0.2);
+    }
+    [data-theme="light"] .login-form-icon {
+      background: rgba(194,0,110,0.06);
+      border: 1px solid rgba(194,0,110,0.16);
+    }
+    .login-form-icon svg { stroke: #c2006e; }
+    .login-icon-label { display: flex; flex-direction: column; gap: 2px; }
+    .login-icon-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.15rem;
+      font-weight: 400;
+    }
+    [data-theme="dark"] .login-icon-title,
+    :root:not([data-theme="light"]) .login-icon-title { color: #F0EDE8; }
+    [data-theme="light"] .login-icon-title { color: #1a1410; }
+    .login-icon-desc {
+      font-family: 'Jost', sans-serif;
+      font-size: .72rem;
+    }
+    [data-theme="dark"] .login-icon-desc,
+    :root:not([data-theme="light"]) .login-icon-desc { color: rgba(240,237,232,0.38); }
+    [data-theme="light"] .login-icon-desc { color: rgba(30,24,16,0.38); }
+
+    /* Error / success messages */
+    .login-msg {
+      border-left: 2px solid;
+      padding: 10px 14px;
+      font-family: 'Jost', sans-serif;
+      font-size: .74rem;
+      margin-bottom: 1.1rem;
+    }
+    .login-msg.error { border-color: #e74c3c; }
+    .login-msg.success { border-color: #4CAF50; }
+    [data-theme="dark"] .login-msg.error,
+    :root:not([data-theme="light"]) .login-msg.error { background: rgba(231,76,60,0.07); color: #ffaaaa; }
+    [data-theme="light"] .login-msg.error { background: rgba(231,76,60,0.05); color: #c0392b; }
+    [data-theme="dark"] .login-msg.success,
+    :root:not([data-theme="light"]) .login-msg.success { background: rgba(76,175,80,0.07); color: #a8e6b0; }
+    [data-theme="light"] .login-msg.success { background: rgba(76,175,80,0.05); color: #2e7d32; }
+
+    /* Input fields */
+    .login-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 1rem; }
+    .login-field label {
+      font-family: 'Jost', sans-serif;
+      font-size: .56rem;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+    }
+    [data-theme="dark"] .login-field label,
+    :root:not([data-theme="light"]) .login-field label { color: rgba(194,0,110,0.75); }
+    [data-theme="light"] .login-field label { color: rgba(194,0,110,0.85); }
+
+    .login-input {
+      width: 100%;
+      padding: 13px 14px;
+      font-family: 'Jost', sans-serif;
+      font-size: .85rem;
+      outline: none;
+      border-radius: 2px;
+      transition: border-color .25s, box-shadow .25s;
+    }
+    [data-theme="dark"] .login-input,
+    :root:not([data-theme="light"]) .login-input {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(194,0,110,0.22);
+      color: #F0EDE8;
+    }
+    [data-theme="light"] .login-input {
+      background: #fff;
+      border: 1px solid rgba(194,0,110,0.2);
+      color: #1a1410;
+    }
+    [data-theme="dark"] .login-input::placeholder,
+    :root:not([data-theme="light"]) .login-input::placeholder { color: rgba(240,237,232,0.2); }
+    [data-theme="light"] .login-input::placeholder { color: rgba(30,24,16,0.28); }
+    .login-input:focus {
+      border-color: #c2006e !important;
+      box-shadow: 0 0 0 3px rgba(194,0,110,0.08);
+    }
+
+    .pw-wrap { position: relative; }
+    .pw-eye {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer; padding: 4px;
+    }
+    [data-theme="dark"] .pw-eye,
+    :root:not([data-theme="light"]) .pw-eye { color: rgba(240,237,232,0.35); }
+    [data-theme="light"] .pw-eye { color: rgba(30,24,16,0.35); }
+
+    .login-forgot {
+      font-family: 'Jost', sans-serif;
+      font-size: .7rem;
+      color: #c2006e;
+      text-decoration: none;
+      text-underline-offset: 3px;
+      display: block;
+      text-align: right;
+      margin: -4px 0 1.2rem;
+      transition: opacity .2s;
+    }
+    .login-forgot:hover { opacity: .7; text-decoration: underline; }
+
+    /* Submit button — pink */
+    .login-submit {
+      width: 100%;
+      padding: 14px 24px;
+      font-family: 'Cinzel', serif;
+      font-size: .7rem;
+      letter-spacing: .3em;
+      text-transform: uppercase;
+      cursor: pointer;
+      border: none;
+      background: linear-gradient(135deg,#c2006e 0%,#e006a9 50%,#c2006e 100%);
+      color: #fff;
+      border-radius: 2px;
+      transition: transform .25s, box-shadow .25s;
+      box-shadow: 0 6px 24px rgba(194,0,110,0.32);
+      position: relative;
+      overflow: hidden;
+    }
+    .login-submit:hover { transform: translateY(-2px); box-shadow: 0 12px 36px rgba(194,0,110,0.44); }
+    .login-submit:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+    /* UPDATED: Shimmer kept on button only — no page-level progress bar */
+    .login-submit::after {
+      content: '';
+      position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+      background: linear-gradient(90deg,transparent,rgba(255,255,255,0.18),transparent);
+      animation: btnShimmer 3s ease-in-out infinite;
+    }
+    @keyframes btnShimmer { 0%{left:-100%;} 55%{left:140%;} 100%{left:140%;} }
+
+    /* Divider */
+    .login-divider {
+      display: flex; align-items: center; gap: 12px;
+      margin: 1.3rem 0;
+      font-family: 'Jost', sans-serif;
+      font-size: .6rem;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+    [data-theme="dark"] .login-divider,
+    :root:not([data-theme="light"]) .login-divider { color: rgba(240,237,232,0.22); }
+    [data-theme="light"] .login-divider { color: rgba(30,24,16,0.25); }
+    .login-divider::before,.login-divider::after {
+      content: ''; flex: 1; height: 1px;
+    }
+    [data-theme="dark"] .login-divider::before,
+    [data-theme="dark"] .login-divider::after,
+    :root:not([data-theme="light"]) .login-divider::before,
+    :root:not([data-theme="light"]) .login-divider::after { background: rgba(194,0,110,0.12); }
+    [data-theme="light"] .login-divider::before,
+    [data-theme="light"] .login-divider::after { background: rgba(194,0,110,0.14); }
+
+    .login-new {
+      font-family: 'Jost', sans-serif;
+      font-size: .74rem;
+      text-align: center;
+    }
+    [data-theme="dark"] .login-new,
+    :root:not([data-theme="light"]) .login-new { color: rgba(240,237,232,0.35); }
+    [data-theme="light"] .login-new { color: rgba(30,24,16,0.38); }
+    .login-new a { color: #c2006e; text-decoration: underline; text-underline-offset: 3px; }
+
+    /* Ambient particles on right side */
+    .login-particle {
+      position: absolute; width: 2px; height: 2px; border-radius: 50%;
+      pointer-events: none;
+      animation: pFloat var(--d,6s) ease-in-out infinite var(--dl,0s);
+      opacity: 0;
+    }
+    [data-theme="dark"] .login-particle,
+    :root:not([data-theme="light"]) .login-particle { background: rgba(194,0,110,0.35); }
+    [data-theme="light"] .login-particle { background: rgba(194,0,110,0.18); }
+    @keyframes pFloat {
+      0%,100%{opacity:0;transform:translateY(0);}
+      25%{opacity:.5;} 75%{opacity:.15;}
+      100%{opacity:0;transform:translateY(-60px);}
+    }
+
+    /* Mobile — left card hides, form full-width */
+    @media(max-width:768px) {
+      .login-left { display: none; }
+      .login-page { padding: 88px 1.5rem 2rem; justify-content: center; }
+      .login-right { max-width: 100%; }
+    }
+  </style>
 </head>
+
 <body class="auth-body">
   <%- include('css-base') %>
-<%- include('nav') %>
+  <%- include('nav') %>  <!-- UPDATED: Nav is completely outside .login-page, unaffected -->
 
-<main class="auth-main login-main">
-  <div class="auth-split">
+  <main class="login-page">
 
-    <!-- Brand Panel -->
-    <div class="auth-brand-panel">
-      <div class="auth-brand-content">
-        <div class="auth-brand-ornament">✦ ✦ ✦</div>
-        <h2 class="auth-brand-title">Welcome Back,<br/><em>Princess</em></h2>
-        <p class="auth-brand-desc">Your wishlist awaits. Your cart remembers. Your palace is ready.</p>
-        <div class="auth-perks">
-          <div class="auth-perk"><span>✦</span> Access your wishlist</div>
-          <div class="auth-perk"><span>✦</span> Track your orders</div>
-          <div class="auth-perk"><span>✦</span> Exclusive member deals</div>
+    <!-- ════════════════════════════════════════════════════════
+         LEFT — FLOATING CARD WITH SLIDER
+         UPDATED: Contained card like pic 2 — no topbar inside,
+         no logo, no "back to site", no progress bar.
+         Nav sits above this entire <main> untouched.
+    ════════════════════════════════════════════════════════ -->
+    <div class="login-left">
+
+      <!-- Slider track -->
+      <div class="login-slider" id="loginSlider">
+
+        <!-- SLIDE 1 — Welcome Back -->
+        <div class="login-slide login-slide-1">
+          <div class="login-slide-orb"></div>
+          <div class="login-slide-content">
+            <div class="login-slide-eyebrow">The Dream Abaya</div>
+            <h2 class="login-slide-title">Welcome<br/><em>Back, Princess</em></h2>
+            <p class="login-slide-subtitle">Your palace awaits. Every piece, every order, every wishlist — all in one place.</p>
+          </div>
         </div>
-        <div class="auth-brand-particles" id="particles"></div>
-      </div>
-    </div>
 
-    <!-- Form Panel -->
-    <div class="auth-form-panel">
-      <div class="auth-form-wrap" id="authFormWrap">
-        <div class="auth-step-emoji">✨</div>
-        <h3 class="auth-form-title">Sign into your account</h3>
-        <p class="auth-form-sub">Enter your email and password below</p>
+        <!-- SLIDE 2 — Features -->
+        <div class="login-slide login-slide-2">
+          <div class="login-slide-orb"></div>
+          <div class="login-slide-content">
+            <div class="login-slide-eyebrow" style="margin-bottom:1.4rem">Your Account</div>
+            <div class="login-slide-features">
+              <div class="login-slide-feature">
+                <div class="login-feature-icon">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                  </svg>
+                </div>
+                <div class="login-feature-text">
+                  <h4>Your Wishlist</h4>
+                  <p>All your saved pieces, right where you left them.</p>
+                </div>
+              </div>
+              <div class="login-slide-feature">
+                <div class="login-feature-icon">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round">
+                    <rect x="1" y="3" width="15" height="13"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+                  </svg>
+                </div>
+                <div class="login-feature-text">
+                  <h4>Track Orders</h4>
+                  <p>Live updates from our hands to your door.</p>
+                </div>
+              </div>
+              <div class="login-slide-feature">
+                <div class="login-feature-icon">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round">
+                    <path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
+                  </svg>
+                </div>
+                <div class="login-feature-text">
+                  <h4>Exclusive Deals</h4>
+                  <p>Member-only discounts on new arrivals.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SLIDE 3 — Hijabi image + quote -->
+        <div class="login-slide login-slide-3">
+          <div class="login-slide-3-bg"></div>
+          <div class="login-slide-content">
+            <p class="login-slide-quote">"Modesty is not a limitation — it is a canvas."</p>
+            <span class="login-slide-quote-attr">The Dream Abaya &nbsp;·&nbsp; Est. 2024</span>
+          </div>
+        </div>
+
+      </div><!-- /#loginSlider -->
+
+      <!-- Dots — UPDATED: inside the card, no progress bar -->
+      <div class="login-slider-dots" id="loginDots">
+        <div class="login-dot active" onclick="goSlide(0)"></div>
+        <div class="login-dot" onclick="goSlide(1)"></div>
+        <div class="login-dot" onclick="goSlide(2)"></div>
+      </div>
+
+    </div><!-- /.login-left -->
+
+
+    <!-- ════════════════════════════════════════════════════════
+         RIGHT — SIGN IN FORM
+    ════════════════════════════════════════════════════════ -->
+    <div class="login-right">
+      <div id="loginParticles" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0"></div>
+
+      <div class="login-form-wrap">
+
+        <h2 class="login-heading">Sign into<br/><em>your account</em></h2>
+        <p class="login-sub">Enter your email and password below.</p>
+
+        <div class="login-form-header">
+          <div class="login-form-icon">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="7.5" cy="15.5" r="5.5"/>
+              <path d="M21 2l-9.6 9.6M15.5 7.5L18 10l3-3-2.5-2.5"/>
+            </svg>
+          </div>
+          <div class="login-icon-label">
+            <span class="login-icon-title">Welcome back</span>
+            <span class="login-icon-desc">Your palace awaits</span>
+          </div>
+        </div>
 
         <% if (error) { %>
-          <div class="auth-error" role="alert"><%= error %></div>
+          <div class="login-msg error"><%= error %></div>
+        <% } %>
+        <% if (locals.success) { %>
+          <div class="login-msg success"><%= success %></div>
         <% } %>
 
-        <form action="/login" method="POST" novalidate>
+        <form action="/login" method="POST" novalidate id="loginFormEl">
           <input type="hidden" name="redirect" value="<%= redirect %>"/>
-          <%- include('csrf-token') %>
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>"/>
 
-          <div class="auth-field">
+          <div class="login-field">
             <label for="loginEmail">Email Address</label>
-            <input
-              type="email" id="loginEmail" name="email"
-              class="auth-input" placeholder="your@email.com"
-              required autocomplete="username" inputmode="email"
-              maxlength="254"
-            />
+            <input type="email" id="loginEmail" name="email" class="login-input"
+              placeholder="your@email.com" required autocomplete="username"
+              inputmode="email" maxlength="254"/>
           </div>
 
-          <div class="auth-field">
+          <div class="login-field">
             <label for="loginPw">Password</label>
-            <div class="auth-input-wrap">
-              <input
-                type="password" id="loginPw" name="password"
-                class="auth-input" placeholder="Your password"
-                required autocomplete="current-password" data-lpignore="true" data-form-type="other"
-                maxlength="128"
-              />
-              <button type="button" class="auth-eye" onclick="togglePw('loginPw', this)" aria-label="Show password">👁</button>
+            <div class="pw-wrap">
+              <input type="password" id="loginPw" name="password" class="login-input"
+                placeholder="Your password" required autocomplete="current-password"
+                maxlength="128" style="padding-right:42px"/>
+              <button type="button" class="pw-eye" onclick="togglePw('loginPw')" aria-label="Show password">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
             </div>
           </div>
 
-          <button type="submit" class="btn-royal full-width">✦ Enter The Palace</button>
+          <a href="/forgot-password" class="login-forgot">Forgot password?</a>
+
+          <button type="submit" class="login-submit" id="loginSubmitBtn">
+            Enter The Palace
+          </button>
         </form>
-      </div>
 
-      <p class="auth-switch">New here? <a href="/register">Create your account →</a></p>
-    </div>
+        <div class="login-divider">or</div>
+        <p class="login-new">New here? <a href="/register">Create your account →</a></p>
 
-  </div>
-</main>
+      </div><!-- /.login-form-wrap -->
+    </div><!-- /.login-right -->
 
-<%- include('js-core') %>
-<%- include('toast') %>
-<!-- ── CORE (must load first) ── -->
+  </main>
 
-<script src="/js/core/toast.js"></script>
-<script src="/js/core/theme.js"></script>
+  <%- include('toast') %>
+  <%- include('js-core') %>
 
-<!-- ── NAV ── -->
-<script src="/js/nav/dropdown.js"></script>
-<script src="/js/nav/nav.js"></script>
+  <script>
+  // ── AUTO SLIDER — no progress bar ───────────────────────────
+  // UPDATED: Removed all progress bar logic entirely
+  let currentSlide = 0;
+  const TOTAL = 3;
+  const INTERVAL = 4500;
+  let slideTimer = null;
 
-
-
-<!-- ── CART ── -->
-<script src="/js/cart/cart-actions.js"></script>
-<script src="/js/cart/cart-drawer.js"></script>
-
-<!-- ── WISHLIST ── -->
-<script src="/js/wishlist/wishlist.js"></script>
-
-<!-- ── PROFILE ── -->
-<script src="/js/profile/profile.js"></script>
-
-<!-- ── UI ── -->
-<script src="/js/ui/lightbox.js"></script>
-<script src="/js/ui/search-suggestions.js"></script>
-<script src="/js/ui/forms.js"></script>
-
-<!-- ── BOOTSTRAPPER (must load last of core) ── -->
-<script src="/js/core/init.js"></script>
-
-<script>
-  function togglePw(id, btn) {
-    const inp = document.getElementById(id);
-    inp.type = inp.type === 'password' ? 'text' : 'password';
-    btn.textContent = inp.type === 'password' ? '👁' : '🙈';
-    btn.setAttribute('aria-label', inp.type === 'password' ? 'Show password' : 'Hide password');
+  function goSlide(index) {
+    currentSlide = index;
+    // GSAP slide: translate the track
+    gsap.to(document.getElementById('loginSlider'), {
+      x: -(index * 100) + '%',
+      duration: 0.7,
+      ease: 'power2.inOut'
+    });
+    // Update dots
+    document.querySelectorAll('.login-dot').forEach((d, i) => {
+      d.classList.toggle('active', i === index);
+    });
+    // Schedule next
+    clearTimeout(slideTimer);
+    slideTimer = setTimeout(() => goSlide((currentSlide + 1) % TOTAL), INTERVAL);
   }
-  
 
-  const panel = document.getElementById('particles');
-  if (panel) {
-    for (let i = 0; i < 10; i++) {
-      const p = document.createElement('div');
-      p.className = 'particle';
-      p.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*100}%;animation-delay:${Math.random()*4}s;animation-duration:${3+Math.random()*4}s`;
-      panel.appendChild(p);
+  // Start on load
+  document.addEventListener('DOMContentLoaded', () => {
+    slideTimer = setTimeout(() => goSlide(1), INTERVAL);
+
+    // Page entrance
+    gsap.from('.login-left',      { opacity: 0, x: -28, duration: 0.85, ease: 'power3.out', delay: 0.1 });
+    gsap.from('.login-form-wrap', { opacity: 0, x:  28, duration: 0.85, ease: 'power3.out', delay: 0.25 });
+
+    // Particles
+    const c = document.getElementById('loginParticles');
+    if (c) {
+      for (let i = 0; i < 14; i++) {
+        const p = document.createElement('div');
+        p.className = 'login-particle';
+        p.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${4+Math.random()*7}s;--dl:${Math.random()*6}s`;
+        c.appendChild(p);
+      }
     }
+  });
+
+  // ── Helpers ──────────────────────────────────────────────────
+  function togglePw(id) {
+    const inp = document.getElementById(id);
+    if (inp) inp.type = inp.type === 'password' ? 'text' : 'password';
   }
-</script>
+
+  document.getElementById('loginFormEl')?.addEventListener('submit', function() {
+    const btn = document.getElementById('loginSubmitBtn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Signing in…'; }
+  });
+  </script>
 </body>
 </html>
